@@ -6,7 +6,7 @@ If you discover a security issue in Photonic, please report it responsibly.
 
 **Do not open a public GitHub issue for security vulnerabilities.**
 
-Instead, email: **[ton-email]@gmail.com**
+Instead, email: **thephoenixfactory@outlook.com**
 
 Include:
 - Description of the vulnerability
