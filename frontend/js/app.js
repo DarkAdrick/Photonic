@@ -2103,6 +2103,85 @@
     const saved = localStorage.getItem("thumb-size");
     setThumbSize(saved ? +saved : thumbDefault);
 
+    // ── Layout Toggle (Grid / Masonry) ────────────────────────────────────
+
+    const btnLayoutGrid    = document.getElementById("btn-layout-grid");
+    const btnLayoutMasonry = document.getElementById("btn-layout-masonry");
+    let currentLayout = "grid";
+    let masonryResizeObs = null;
+
+    function layoutMasonry() {
+        if (currentLayout !== "masonry") return;
+        const cards = photoGrid.querySelectorAll(".photo-card, .country-card");
+        if (cards.length === 0) return;
+
+        const gap = 6;
+        const pad = 12;
+        const thumbPx = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--thumb-size")) || 150;
+        const contentWidth = photoGrid.clientWidth - pad * 2;
+        const cols = Math.max(1, Math.floor((contentWidth + gap) / (thumbPx + gap)));
+        const colWidth = (contentWidth - gap * (cols - 1)) / cols;
+        const colHeights = new Array(cols).fill(0);
+
+        for (const card of cards) {
+            card.style.width = colWidth + "px";
+            let shortest = 0;
+            for (let c = 1; c < cols; c++) {
+                if (colHeights[c] < colHeights[shortest]) shortest = c;
+            }
+            card.style.left = (pad + shortest * (colWidth + gap)) + "px";
+            card.style.top = (pad + colHeights[shortest]) + "px";
+            colHeights[shortest] += card.offsetHeight + gap;
+        }
+
+        const maxH = Math.max(...colHeights) + pad * 2;
+        photoGrid.style.height = maxH + "px";
+    }
+
+    function setLayout(mode) {
+        currentLayout = mode;
+        photoGrid.classList.toggle("masonry", mode === "masonry");
+        btnLayoutGrid.classList.toggle("active", mode === "grid");
+        btnLayoutMasonry.classList.toggle("active", mode === "masonry");
+        localStorage.setItem("layout-mode", mode);
+
+        if (mode === "masonry") {
+            photoGrid.style.height = "";
+            requestAnimationFrame(() => layoutMasonry());
+            if (!masonryResizeObs) {
+                masonryResizeObs = new ResizeObserver(() => layoutMasonry());
+                masonryResizeObs.observe(photoGrid);
+            }
+        } else {
+            photoGrid.style.height = "";
+            if (masonryResizeObs) { masonryResizeObs.disconnect(); masonryResizeObs = null; }
+            const cards = photoGrid.querySelectorAll(".photo-card, .country-card");
+            for (const card of cards) {
+                card.style.position = "";
+                card.style.left = "";
+                card.style.top = "";
+                card.style.width = "";
+            }
+        }
+    }
+
+    const _origLoadPhotos = loadPhotos;
+    const _origClearGrid = clearGrid;
+    clearGrid = function() {
+        _origClearGrid();
+        photoGrid.style.height = "";
+    };
+
+    btnLayoutGrid.addEventListener("click", () => setLayout("grid"));
+    btnLayoutMasonry.addEventListener("click", () => setLayout("masonry"));
+
+    photoGrid.addEventListener("load", (e) => {
+        if (currentLayout === "masonry" && e.target.tagName === "IMG") layoutMasonry();
+    }, true);
+
+    const savedLayout = localStorage.getItem("layout-mode") || "grid";
+    setLayout(savedLayout);
+
     // ── Settings Dialog ───────────────────────────────────────────────────
 
     const settingsDialog    = document.getElementById("settings-dialog");
@@ -2226,9 +2305,16 @@
 
     const changelogDialog = document.getElementById("changelog-dialog");
     const changelogClose  = document.getElementById("changelog-close");
+    const changelogBody   = document.getElementById("changelog-body");
     const versionBadge    = document.getElementById("version-badge");
 
-    versionBadge.addEventListener("click", () => {
+    async function loadChangelog() {
+        const data = await api("GET", "/api/changelog");
+        if (data.html) changelogBody.innerHTML = data.html;
+    }
+
+    versionBadge.addEventListener("click", async () => {
+        await loadChangelog();
         changelogDialog.classList.remove("hidden");
         lucide.createIcons();
     });

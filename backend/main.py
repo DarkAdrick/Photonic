@@ -1146,22 +1146,27 @@ def _md_to_changelog_html(md: str) -> str:
     lines = md.strip().split("\n")
     html_parts = []
     in_list = False
+    versions = []
+    current = None
+
     for line in lines:
         stripped = line.rstrip()
         if stripped.startswith("## "):
             if in_list:
-                html_parts.append("</ul>")
+                current["content"].append("</ul>")
                 in_list = False
+            if current:
+                versions.append(current)
             title = stripped[3:]
-            html_parts.append(f'<div class="cl-version"><h4>{title}</h4>')
+            current = {"title": title, "content": []}
         elif stripped.startswith("### "):
             if in_list:
-                html_parts.append("</ul>")
+                current["content"].append("</ul>")
                 in_list = False
-            html_parts.append(f'<h5>{stripped[4:]}</h5>')
+            current["content"].append(f'<h5>{stripped[4:]}</h5>')
         elif stripped.startswith("- "):
             if not in_list:
-                html_parts.append("<ul>")
+                current["content"].append("<ul>")
                 in_list = True
             content = stripped[2:]
             content = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', content)
@@ -1171,14 +1176,32 @@ def _md_to_changelog_html(md: str) -> str:
                 text = chip_match.group(2)
                 css_class = _CHIP_MAP.get(tag, "chip-default")
                 content = f'<span class="cl-chip {css_class}">{tag}</span> {text}'
-            html_parts.append(f"<li>{content}</li>")
+            current["content"].append(f"<li>{content}</li>")
         else:
             if in_list:
-                html_parts.append("</ul>")
+                current["content"].append("</ul>")
                 in_list = False
-    if in_list:
-        html_parts.append("</ul>")
-    html_parts.append("</div>")
+    if in_list and current:
+        current["content"].append("</ul>")
+    if current:
+        versions.append(current)
+
+    for i, v in enumerate(versions):
+        open_attr = " open" if i == 0 else ""
+        title_text = v["title"]
+        # Split name from date: "v0.1.1 — β — 19 August 2026" → name + date
+        parts = title_text.rsplit(" — ", 1)
+        if len(parts) == 2:
+            name_html = f'{parts[0]} <span class="cl-version-date">{parts[1]}</span>'
+        else:
+            name_html = title_text
+        chevron = '<svg class="cl-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>'
+        html_parts.append(f'<details class="cl-version"{open_attr}>')
+        html_parts.append(f'<summary>{chevron}<span class="cl-version-title">{name_html}</span></summary>')
+        html_parts.append('<div class="cl-version-body">')
+        html_parts.extend(v["content"])
+        html_parts.append('</div></details>')
+
     return "\n".join(html_parts)
 
 

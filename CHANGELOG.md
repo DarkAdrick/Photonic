@@ -1,6 +1,21 @@
 # Changelog
 
-## v0.1.0 — β — 19 August 2026
+## v0.1.1 — 19 August 2026
+
+### Photo Grid
+- [ADD] Masonry layout mode (Pinterest-style waterfall)
+- [ADD] Layout toggle button (Grid / Masonry)
+
+### UI
+- [ADD] Donate button in sidebar (→ GitHub Sponsors)
+- [ADD] Version badge with animated gradient + wobble
+- [ADD] Changelog modal with project hero
+- [FIX] Version badge gradient too dark, now colorful and visible
+- [FIX] Header height increased, logo and text scaled up
+- [EDIT] Changelog refactored as separate file (CHANGELOG.md)
+- [EDIT] Footer reordered: layout toggle left, zoom slider right
+
+## v0.1.0 — 19 August 2026
 
 ### Photo Library
 - [ADD] Recursive folder scanning (background thread, async)

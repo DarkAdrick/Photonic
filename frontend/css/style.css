@@ -53,7 +53,7 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 0 16px;
+    padding: 6px 20px;
     background: linear-gradient(90deg, #0A0D3A 0%, #0F1248 40%, #141854 100%);
     border-bottom: 1px solid var(--border);
 }
@@ -72,15 +72,15 @@ body {
 }
 
 .logo-icon {
-    height: 20px;
-    width: 20px;
+    height: 32px;
+    width: 32px;
     object-fit: contain;
 }
 
 .logo {
     font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 3px;
+    font-size: 18px;
+    letter-spacing: 4px;
     background: linear-gradient(135deg, #32A0C5, #9C2AB3);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -1133,6 +1133,67 @@ body {
     cursor: pointer;
 }
 
+/* ── Layout Toggle ──────────────────────────────────────────────────────── */
+
+#layout-toggle {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+    margin-left: auto;
+    margin-right: 8px;
+    padding-right: 8px;
+    border-right: 1px solid var(--border);
+}
+
+.layout-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    width: 28px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.layout-btn svg { width: 14px; height: 14px; }
+
+.layout-btn:hover { color: var(--text-primary); border-color: var(--border); }
+
+.layout-btn.active {
+    color: var(--accent);
+    background: rgba(50,160,197,0.1);
+    border-color: rgba(50,160,197,0.3);
+}
+
+/* ── Masonry Mode ──────────────────────────────────────────────────────── */
+
+#photo-grid.masonry {
+    display: block !important;
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px;
+}
+
+#photo-grid.masonry .photo-card,
+#photo-grid.masonry .country-card {
+    position: absolute;
+    aspect-ratio: auto;
+    transition: left 0.3s ease, top 0.3s ease;
+}
+
+#photo-grid.masonry .photo-card img {
+    position: relative;
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+}
+
 /* ── Photo Detail ────────────────────────────────────────────────────────── */
 
 .detail-overlay {
@@ -1660,17 +1721,31 @@ body {
 /* ── Version Badge ──────────────────────────────────────────────────────── */
 
 .version-badge {
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    background: rgba(50, 160, 197, 0.12);
-    border: 1px solid rgba(50, 160, 197, 0.3);
-    color: var(--accent);
+    font-size: 12px;
+    padding: 3px 12px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #32A0C5, #6C3DB4, #9C2AB3, #E84393, #32A0C5, #6C3DB4, #9C2AB3);
+    background-size: 300% 100%;
+    animation: badgeSlide 3s linear infinite, badgeWobble 3s ease-in-out infinite;
+    border: 1px solid rgba(156, 42, 179, 0.5);
+    color: #fff;
     cursor: pointer;
     user-select: none;
     transition: all 0.15s;
     letter-spacing: 0.5px;
     white-space: nowrap;
+    text-shadow: 0 0 6px rgba(50, 160, 197, 0.8);
+}
+
+@keyframes badgeSlide {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes badgeWobble {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(2deg); }
+    75% { transform: rotate(-2deg); }
 }
 
 .version-badge:hover {
@@ -1803,16 +1878,74 @@ body {
 .chip-remove { background: rgba(155,89,182,0.15); color: #9b59b6; border: 1px solid rgba(155,89,182,0.3); }
 .chip-default{ background: rgba(149,165,166,0.15);color: #95a5a6; border: 1px solid rgba(149,165,166,0.3); }
 
-.cl-version h4 {
+.cl-version {
+    border-bottom: 1px solid rgba(50,160,197,0.15);
+    background: rgba(50,160,197,0.04);
+    border-radius: 6px;
+    margin-bottom: 4px;
+}
+
+.cl-version:last-child {
+    border-bottom: none;
+}
+
+.cl-version summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 10px 12px;
     font-size: 16px;
     font-weight: 700;
     color: var(--accent);
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid rgba(50,160,197,0.25);
     display: flex;
     align-items: center;
     gap: 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+    user-select: none;
+}
+
+.cl-version summary::-webkit-details-marker {
+    display: none;
+}
+
+.cl-version summary .cl-chevron {
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+
+.cl-version[open] summary .cl-chevron {
+    transform: rotate(90deg);
+}
+
+.cl-version summary:hover {
+    background: rgba(50,160,197,0.08);
+}
+
+.cl-version-title {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #5bc0eb, #9C2AB3, #e84393);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+
+.cl-version-date {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    letter-spacing: 0;
+}
+
+.cl-version-body {
+    padding: 4px 12px 12px 28px;
+    background: rgba(0,0,0,0.15);
+    border-radius: 0 0 6px 6px;
+    margin-top: -2px;
 }
 
 .cl-version h5 {
@@ -1828,22 +1961,7 @@ body {
     border-radius: 0 4px 4px 0;
 }
 
-.changelog-beta {
-    font-size: 11px;
-    padding: 1px 6px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #9C2AB3, #E8C626);
-    color: #fff;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
-
-.changelog-date {
-    font-size: 11px;
-    color: var(--text-secondary);
-    font-weight: 400;
-    margin-left: auto;
-}
+/* ── Changelog Version Sections ──────────────────────────────────────────── */
 
 .cl-version ul {
     list-style: none;
