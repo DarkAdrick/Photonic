@@ -1680,12 +1680,20 @@ body {
 
 /* ── Changelog Modal ────────────────────────────────────────────────────── */
 
+#changelog-dialog {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
 .changelog-box {
     min-width: 500px;
     max-width: 600px;
     max-height: 75vh;
     display: flex;
     flex-direction: column;
+    border-color: rgba(50, 160, 197, 0.2);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
 }
 
 .changelog-header {
@@ -1705,7 +1713,98 @@ body {
     padding-right: 4px;
 }
 
-.changelog-version h4 {
+/* ── Changelog project header ──────────────────────────────────────────── */
+
+.cl-hero {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    margin: -20px -20px 16px;
+    background: linear-gradient(135deg, rgba(50,160,197,0.08) 0%, rgba(156,42,179,0.08) 100%);
+    border-bottom: 1px solid var(--border);
+    border-radius: 6px 6px 0 0;
+}
+
+.cl-hero-logo {
+    height: 48px;
+    width: 48px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.cl-hero-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.cl-hero-text h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.cl-hero-text h4 span {
+    background: linear-gradient(135deg, #32A0C5, #9C2AB3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.cl-hero-text p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+.cl-hero-donate {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    background: linear-gradient(135deg, #e84393, #fd79a8);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+.cl-hero-donate:hover {
+    filter: brightness(1.15);
+    transform: scale(1.03);
+}
+
+.cl-hero-donate svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ── Changelog chips ──────────────────────────────────────────────────── */
+
+.cl-chip {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+.chip-add    { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); }
+.chip-fix    { background: rgba(231,76,60,0.15);  color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+.chip-edit   { background: rgba(52,152,219,0.15); color: #3498db; border: 1px solid rgba(52,152,219,0.3); }
+.chip-remove { background: rgba(155,89,182,0.15); color: #9b59b6; border: 1px solid rgba(155,89,182,0.3); }
+.chip-default{ background: rgba(149,165,166,0.15);color: #95a5a6; border: 1px solid rgba(149,165,166,0.3); }
+
+.cl-version h4 {
     font-size: 15px;
     font-weight: 600;
     color: var(--accent);
@@ -1713,6 +1812,15 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.cl-version h5 {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    margin: 12px 0 6px;
 }
 
 .changelog-beta {
@@ -1732,12 +1840,12 @@ body {
     margin-left: auto;
 }
 
-.changelog-version ul {
+.cl-version ul {
     list-style: none;
     padding: 0;
 }
 
-.changelog-version li {
+.cl-version li {
     padding: 5px 0;
     font-size: 13px;
     color: var(--text-secondary);
@@ -1745,11 +1853,11 @@ body {
     border-bottom: 1px solid rgba(255,255,255,0.04);
 }
 
-.changelog-version li:last-child {
+.cl-version li:last-child {
     border-bottom: none;
 }
 
-.changelog-version li b {
+.cl-version li b {
     color: var(--text-primary);
     font-weight: 500;
 }

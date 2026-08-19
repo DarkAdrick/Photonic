@@ -1,4 +1,5 @@
 import sqlite3
+import re
 import shutil
 import threading
 from pathlib import Path
@@ -6,7 +7,7 @@ from typing import Optional
 
 from fastapi import FastAPI, Query
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, Response, StreamingResponse
+from fastapi.responses import FileResponse, Response, StreamingResponse, HTMLResponse
 
 from backend.database import init_db, get_connection
 from backend.paths import APP_DIR, DB_PATH, FRONTEND_DIR
@@ -1127,6 +1128,66 @@ def get_stats():
         "countries": countries,
         "video_count": video_count,
     }
+
+
+# ── Changelog ────────────────────────────────────────────────────────────────
+
+CHANGELOG_PATH = APP_DIR / "CHANGELOG.md"
+
+_CHIP_MAP = {
+    "ADD":    "chip-add",
+    "FIX":    "chip-fix",
+    "EDIT":   "chip-edit",
+    "REMOVE": "chip-remove",
+}
+
+
+def _md_to_changelog_html(md: str) -> str:
+    lines = md.strip().split("\n")
+    html_parts = []
+    in_list = False
+    for line in lines:
+        stripped = line.rstrip()
+        if stripped.startswith("## "):
+            if in_list:
+                html_parts.append("</ul>")
+                in_list = False
+            title = stripped[3:]
+            html_parts.append(f'<div class="cl-version"><h4>{title}</h4>')
+        elif stripped.startswith("### "):
+            if in_list:
+                html_parts.append("</ul>")
+                in_list = False
+            html_parts.append(f'<h5>{stripped[4:]}</h5>')
+        elif stripped.startswith("- "):
+            if not in_list:
+                html_parts.append("<ul>")
+                in_list = True
+            content = stripped[2:]
+            content = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', content)
+            chip_match = re.match(r'\[(\w+)\]\s*(.*)', content)
+            if chip_match:
+                tag = chip_match.group(1).upper()
+                text = chip_match.group(2)
+                css_class = _CHIP_MAP.get(tag, "chip-default")
+                content = f'<span class="cl-chip {css_class}">{tag}</span> {text}'
+            html_parts.append(f"<li>{content}</li>")
+        else:
+            if in_list:
+                html_parts.append("</ul>")
+                in_list = False
+    if in_list:
+        html_parts.append("</ul>")
+    html_parts.append("</div>")
+    return "\n".join(html_parts)
+
+
+@app.get("/api/changelog")
+def get_changelog():
+    if not CHANGELOG_PATH.exists():
+        return {"html": "<p>No changelog available.</p>"}
+    md = CHANGELOG_PATH.read_text(encoding="utf-8")
+    return {"html": _md_to_changelog_html(md)}
 
 
 # ── Static files & SPA fallback ──────────────────────────────────────────────
