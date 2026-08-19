@@ -1,0 +1,114 @@
+/* ── Filter Drawer ──────────────────────────────────────────────────────── */
+
+#filter-drawer {
+    grid-area: drawer;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 16px;
+    overflow-x: auto;
+}
+
+.filter-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.filter-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 110px;
+}
+
+.filter-chip label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-secondary);
+}
+
+.filter-chip select,
+.filter-chip input[type="date"] {
+    padding: 5px 8px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.filter-chip select:focus,
+.filter-chip input[type="date"]:focus {
+    border-color: var(--accent);
+}
+
+.filter-chip-distance {
+    min-width: 220px;
+}
+
+.distance-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.distance-inputs select {
+    padding: 5px 8px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 12px;
+    outline: none;
+}
+
+.distance-radius {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.distance-radius input[type="range"] {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+}
+
+.distance-radius input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #32A0C5, #9C2AB3);
+    cursor: pointer;
+}
+
+#filter-distance-val {
+    font-size: 11px;
+    color: var(--text-secondary);
+    min-width: 42px;
+    text-align: right;
+}
+
+.filter-clear-btn {
+    padding: 5px 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    align-self: flex-end;
+}
+
+.filter-clear-btn:hover {
+    color: #e74c3c;
+    border-color: #e74c3c;
+}

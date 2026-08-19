@@ -1,0 +1,76 @@
+/* ── Stats ──────────────────────────────────────────────────────────────── */
+
+#stats-view {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.stats-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stats-charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: 300px;
+    gap: 16px;
+}
+
+.stats-chart-box {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    position: relative;
+    height: 300px;
+    overflow: hidden;
+}
+
+.stats-chart-box h4 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.stats-chart-wide {
+    grid-column: 1 / -1;
+}
+
+.stats-chart-box canvas {
+    position: absolute;
+    top: 44px;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+}

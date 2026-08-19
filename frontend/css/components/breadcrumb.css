@@ -1,0 +1,13 @@
+/* ── Breadcrumb ─────────────────────────────────────────────────────────── */
+
+.bc-item { color: var(--text-secondary); }
+.bc-link {
+    cursor: pointer;
+    background: linear-gradient(135deg, #32A0C5, #25A7D8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.bc-link:hover { text-decoration: underline; }
+.bc-current { color: var(--text-primary); font-weight: 500; }
+.bc-sep { color: var(--text-secondary); font-size: 11px; }

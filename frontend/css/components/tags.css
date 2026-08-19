@@ -1,0 +1,20 @@
+/* ── Tags ──────────────────────────────────────────────────────────────── */
+
+.tag-item {
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 3px;
+    margin: 0 4px;
+}
+.tag-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.tag-item.active { color: var(--accent); font-weight: 600; }
+.tag-count { font-size: 11px; color: var(--text-secondary); background: var(--bg-tertiary); padding: 1px 6px; border-radius: 8px; margin-left: auto; flex-shrink: 0; }
+.tag-empty { padding: 12px; font-size: 12px; color: var(--text-secondary); text-align: center; }
+.tag-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+.tag-add { cursor: pointer; opacity: 0.6; }
+.tag-add:hover { opacity: 1; background: var(--accent); color: #fff; border-color: var(--accent); }

@@ -1,0 +1,108 @@
+/* ── Base ──────────────────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-primary:    #0A0D3A;
+    --bg-secondary:  #0F1248;
+    --bg-tertiary:   #181C58;
+    --border:        #2A2E68;
+    --text-primary:  #E6E6F0;
+    --text-secondary:#8488A8;
+    --accent:        #32A0C5;
+    --accent-hover:  #44B8DA;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    scrollbar-width: thin;
+    scrollbar-color: #2A2E68 transparent;
+}
+
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: #2A2E68; border-radius: 4px; }
+*::-webkit-scrollbar-thumb:hover { background: #3A3E78; }
+*::-webkit-scrollbar-corner { background: transparent; }
+
+body {
+    display: grid;
+    grid-template-rows: 50px auto 1fr 24px;
+    grid-template-columns: 200px 1fr;
+    grid-template-areas:
+        "header  header"
+        "drawer  drawer"
+        "sidebar main"
+        "status  status";
+}
+
+.hidden { display: none !important; }
+
+/* ── Buttons (shared) ─────────────────────────────────────────────────── */
+
+.header-btn {
+    padding: 5px 14px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.header-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.header-btn:hover,
+.header-btn.active {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.sidebar-btn {
+    width: 100%;
+    padding: 6px 0;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.sidebar-btn svg { width: 14px; height: 14px; }
+
+.sidebar-btn:hover:not(:disabled) { color: var(--text-primary); border-color: var(--accent); }
+.sidebar-btn:disabled { opacity: 0.3; cursor: default; }
+
+.donate-btn {
+    text-decoration: none;
+    border: 1px solid #e84393;
+    color: #e84393;
+}
+
+.donate-btn:hover {
+    color: #fff !important;
+    background: #e84393;
+    border-color: #e84393;
+}

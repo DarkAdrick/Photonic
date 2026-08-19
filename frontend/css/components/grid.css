@@ -1,0 +1,218 @@
+/* ── Main ────────────────────────────────────────────────────────────────── */
+
+#main {
+    grid-area: main;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#empty-state {
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+#empty-state h2 {
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+#empty-state p { margin-bottom: 20px; }
+
+#btn-add-folder {
+    padding: 8px 20px;
+    background: linear-gradient(135deg, #32A0C5, #9C2AB3);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+#btn-add-folder:hover { filter: brightness(1.15); }
+
+/* ── Photo Grid ──────────────────────────────────────────────────────────── */
+
+#photo-grid {
+    width: 100%;
+    height: 100%;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--thumb-size, 150px), 1fr));
+    grid-auto-rows: min-content;
+    gap: 6px;
+    align-content: start;
+    align-items: start;
+    overflow-y: auto;
+    transition: transform 0.2s cubic-bezier(.4,0,.2,1);
+    transform-origin: center top;
+    background: linear-gradient(135deg, #060818 0%, #0a0a2e 30%, #0d1033 50%, #120a30 70%, #060818 100%);
+}
+
+#photo-grid.zoom-pulse {
+    animation: zoomPulse 0.3s cubic-bezier(.4,0,.2,1);
+}
+
+@keyframes zoomPulse {
+    0%   { transform: scale(0.97); opacity: 0.85; }
+    50%  { transform: scale(1.005); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.photo-card {
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    animation: cardPop 0.25s cubic-bezier(.4,0,.2,1);
+}
+
+@keyframes cardPop {
+    0%   { opacity: 0; transform: scale(0.92); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.photo-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    z-index: 1;
+}
+
+.photo-card img {
+    transition: filter 0.3s ease;
+}
+
+#photo-grid.has-selection .photo-card:not(.selected) img {
+    transition: filter 0.2s ease;
+}
+
+.photo-card img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.photo-card .photo-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 3px 6px;
+    background: rgba(0,0,0,0.6);
+    font-size: 10px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Layout Toggle ──────────────────────────────────────────────────────── */
+
+#layout-toggle {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+    margin-left: auto;
+    margin-right: 8px;
+    padding-right: 8px;
+    border-right: 1px solid var(--border);
+}
+
+.layout-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    width: 28px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.layout-btn svg { width: 14px; height: 14px; }
+
+.layout-btn:hover { color: var(--text-primary); border-color: var(--border); }
+
+.layout-btn.active {
+    color: var(--accent);
+    background: rgba(50,160,197,0.1);
+    border-color: rgba(50,160,197,0.3);
+}
+
+/* ── Masonry Mode ──────────────────────────────────────────────────────── */
+
+#photo-grid.masonry {
+    display: block !important;
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px;
+}
+
+#photo-grid.masonry .photo-card,
+#photo-grid.masonry .country-card {
+    position: absolute;
+    aspect-ratio: auto;
+    transition: left 0.3s ease, top 0.3s ease;
+}
+
+#photo-grid.masonry .photo-card img {
+    position: relative;
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+}
+
+/* ── Selection ────────────────────────────────────────────────────────────── */
+
+#photo-grid.has-selection .photo-card:not(.selected):not(.drag-highlight):not(.drag-highlight-deselect) {
+    filter: brightness(0.5);
+}
+
+.photo-card.selected {
+    outline: 3px solid #32A0C5;
+    outline-offset: -1px;
+}
+
+.photo-card.selected::after {
+    content: "\2713";
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    background: #32A0C5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #fff;
+    font-weight: bold;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.photo-card.drag-highlight {
+    outline: 3px dashed #32A0C5;
+    outline-offset: -1px;
+}
+
+.photo-card.drag-highlight-deselect {
+    outline: 3px dashed #e74c3c;
+    outline-offset: -1px;
+    opacity: 0.6;
+}

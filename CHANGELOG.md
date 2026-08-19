@@ -14,6 +14,8 @@
 - [FIX] Header height increased, logo and text scaled up
 - [EDIT] Changelog refactored as separate file (CHANGELOG.md)
 - [EDIT] Footer reordered: layout toggle left, zoom slider right
+- [EDIT] CSS split into 15 component files (components/)
+- [REMOVE] Herobrine
 
 ## v0.1.0 — 19 August 2026
 

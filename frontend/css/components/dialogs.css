@@ -1,0 +1,512 @@
+/* ── Dialog ──────────────────────────────────────────────────────────────── */
+
+.dialog-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+}
+
+.dialog {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+    min-width: 380px;
+}
+
+.dialog h3 {
+    margin-bottom: 12px;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.dialog input[type="text"] {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 13px;
+    outline: none;
+    margin-bottom: 16px;
+}
+
+.dialog input[type="text"]:focus { border-color: var(--accent); }
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.dialog-actions button {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+#btn-dialog-cancel {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+}
+
+#btn-dialog-ok {
+    background: linear-gradient(135deg, #32A0C5, #9C2AB3);
+    color: #fff;
+}
+
+#btn-dialog-ok:hover { filter: brightness(1.15); }
+
+/* ── Tag Dialog ─────────────────────────────────────────────────────────── */
+
+.tag-dialog-box { min-width: 420px; }
+
+.tag-color-section { margin-bottom: 12px; }
+.tag-color-section label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+
+.tag-color-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.tag-color-swatch {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.15s;
+}
+.tag-color-swatch:hover { transform: scale(1.15); }
+.tag-color-swatch.active { border-color: #fff; transform: scale(1.15); }
+
+#tag-color-picker {
+    width: 40px; height: 28px;
+    border: 1px solid var(--border); border-radius: 4px;
+    cursor: pointer; background: transparent;
+    padding: 2px;
+}
+
+.tag-existing-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.tag-existing-item {
+    padding: 3px 10px;
+    cursor: pointer;
+    font-size: 11px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    font-weight: 500;
+    background: color-mix(in srgb, var(--tag-color) 13.3%, transparent);
+    border: 1px solid var(--tag-color);
+    color: var(--tag-color);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+.tag-existing-item:hover { transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+/* ── Confirm Dialog ─────────────────────────────────────────────────────── */
+
+.confirm-box {
+    max-width: 380px;
+    text-align: center;
+}
+
+.confirm-box h3 {
+    margin: 0 0 8px;
+    color: #e74c3c;
+}
+
+.confirm-box p {
+    margin: 0 0 16px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.confirm-box .dialog-actions {
+    justify-content: center;
+    gap: 8px;
+}
+
+.danger-btn {
+    background: #e74c3c;
+    color: #fff;
+    border: none;
+    padding: 6px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.danger-btn:hover {
+    background: #c0392b;
+}
+
+/* ── Settings Dialog ────────────────────────────────────────────────────── */
+
+.settings-dialog-box {
+    min-width: 440px;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.settings-tab {
+    flex: 1;
+    padding: 8px 0;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.settings-tab:hover { color: var(--text-primary); }
+
+.settings-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+.settings-panel {
+    overflow-y: auto;
+    max-height: 50vh;
+    margin-bottom: 10px;
+}
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: 4px;
+    transition: background 0.1s;
+}
+
+.settings-row:hover { background: var(--bg-tertiary); }
+
+.settings-row .tag-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.settings-row input[type="color"] {
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 4px;
+    padding: 0;
+    cursor: pointer;
+    background: none;
+}
+
+.settings-row input[type="text"] {
+    flex: 1;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: var(--text-primary);
+    font-size: 13px;
+    outline: none;
+}
+
+.settings-row input[type="text"]:focus { border-color: var(--accent); }
+
+.settings-row .settings-row-delete {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.settings-row .settings-row-delete:hover { color: #e74c3c; }
+
+.settings-row .settings-row-delete svg { width: 14px; height: 14px; }
+
+.settings-folder-path {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.settings-empty {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+/* ── Changelog Modal ────────────────────────────────────────────────────── */
+
+#changelog-dialog {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.changelog-box {
+    min-width: 500px;
+    max-width: 600px;
+    max-height: 75vh;
+    display: flex;
+    flex-direction: column;
+    border-color: rgba(50, 160, 197, 0.2);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+}
+
+.changelog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.changelog-header h3 {
+    margin: 0;
+}
+
+.changelog-content {
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 4px;
+}
+
+/* ── Changelog project header ──────────────────────────────────────────── */
+
+.cl-hero {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, rgba(50,160,197,0.08) 0%, rgba(156,42,179,0.08) 100%);
+    border-bottom: 1px solid var(--border);
+}
+
+.cl-hero-logo {
+    height: 48px;
+    width: 48px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.cl-hero-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.cl-hero-text h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.cl-hero-text h4 span {
+    background: linear-gradient(135deg, #32A0C5, #9C2AB3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.cl-hero-text p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+.cl-hero-donate {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    background: linear-gradient(135deg, #e84393, #fd79a8);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+.cl-hero-donate:hover {
+    filter: brightness(1.15);
+    transform: scale(1.03);
+}
+
+.cl-hero-donate svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ── Changelog chips ──────────────────────────────────────────────────── */
+
+.cl-chip {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+.chip-add    { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); }
+.chip-fix    { background: rgba(231,76,60,0.15);  color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+.chip-edit   { background: rgba(52,152,219,0.15); color: #3498db; border: 1px solid rgba(52,152,219,0.3); }
+.chip-remove { background: rgba(155,89,182,0.15); color: #9b59b6; border: 1px solid rgba(155,89,182,0.3); }
+.chip-default{ background: rgba(149,165,166,0.15);color: #95a5a6; border: 1px solid rgba(149,165,166,0.3); }
+
+/* ── Changelog Version Sections ──────────────────────────────────────────── */
+
+.cl-version {
+    border-bottom: 1px solid rgba(50,160,197,0.15);
+    background: rgba(50,160,197,0.04);
+    border-radius: 6px;
+    margin-bottom: 4px;
+}
+
+.cl-version:last-child {
+    border-bottom: none;
+}
+
+.cl-version summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 10px 12px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+    user-select: none;
+}
+
+.cl-version summary::-webkit-details-marker {
+    display: none;
+}
+
+.cl-version summary .cl-chevron {
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+
+.cl-version[open] summary .cl-chevron {
+    transform: rotate(90deg);
+}
+
+.cl-version summary:hover {
+    background: rgba(50,160,197,0.08);
+}
+
+.cl-version-title {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #5bc0eb, #9C2AB3, #e84393);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.cl-version-date {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    letter-spacing: 0;
+}
+
+.cl-version-body {
+    padding: 4px 12px 12px 28px;
+    background: rgba(0,0,0,0.15);
+    border-radius: 0 0 6px 6px;
+    margin-top: -2px;
+}
+
+.cl-version h5 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--accent);
+    margin: 16px 0 8px;
+    padding: 6px 10px;
+    background: linear-gradient(90deg, rgba(50,160,197,0.1) 0%, transparent 100%);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+}
+
+.cl-version ul {
+    list-style: none;
+    padding: 0;
+}
+
+.cl-version li {
+    padding: 6px 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    border-radius: 4px;
+    transition: background 0.1s;
+}
+
+.cl-version li:nth-child(odd) {
+    background: rgba(255,255,255,0.02);
+}
+
+.cl-version li:hover {
+    background: rgba(50,160,197,0.06);
+}
+
+.cl-version li:last-child {
+    border-bottom: none;
+}
+
+.cl-version li b {
+    color: var(--text-primary);
+    font-weight: 500;
+}
