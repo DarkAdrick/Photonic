@@ -388,6 +388,18 @@ body {
 .sidebar-btn:hover:not(:disabled) { color: var(--text-primary); border-color: var(--accent); }
 .sidebar-btn:disabled { opacity: 0.3; cursor: default; }
 
+.donate-btn {
+    text-decoration: none;
+    border: 1px solid #e84393;
+    color: #e84393;
+}
+
+.donate-btn:hover {
+    color: #fff !important;
+    background: #e84393;
+    border-color: #e84393;
+}
+
 /* ── Tags ──────────────────────────────────────────────────────────────── */
 
 .tag-item {
