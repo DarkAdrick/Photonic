@@ -14,7 +14,7 @@
 .country-card:hover {
     box-shadow: 0 0 0 2px transparent;
     background-image: linear-gradient(var(--bg-tertiary), var(--bg-tertiary)),
-                      linear-gradient(135deg, #32A0C5, #9C2AB3, #E8C626);
+                      linear-gradient(135deg, var(--photonic-1), var(--photonic-2), var(--photonic-3));
     background-origin: border-box;
     background-clip: padding-box, border-box;
 }

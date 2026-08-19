@@ -34,7 +34,7 @@
     font-weight: 700;
     font-size: 20px;
     letter-spacing: 1px;
-    background: linear-gradient(135deg, #32A0C5, #9C2AB3);
+    background: var(--photonic-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -76,10 +76,10 @@
     font-size: 12px;
     padding: 3px 12px;
     border-radius: 12px;
-    background: linear-gradient(90deg, #32A0C5, #6C3DB4, #9C2AB3, #E84393, #32A0C5, #6C3DB4, #9C2AB3);
+    background: var(--photonic-gradient-h);
     background-size: 300% 100%;
     animation: badgeSlide 3s linear infinite, badgeWobble 3s ease-in-out infinite;
-    border: 1px solid rgba(156, 42, 179, 0.5);
+    border: 1px solid rgba(221, 118, 214, 0.5);
     color: #fff;
     cursor: pointer;
     user-select: none;

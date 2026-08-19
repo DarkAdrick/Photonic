@@ -9,6 +9,7 @@
     z-index: 1000;
     display: flex;
     align-items: stretch;
+    animation: overlayFadeIn 0.3s ease;
 }
 
 .detail-close-btn {
@@ -261,5 +262,5 @@
 }
 
 .star { cursor: pointer; font-size: 18px; color: var(--text-secondary); }
-.star.filled { color: #E8C626; }
-.star:hover { color: #E8C626; }
+.star.filled { color: var(--photonic-3); }
+.star:hover { color: var(--photonic-3); }

@@ -16,6 +16,8 @@
 - [EDIT] Changelog refactored as separate file (CHANGELOG.md)
 - [EDIT] Footer reordered: layout toggle left, zoom slider right
 - [EDIT] CSS split into 15 component files (components/)
+- [EDIT] Photonic gradient palette standardized with CSS variables
+- [EDIT] Filter drawer and photo grid use darker gradient
 - [REMOVE] Herobrine
 
 ## v0.1.0 — 19 August 2026

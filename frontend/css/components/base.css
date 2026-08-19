@@ -13,8 +13,39 @@
     --border:        #2A2E68;
     --text-primary:  #E6E6F0;
     --text-secondary:#8488A8;
-    --accent:        #32A0C5;
-    --accent-hover:  #44B8DA;
+    --accent:        #28A8D8;
+    --accent-hover:  #186685;
+
+    /* Photonic palette */
+    --photonic-1: #DD76D6;
+    --photonic-2: #FAAF7F;
+    --photonic-3: #F6E386;
+    --photonic-4: #7CE09E;
+    --photonic-5: #28A8D8;
+
+    /* Gradient variants */
+    --photonic-gradient: linear-gradient(135deg, var(--photonic-1), var(--photonic-2), var(--photonic-3), var(--photonic-4), var(--photonic-5));
+    --photonic-gradient-dark: linear-gradient(135deg,
+        color-mix(in srgb, var(--photonic-1) 30%, #000),
+        color-mix(in srgb, var(--photonic-2) 30%, #000),
+        color-mix(in srgb, var(--photonic-3) 30%, #000),
+        color-mix(in srgb, var(--photonic-4) 30%, #000),
+        color-mix(in srgb, var(--photonic-5) 30%, #000));
+    --photonic-gradient-darker: linear-gradient(135deg,
+        color-mix(in srgb, var(--photonic-1) 10%, #000),
+        color-mix(in srgb, var(--photonic-2) 10%, #000),
+        color-mix(in srgb, var(--photonic-3) 10%, #000),
+        color-mix(in srgb, var(--photonic-4) 10%, #000),
+        color-mix(in srgb, var(--photonic-5) 10%, #000));
+    --photonic-gradient-light: linear-gradient(135deg,
+        color-mix(in srgb, var(--photonic-1) 45%, #fff),
+        color-mix(in srgb, var(--photonic-2) 45%, #fff),
+        color-mix(in srgb, var(--photonic-3) 45%, #fff),
+        color-mix(in srgb, var(--photonic-4) 45%, #fff),
+        color-mix(in srgb, var(--photonic-5) 45%, #fff));
+
+    /* Horizontal variant for headers / badges */
+    --photonic-gradient-h: linear-gradient(90deg, var(--photonic-1), var(--photonic-2), var(--photonic-3), var(--photonic-4), var(--photonic-5), var(--photonic-1), var(--photonic-2));
 }
 
 html, body {

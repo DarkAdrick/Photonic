@@ -8,6 +8,12 @@
     align-items: center;
     justify-content: center;
     z-index: 1100;
+    animation: overlayFadeIn 0.25s ease;
+}
+
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 .dialog {
@@ -16,6 +22,12 @@
     border-radius: 6px;
     padding: 20px;
     min-width: 380px;
+    animation: dialogScaleIn 0.3s cubic-bezier(.4,0,.2,1);
+}
+
+@keyframes dialogScaleIn {
+    from { opacity: 0; transform: scale(0.92) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .dialog h3 {
@@ -58,7 +70,7 @@
 }
 
 #btn-dialog-ok {
-    background: linear-gradient(135deg, #32A0C5, #9C2AB3);
+    background: var(--photonic-gradient);
     color: #fff;
 }
 
@@ -314,7 +326,7 @@
     gap: 14px;
     padding: 16px;
     margin-bottom: 16px;
-    background: linear-gradient(135deg, rgba(50,160,197,0.08) 0%, rgba(156,42,179,0.08) 100%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent) 0%, color-mix(in srgb, var(--photonic-1) 8%, transparent) 100%);
     border-bottom: 1px solid var(--border);
 }
 
@@ -337,7 +349,7 @@
 }
 
 .cl-hero-text h4 span {
-    background: linear-gradient(135deg, #32A0C5, #9C2AB3);
+    background: var(--photonic-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -391,16 +403,16 @@
 }
 
 .chip-add    { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); }
-.chip-fix    { background: rgba(231,76,60,0.15);  color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+.chip-fix    { background: rgba(243,156,18,0.15); color: #f39c12; border: 1px solid rgba(243,156,18,0.3); }
 .chip-edit   { background: rgba(52,152,219,0.15); color: #3498db; border: 1px solid rgba(52,152,219,0.3); }
-.chip-remove { background: rgba(155,89,182,0.15); color: #9b59b6; border: 1px solid rgba(155,89,182,0.3); }
+.chip-remove { background: rgba(231,76,60,0.15);  color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
 .chip-default{ background: rgba(149,165,166,0.15);color: #95a5a6; border: 1px solid rgba(149,165,166,0.3); }
 
 /* ── Changelog Version Sections ──────────────────────────────────────────── */
 
 .cl-version {
-    border-bottom: 1px solid rgba(50,160,197,0.15);
-    background: rgba(50,160,197,0.04);
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
+    background: color-mix(in srgb, var(--accent) 4%, transparent);
     border-radius: 6px;
     margin-bottom: 4px;
 }
@@ -438,7 +450,7 @@
 }
 
 .cl-version summary:hover {
-    background: rgba(50,160,197,0.08);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 .cl-version-title {
@@ -446,7 +458,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    background: linear-gradient(135deg, #5bc0eb, #9C2AB3, #e84393);
+    background: var(--photonic-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -475,7 +487,7 @@
     color: var(--accent);
     margin: 16px 0 8px;
     padding: 6px 10px;
-    background: linear-gradient(90deg, rgba(50,160,197,0.1) 0%, transparent 100%);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 100%);
     border-left: 3px solid var(--accent);
     border-radius: 0 4px 4px 0;
 }
@@ -499,7 +511,7 @@
 }
 
 .cl-version li:hover {
-    background: rgba(50,160,197,0.06);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
 }
 
 .cl-version li:last-child {

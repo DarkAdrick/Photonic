@@ -27,7 +27,7 @@
 
 #sidebar li:hover { background: var(--bg-tertiary); color: var(--text-primary); }
 #sidebar li.active { 
-    background: linear-gradient(90deg, rgba(50,160,197,0.12) 0%, transparent 100%);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 100%);
     color: var(--accent);
 }
 
@@ -98,7 +98,7 @@
 #sidebar-folders .folder-item:hover { color: var(--text-primary); }
 
 #sidebar-folders .folder-item.active {
-    background: linear-gradient(90deg, rgba(50,160,197,0.1) 0%, transparent 100%);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 100%);
     color: var(--accent);
 }
 

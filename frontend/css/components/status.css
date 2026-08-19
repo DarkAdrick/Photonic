@@ -32,7 +32,7 @@
 #scan-fill {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, #32A0C5, #61D489, #E8C626);
+    background: linear-gradient(90deg, var(--photonic-5), var(--photonic-4), var(--photonic-3));
     border-radius: 3px;
     transition: width 0.3s;
 }

@@ -23,7 +23,7 @@
 
 #btn-add-folder {
     padding: 8px 20px;
-    background: linear-gradient(135deg, #32A0C5, #9C2AB3);
+    background: var(--photonic-gradient);
     color: #fff;
     border: none;
     border-radius: 4px;
@@ -48,7 +48,7 @@
     overflow-y: auto;
     transition: transform 0.2s cubic-bezier(.4,0,.2,1);
     transform-origin: center top;
-    background: linear-gradient(135deg, #060818 0%, #0a0a2e 30%, #0d1033 50%, #120a30 70%, #060818 100%);
+    background: var(--photonic-gradient-darker);
 }
 
 #photo-grid.zoom-pulse {
@@ -147,8 +147,8 @@
 
 .layout-btn.active {
     color: var(--accent);
-    background: rgba(50,160,197,0.1);
-    border-color: rgba(50,160,197,0.3);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 /* ── Masonry Mode ──────────────────────────────────────────────────────── */
@@ -183,7 +183,7 @@
 }
 
 .photo-card.selected {
-    outline: 3px solid #32A0C5;
+    outline: 3px solid var(--accent);
     outline-offset: -1px;
 }
 
@@ -194,7 +194,7 @@
     right: 4px;
     width: 22px;
     height: 22px;
-    background: #32A0C5;
+    background: var(--accent);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -207,7 +207,7 @@
 }
 
 .photo-card.drag-highlight {
-    outline: 3px dashed #32A0C5;
+    outline: 3px dashed var(--accent);
     outline-offset: -1px;
 }
 

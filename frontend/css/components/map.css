@@ -62,10 +62,10 @@
     background-color: rgba(232, 198, 38, 0.8);
 }
 .marker-cluster-large {
-    background-color: rgba(156, 42, 179, 0.4);
+    background-color: rgba(221, 118, 214, 0.4);
 }
 .marker-cluster-large div {
-    background-color: rgba(156, 42, 179, 0.8);
+    background-color: rgba(221, 118, 214, 0.8);
 }
 .marker-cluster div {
     width: 32px; height: 32px;

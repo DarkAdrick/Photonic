@@ -3,7 +3,7 @@
 .bc-item { color: var(--text-secondary); }
 .bc-link {
     cursor: pointer;
-    background: linear-gradient(135deg, #32A0C5, #25A7D8);
+    background: linear-gradient(135deg, var(--photonic-5), var(--photonic-4));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
