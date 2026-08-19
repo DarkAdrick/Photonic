@@ -1,0 +1,2 @@
+call phoenixcli
+cmd

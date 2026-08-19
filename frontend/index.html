@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photonic</title>
+    <link rel="icon" type="image/png" href="/icon.png">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header id="header">
+    <div class="header-left">
+        <img src="/icon.png" alt="" class="logo-icon">
+        <span class="logo">PHOTONIC</span>
+    </div>
+    <div class="header-right">
+        <div class="search-box">
+            <i data-lucide="search"></i>
+            <input type="text" id="search" placeholder="Search photos...">
+        </div>
+        <button id="btn-toggle-filters" class="header-btn"><i data-lucide="sliders-horizontal"></i> Filters</button>
+        <button id="btn-settings" class="header-btn"><i data-lucide="settings"></i></button>
+    </div>
+</header>
+
+<div id="filter-drawer" class="hidden">
+    <div class="filter-row">
+        <div class="filter-chip">
+            <label>Camera</label>
+            <select id="filter-camera"><option value="">All</option></select>
+        </div>
+        <div class="filter-chip">
+            <label>Lens</label>
+            <select id="filter-lens"><option value="">All</option></select>
+        </div>
+        <div class="filter-chip">
+            <label>Format</label>
+            <select id="filter-ext"><option value="">All</option></select>
+        </div>
+        <div class="filter-chip">
+            <label>Rating</label>
+            <select id="filter-rating">
+                <option value="">Any</option>
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3">3+</option>
+                <option value="4">4+</option>
+                <option value="5">5</option>
+            </select>
+        </div>
+        <div class="filter-chip">
+            <label>Country</label>
+            <select id="filter-country"><option value="">All</option></select>
+        </div>
+        <div class="filter-chip">
+            <label>City</label>
+            <select id="filter-city"><option value="">All</option></select>
+        </div>
+        <div class="filter-chip filter-chip-date">
+            <label>From</label>
+            <input type="date" id="filter-date-from">
+        </div>
+        <div class="filter-chip filter-chip-date">
+            <label>To</label>
+            <input type="date" id="filter-date-to">
+        </div>
+        <div class="filter-chip">
+            <label>Geolocalized</label>
+            <select id="filter-geo">
+                <option value="">All</option>
+                <option value="1">Yes</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+        <button id="btn-clear-filters" class="filter-clear-btn"><i data-lucide="x"></i> Clear</button>
+    </div>
+</div>
+
+<aside id="sidebar">
+    <nav>
+        <ul>
+            <li class="active" data-view="library"><i data-lucide="image"></i>Library</li>
+            <li data-view="folders"><i data-lucide="folder"></i>Folders</li>
+            <li data-view="countries"><i data-lucide="globe"></i>Countries</li>
+            <li data-view="tags"><i data-lucide="tag"></i>Tags</li>
+            <li data-view="cameras"><i data-lucide="camera"></i>Cameras</li>
+            <li data-view="locations"><i data-lucide="map-pin"></i>Locations</li>
+            <li data-view="cleaning"><i data-lucide="sparkles"></i>Cleaning</li>
+            <li data-view="stats"><i data-lucide="bar-chart-2"></i>Stats</li>
+        </ul>
+    </nav>
+    <div id="sidebar-folders"></div>
+    <div id="sidebar-actions">
+        <button id="btn-add-folder-sidebar" class="sidebar-btn"><i data-lucide="folder-plus"></i> Add Folder</button>
+        <button id="btn-rescan" class="sidebar-btn" disabled><i data-lucide="refresh-cw"></i> Rescan All</button>
+    </div>
+</aside>
+
+<main id="main">
+    <div id="cleaning-toolbar" class="hidden">
+        <div id="cleaning-tabs">
+            <button class="cleaning-tab active" data-tab="duplicates">Duplicates</button>
+            <button class="cleaning-tab" data-tab="blurry">Blurry</button>
+            <button class="cleaning-tab" data-tab="similar">Similar</button>
+            <button class="cleaning-tab" data-tab="bad">Bad</button>
+        </div>
+        <button id="btn-analyze" class="cleaning-btn">Analyze</button>
+        <div id="cleaning-status" class="hidden"></div>
+    </div>
+    <div id="empty-state">
+        <h2>Welcome to Photonic</h2>
+        <p>No photos loaded yet. Add a folder to get started.</p>
+        <button id="btn-add-folder">Add Folder</button>
+    </div>
+    <div id="photo-grid" class="hidden">
+        <div id="header-photo-grid">
+            <div id="breadcrumb-bar"></div>
+            <span id="photo-count-header"></span>
+            <span id="selection-count" class="hidden">0 selected</span>
+            <button id="btn-deselect-all" class="cleaning-btn hidden">Deselect All</button>
+        </div>
+    </div>
+    <div id="stats-view" class="hidden"></div>
+    <div id="map-view" class="hidden"></div>
+    <div id="map-resize" class="map-resize hidden"></div>
+    <div id="map-photos" class="hidden"></div>
+</main>
+
+<div id="folder-dialog" class="dialog-overlay hidden">
+    <div class="dialog">
+        <h3>Add Photo Folder</h3>
+        <input type="text" id="folder-path" placeholder="C:\Users\You\Pictures">
+        <div class="dialog-actions">
+            <button id="btn-dialog-cancel">Cancel</button>
+            <button id="btn-dialog-ok">Add</button>
+        </div>
+    </div>
+</div>
+
+<div id="tag-dialog" class="dialog-overlay hidden">
+    <div class="dialog tag-dialog-box">
+        <h3 id="tag-dialog-title">Add Tag</h3>
+        <input type="text" id="tag-input" placeholder="Tag name...">
+        <div class="tag-color-section">
+            <label>Color</label>
+            <div id="tag-color-palette" class="tag-color-palette"></div>
+            <input type="color" id="tag-color-picker" value="#5b9fd6">
+        </div>
+        <div id="tag-existing-list" class="tag-existing-list"></div>
+        <div class="dialog-actions">
+            <button id="tag-dialog-cancel">Cancel</button>
+            <button id="tag-dialog-ok">Add</button>
+        </div>
+    </div>
+</div>
+
+<footer id="status-bar">
+    <span id="status-text"><i data-lucide="wifi"></i> Connecting...</span>
+    <div id="scan-progress" class="hidden">
+        <div id="scan-bar"><div id="scan-fill"></div></div>
+        <span id="scan-status"></span>
+    </div>
+    <div id="thumb-size-control">
+        <i data-lucide="minimize-2"></i>
+        <input type="range" id="thumb-size" min="60" max="450" value="150">
+        <i data-lucide="maximize-2"></i>
+    </div>
+</footer>
+
+<div id="photo-detail" class="detail-overlay hidden">
+    <div id="detail-layout">
+        <div id="detail-image">
+            <div id="detail-header">
+                <span id="detail-filename"></span>
+                <div class="detail-header-actions">
+                    <button id="detail-open" class="detail-action-btn" title="Open in default app"><i data-lucide="external-link"></i></button>
+                    <button id="detail-reveal" class="detail-action-btn" title="Reveal in Explorer"><i data-lucide="folder-open"></i></button>
+                    <button id="detail-close" class="detail-close-btn" title="Close"><i data-lucide="x"></i></button>
+                </div>
+            </div>
+            <div id="detail-stage">
+                <button id="detail-prev" class="detail-nav-btn" title="Previous"><i data-lucide="chevron-left"></i></button>
+                <img id="detail-img" src="" alt="">
+                <button id="detail-next" class="detail-nav-btn" title="Next"><i data-lucide="chevron-right"></i></button>
+            </div>
+            <div id="detail-footer">
+                <span id="detail-counter"></span>
+                <div class="detail-footer-center">
+                    <i data-lucide="minimize-2" style="width:14px;height:14px;flex-shrink:0"></i>
+                    <input type="range" id="detail-zoom" min="100" max="500" value="100">
+                    <i data-lucide="maximize-2" style="width:14px;height:14px;flex-shrink:0"></i>
+                    <span id="detail-zoom-label">100%</span>
+                </div>
+                <div class="detail-footer-right">
+                    <button id="detail-rotate-ccw" class="detail-action-btn" title="Rotate -90°"><i data-lucide="rotate-ccw"></i></button>
+                    <button id="detail-rotate-cw" class="detail-action-btn" title="Rotate +90°"><i data-lucide="rotate-cw"></i></button>
+                </div>
+            </div>
+        </div>
+        <div id="detail-sidebar">
+            <div id="detail-exif">
+                <div id="detail-meta"></div>
+            </div>
+            <div id="detail-map-section" class="hidden">
+                <h4>Location</h4>
+                <div id="detail-map"></div>
+                <div id="detail-coords"></div>
+            </div>
+            <div id="detail-tags-section">
+                <h4>Tags</h4>
+                <div id="detail-tags"></div>
+                <div id="detail-rating"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="context-menu" class="hidden">
+    <div class="context-header" id="context-header"></div>
+    <div class="context-separator"></div>
+    <div class="context-item" data-action="open">Open</div>
+    <div class="context-item" data-action="select">Select</div>
+    <div class="context-item" data-action="deselect">Deselect</div>
+    <div class="context-separator"></div>
+    <div class="context-item" data-action="select-all">Select All</div>
+    <div class="context-item" data-action="deselect-all">Deselect All</div>
+    <div class="context-separator"></div>
+    <div class="context-item" data-action="add-tag">Add Tag...</div>
+    <div class="context-item" data-action="remove-tags">Remove Tags</div>
+    <div class="context-separator"></div>
+    <div class="context-item context-danger" data-action="delete">Delete Selected</div>
+</div>
+
+<div id="settings-dialog" class="dialog-overlay hidden">
+    <div class="dialog settings-dialog-box">
+        <h3>Settings</h3>
+        <div class="settings-tabs">
+            <button class="settings-tab active" data-tab="settings-tags">Tags</button>
+            <button class="settings-tab" data-tab="settings-folders">Folders</button>
+        </div>
+        <div id="settings-tags" class="settings-panel">
+            <div id="settings-tags-list"></div>
+        </div>
+        <div id="settings-folders" class="settings-panel hidden">
+            <div id="settings-folders-list"></div>
+        </div>
+        <div class="dialog-actions">
+            <button id="settings-close">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="confirm-dialog" class="dialog-overlay hidden">
+    <div class="dialog confirm-box">
+        <h3 id="confirm-title"></h3>
+        <p id="confirm-message"></p>
+        <div class="dialog-actions">
+            <button id="confirm-cancel">Cancel</button>
+            <button id="confirm-ok" class="danger-btn">Delete</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/chart.js@4.4.4/dist/chart.umd.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
