@@ -1,5 +1,7 @@
 # Photonic
 
+[![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+
 A local-first, lightweight Windows desktop photo management application.
 
 ## Quick Start
@@ -179,3 +181,12 @@ The spec called for **Svelte** frontend. We chose **vanilla HTML/CSS/JS** instea
 ### Phase 7+ (future)
 
 - Filesystem monitoring
+
+---
+
+## License
+
+[CC BY-NC-ND 4.0](LICENSE) — Attribution, non-commercial, no derivatives.
+
+You can view and use this software for personal, non-commercial purposes.
+You may not redistribute, modify, or build upon this code.
