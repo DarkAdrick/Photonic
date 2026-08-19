@@ -45,7 +45,10 @@
         color-mix(in srgb, var(--photonic-5) 45%, #fff));
 
     /* Horizontal variant for headers / badges */
-    --photonic-gradient-h: linear-gradient(90deg, var(--photonic-1), var(--photonic-2), var(--photonic-3), var(--photonic-4), var(--photonic-5), var(--photonic-1), var(--photonic-2));
+    --photonic-gradient-h: linear-gradient(90deg,
+        var(--photonic-1), var(--photonic-2), var(--photonic-3), var(--photonic-4), var(--photonic-5),
+        var(--photonic-1), var(--photonic-2), var(--photonic-3), var(--photonic-4), var(--photonic-5),
+        var(--photonic-1), var(--photonic-2), var(--photonic-3), var(--photonic-4), var(--photonic-5));
 }
 
 html, body {

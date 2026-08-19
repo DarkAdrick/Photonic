@@ -76,17 +76,20 @@
     font-size: 12px;
     padding: 3px 12px;
     border-radius: 12px;
-    background: var(--photonic-gradient-h);
+    background: var(--photonic-gradient);
     background-size: 300% 100%;
     animation: badgeSlide 3s linear infinite, badgeWobble 3s ease-in-out infinite;
     border: 1px solid rgba(221, 118, 214, 0.5);
-    color: #fff;
+    color: #000000;
     cursor: pointer;
     user-select: none;
     transition: all 0.15s;
     letter-spacing: 0.5px;
     white-space: nowrap;
-    text-shadow: 0 0 6px rgba(50, 160, 197, 0.8);
+    text-shadow: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    font-weight:bolder;
+    text-shadow:0px 0px 1px white, 0px 0px 2px white, 0px 0px 4px white
 }
 
 @keyframes badgeSlide {
@@ -101,6 +104,10 @@
 }
 
 .version-badge:hover {
-    background: rgba(50, 160, 197, 0.25);
-    border-color: var(--accent);
+    background: var(--photonic-gradient-light);
+    background-size: 300% 100%;
+    animation: badgeSlide 3s linear infinite, badgeWobble 3s ease-in-out infinite;
+    color: #000;
+    text-shadow: none;
 }
+
