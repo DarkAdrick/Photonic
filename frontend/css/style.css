@@ -1720,10 +1720,9 @@ body {
     align-items: center;
     gap: 14px;
     padding: 16px;
-    margin: -20px -20px 16px;
+    margin-bottom: 16px;
     background: linear-gradient(135deg, rgba(50,160,197,0.08) 0%, rgba(156,42,179,0.08) 100%);
     border-bottom: 1px solid var(--border);
-    border-radius: 6px 6px 0 0;
 }
 
 .cl-hero-logo {
@@ -1805,10 +1804,12 @@ body {
 .chip-default{ background: rgba(149,165,166,0.15);color: #95a5a6; border: 1px solid rgba(149,165,166,0.3); }
 
 .cl-version h4 {
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 700;
     color: var(--accent);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(50,160,197,0.25);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1816,11 +1817,15 @@ body {
 
 .cl-version h5 {
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-secondary);
-    margin: 12px 0 6px;
+    letter-spacing: 0.8px;
+    color: var(--accent);
+    margin: 16px 0 8px;
+    padding: 6px 10px;
+    background: linear-gradient(90deg, rgba(50,160,197,0.1) 0%, transparent 100%);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 4px 4px 0;
 }
 
 .changelog-beta {
@@ -1846,11 +1851,20 @@ body {
 }
 
 .cl-version li {
-    padding: 5px 0;
+    padding: 6px 10px;
     font-size: 13px;
     color: var(--text-secondary);
     line-height: 1.5;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
+    border-radius: 4px;
+    transition: background 0.1s;
+}
+
+.cl-version li:nth-child(odd) {
+    background: rgba(255,255,255,0.02);
+}
+
+.cl-version li:hover {
+    background: rgba(50,160,197,0.06);
 }
 
 .cl-version li:last-child {
