@@ -11,6 +11,24 @@ python run.py
 
 Browser opens to `http://127.0.0.1:8765`.
 
+## Screenshots
+
+![Photo Grid](screenshots/Screenshot1.png)
+
+![Photo Details](screenshots/Screenshot2.png)
+
+![Search & Filters](screenshots/Screenshot3.png)
+
+![Folder Management](screenshots/Screenshot4.png)
+
+![Map View](screenshots/Screenshot5.png)
+
+![Rating System](screenshots/Screenshot6.png)
+
+![Dark Theme](screenshots/Screenshot7.png)
+
+![Application Overview](screenshots/Screenshot8.png)
+
 ## Build
 
 ```bash
