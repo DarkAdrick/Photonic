@@ -2222,6 +2222,19 @@
         });
     }
 
+    // ── Changelog ───────────────────────────────────────────────────────
+
+    const changelogDialog = document.getElementById("changelog-dialog");
+    const changelogClose  = document.getElementById("changelog-close");
+    const versionBadge    = document.getElementById("version-badge");
+
+    versionBadge.addEventListener("click", () => {
+        changelogDialog.classList.remove("hidden");
+        lucide.createIcons();
+    });
+    changelogClose.addEventListener("click", () => changelogDialog.classList.add("hidden"));
+    changelogDialog.addEventListener("click", (e) => { if (e.target === changelogDialog) changelogDialog.classList.add("hidden"); });
+
     // ── Init ──────────────────────────────────────────────────────────────
 
     lucide.createIcons();

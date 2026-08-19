@@ -16,6 +16,7 @@
     <div class="header-left">
         <img src="/icon.png" alt="" class="logo-icon">
         <span class="logo">PHOTONIC</span>
+        <span class="version-badge" id="version-badge" title="View changelog">v0.1.0 <b>β</b></span>
     </div>
     <div class="header-right">
         <div class="search-box">
@@ -261,6 +262,34 @@
         <div class="dialog-actions">
             <button id="confirm-cancel">Cancel</button>
             <button id="confirm-ok" class="danger-btn">Delete</button>
+        </div>
+    </div>
+</div>
+
+<div id="changelog-dialog" class="dialog-overlay hidden">
+    <div class="dialog changelog-box">
+        <div class="changelog-header">
+            <h3>Changelog</h3>
+            <button id="changelog-close" class="detail-close-btn"><i data-lucide="x"></i></button>
+        </div>
+        <div class="changelog-content">
+            <div class="changelog-version">
+                <h4>v0.1.0 <span class="changelog-beta">β</span> <span class="changelog-date">August 2026</span></h4>
+                <ul>
+                    <li><b>Photo Library</b> — Recursive folder scanning, EXIF metadata extraction, thumbnail generation (small/medium/large)</li>
+                    <li><b>Search &amp; Filters</b> — Text search, filter by camera, lens, date range, extension, rating, country, city, GPS</li>
+                    <li><b>Photo Grid</b> — CSS Grid with lazy loading, adjustable thumbnail size, multi-selection with drag</li>
+                    <li><b>Photo Detail</b> — Full metadata view, zoom/pan, rotate, keyboard navigation, tag &amp; rating management</li>
+                    <li><b>Tags</b> — Create, color, assign, browse. Hierarchical tag system</li>
+                    <li><b>Countries</b> — Auto-detect from GPS, browse photos by country with flag</li>
+                    <li><b>Cameras</b> — Browse photos grouped by camera model</li>
+                    <li><b>Map View</b> — Leaflet.js + OpenStreetMap, marker clustering, bbox filtering, photo strip</li>
+                    <li><b>Cleaning</b> — Duplicate detection (MD5), blur analysis, bad quality detection (black/white/over/underexposed)</li>
+                    <li><b>Stats</b> — Dashboard with format distribution, timeline, top countries (Chart.js)</li>
+                    <li><b>Dark Theme</b> — Deep blue/purple UI with gradient accents</li>
+                    <li><b>SQLite</b> — WAL mode, indexed schema, async operations</li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>

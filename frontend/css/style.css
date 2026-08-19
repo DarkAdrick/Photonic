@@ -1644,3 +1644,100 @@ body {
     color: var(--text-secondary);
     font-size: 13px;
 }
+
+/* ── Version Badge ──────────────────────────────────────────────────────── */
+
+.version-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(50, 160, 197, 0.12);
+    border: 1px solid rgba(50, 160, 197, 0.3);
+    color: var(--accent);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.version-badge:hover {
+    background: rgba(50, 160, 197, 0.25);
+    border-color: var(--accent);
+}
+
+/* ── Changelog Modal ────────────────────────────────────────────────────── */
+
+.changelog-box {
+    min-width: 500px;
+    max-width: 600px;
+    max-height: 75vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.changelog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.changelog-header h3 {
+    margin: 0;
+}
+
+.changelog-content {
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 4px;
+}
+
+.changelog-version h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.changelog-beta {
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #9C2AB3, #E8C626);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.changelog-date {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 400;
+    margin-left: auto;
+}
+
+.changelog-version ul {
+    list-style: none;
+    padding: 0;
+}
+
+.changelog-version li {
+    padding: 5px 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.changelog-version li:last-child {
+    border-bottom: none;
+}
+
+.changelog-version li b {
+    color: var(--text-primary);
+    font-weight: 500;
+}
