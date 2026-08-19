@@ -1,6 +1,7 @@
 # Photonic
 
 [![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-pink.svg)](https://github.com/sponsors/DarkAdrick)
 
 A local-first, lightweight Windows desktop photo management application.
 
@@ -181,6 +182,21 @@ The spec called for **Svelte** frontend. We chose **vanilla HTML/CSS/JS** instea
 ### Phase 7+ (future)
 
 - Filesystem monitoring
+
+---
+
+## Support
+
+If you find Photonic useful, consider sponsoring the development:
+
+| Tier | Price | Benefits |
+|------|-------|----------|
+| ☕ Coffee | 2 €/month | Name listed in README |
+| ⭐ Supporter | 5 €/month | Name listed + early access to new features |
+| 🚀 Backer | 10 €/month | Name listed + early access + priority support |
+| 💎 Patron | 25 €/month | Name listed + early access + priority support + feature requests |
+
+[Sponsor DarkAdrick on GitHub](https://github.com/sponsors/DarkAdrick)
 
 ---
 
