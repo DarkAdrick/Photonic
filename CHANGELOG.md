@@ -12,6 +12,7 @@
 - [ADD] Changelog modal with project hero
 - [FIX] Version badge gradient too dark, now colorful and visible
 - [FIX] Header height increased, logo and text scaled up
+- [FIX] Stats charts bottom labels truncated
 - [EDIT] Changelog refactored as separate file (CHANGELOG.md)
 - [EDIT] Footer reordered: layout toggle left, zoom slider right
 - [EDIT] CSS split into 15 component files (components/)
