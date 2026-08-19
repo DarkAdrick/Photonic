@@ -24,7 +24,7 @@
 #btn-add-folder {
     padding: 8px 20px;
     background: var(--photonic-gradient);
-    color: #fff;
+    color: #000000;
     border: none;
     border-radius: 4px;
     cursor: pointer;
