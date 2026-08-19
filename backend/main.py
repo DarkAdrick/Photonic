@@ -1132,7 +1132,7 @@ def get_stats():
 
 # ── Changelog ────────────────────────────────────────────────────────────────
 
-CHANGELOG_PATH = APP_DIR / "CHANGELOG.md"
+CHANGELOG_PATH = Path(__file__).resolve().parent.parent / "CHANGELOG.md"
 
 _CHIP_MAP = {
     "ADD":    "chip-add",
