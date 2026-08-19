@@ -1886,7 +1886,7 @@
         li.addEventListener("click", () => setView(li.dataset.view));
     });
     btnToggleFilters.addEventListener("click", () => {
-        filterDrawer.classList.toggle("hidden");
+        filterDrawer.classList.toggle("drawer-closed");
         btnToggleFilters.classList.toggle("active");
     });
     searchInput.addEventListener("input", onSearch);
