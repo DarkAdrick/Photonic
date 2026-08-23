@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.5 — 23 August 2026
+
+### CI / Releases
+- [ADD] Automatic builds & releases via GitHub Actions: pushing a `v*` tag now builds `Photonic.exe` on a Windows runner and publishes it as a GitHub Release with auto-generated notes
+- [ADD] Manual "Build & Release" workflow (Actions tab) to build the .exe on demand without publishing — downloadable as an artifact
+- [EDIT] `Photonic.spec` is now tracked in git (removed from `.gitignore`) so CI builds use the exact same recipe as local builds
+- [EDIT] Workflow recreates the `venv_build` environment so the embedded GeoNames CSV resolves identically on the runner
+
 ## v0.2.4 — 23 August 2026
 
 ### Desktop window (.exe)
