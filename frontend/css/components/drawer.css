@@ -2,7 +2,7 @@
 
 #filter-drawer {
     grid-area: drawer;
-    background: var(--photonic-gradient-darker);
+    /* background: var(--photonic-gradient-darker); */
     border-bottom: 1px solid var(--border);
     padding: 8px 16px;
     overflow-x: auto;

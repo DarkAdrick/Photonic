@@ -14,7 +14,7 @@
     --text-primary:  #E6E6F0;
     --text-secondary:#8488A8;
     --accent:        #28A8D8;
-    --accent-hover:  #186685;
+    --accent-hover:  color-mix(in srgb, var(--accent) 60%, #000);
 
     /* Photonic palette */
     --photonic-1: #DD76D6;
@@ -59,13 +59,18 @@ html, body {
     background: var(--bg-primary);
     color: var(--text-primary);
     scrollbar-width: thin;
-    scrollbar-color: #2A2E68 transparent;
+    scrollbar-color: var(--border) transparent;
 }
 
 *::-webkit-scrollbar { width: 8px; height: 8px; }
 *::-webkit-scrollbar-track { background: transparent; }
-*::-webkit-scrollbar-thumb { background: #2A2E68; border-radius: 4px; }
-*::-webkit-scrollbar-thumb:hover { background: #3A3E78; }
+*::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--accent) 45%, var(--bg-tertiary));
+}
 *::-webkit-scrollbar-corner { background: transparent; }
 
 body {
@@ -80,6 +85,71 @@ body {
 }
 
 .hidden { display: none !important; }
+
+/* ── Toast Notifications ──────────────────────────────────────────────── */
+
+.photon-toast {
+    position: fixed;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 9999;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    animation: toastIn 0.3s ease forwards;
+    max-width: 500px;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.photon-toast.toast-out {
+    animation: toastOut 0.25s ease forwards;
+}
+
+.photon-toast svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: var(--accent);
+}
+
+.photon-toast a {
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.photon-toast a:hover {
+    filter: brightness(1.2);
+}
+
+.photon-toast-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 2px;
+    margin-left: 8px;
+    display: flex;
+    flex-shrink: 0;
+}
+
+.photon-toast-close:hover { color: var(--text-primary); }
+.photon-toast-close svg { width: 14px; height: 14px; }
+
+@keyframes toastIn {
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes toastOut {
+    to { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+}
 
 /* ── Buttons (shared) ─────────────────────────────────────────────────── */
 
@@ -111,32 +181,29 @@ body {
 
 .sidebar-btn {
     width: 100%;
-    padding: 6px 0;
+    padding: 9px 12px;
     background: var(--bg-tertiary);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 8px;
     color: var(--text-secondary);
-    font-size: 12px;
+    font-size: 12.5px;
+    font-weight: 500;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
+    transition: all 0.15s ease;
 }
 
-.sidebar-btn svg { width: 14px; height: 14px; }
+.sidebar-btn svg { width: 15px; height: 15px; }
 
-.sidebar-btn:hover:not(:disabled) { color: var(--text-primary); border-color: var(--accent); }
+.sidebar-btn:hover:not(:disabled) {
+    color: var(--text-primary);
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, var(--bg-tertiary));
+    transform: translateY(-1px);
+}
+
+.sidebar-btn:active:not(:disabled) { transform: translateY(0); }
 .sidebar-btn:disabled { opacity: 0.3; cursor: default; }
-
-.donate-btn {
-    text-decoration: none;
-    border: 1px solid #e84393;
-    color: #e84393;
-}
-
-.donate-btn:hover {
-    color: #fff !important;
-    background: #e84393;
-    border-color: #e84393;
-}

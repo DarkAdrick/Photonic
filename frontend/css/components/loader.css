@@ -1,0 +1,54 @@
+/* ── App Loader (reusable component) ────────────────────────────────────── */
+/* Usage:                                                                    */
+/*   const el = createLoader("Loading…");  // JS helper                      */
+/*   container.appendChild(el);                                              */
+/*   ...                                                                     */
+/*   el.remove();                                                            */
+
+.app-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+}
+
+.app-loader .app-loader-icon {
+    width: 64px;
+    height: 64px;
+    color: var(--accent);
+    filter: drop-shadow(0 0 12px color-mix(in srgb, var(--accent) 45%, transparent));
+    animation:
+        app-loader-spin 1.2s linear infinite,
+        app-loader-breathe 1.2s ease-in-out infinite;
+}
+
+.app-loader .app-loader-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+@keyframes app-loader-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+@keyframes app-loader-breathe {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(0.82); }
+}
+
+.app-loader .app-loader-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    animation: app-loader-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes app-loader-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.4; }
+}

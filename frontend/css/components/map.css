@@ -6,6 +6,45 @@
     min-height: 100px;
 }
 
+#map-loader {
+    position: absolute;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--bg-primary) 60%, transparent);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+#map-loader.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* Enter: slides down from the top with a soft spring                      */
+/* Exit : returns to the top (transition of the base state)                */
+#map-loader .app-loader {
+    transform: translateY(-70px);
+    opacity: 0;
+    transition:
+        transform 0.35s cubic-bezier(0.55, 0, 0.85, 0.4),
+        opacity 0.25s ease-in;
+}
+
+#map-loader.visible .app-loader {
+    transform: translateY(0);
+    opacity: 1;
+    transition:
+        transform 0.5s cubic-bezier(0.22, 1.2, 0.36, 1),
+        opacity 0.3s ease-out;
+}
+
 .map-resize {
     width: 100%;
     height: 5px;
@@ -39,12 +78,21 @@
     overflow-y: auto;
     padding: 8px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(var(--thumb-size, 100px), 1fr));
     grid-auto-rows: min-content;
     gap: 4px;
     align-content: start;
     align-items: start;
     border-top: 1px solid var(--border);
+}
+
+#map-photos.has-selection .photo-card:not(.selected):not(.drag-highlight):not(.drag-highlight-deselect) {
+    filter: brightness(0.5);
+}
+
+.map-strip-sentinel {
+    grid-column: 1 / -1;
+    height: 0;
 }
 
 /* ── Map Clusters ──────────────────────────────────────────────────────── */

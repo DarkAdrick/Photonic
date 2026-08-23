@@ -15,6 +15,19 @@
     overflow: hidden;
 }
 
+#status-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 24px;
+}
+
+#status-text svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
 #scan-progress {
     display: flex;
     align-items: center;
@@ -32,12 +45,29 @@
 #scan-fill {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, var(--photonic-5), var(--photonic-4), var(--photonic-3));
+    background: var(--photonic-gradient);
     border-radius: 3px;
     transition: width 0.3s;
 }
 
 #scan-status { color: var(--accent); font-size: 11px; }
+
+.scan-cancel-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.scan-cancel-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.scan-cancel-btn svg { width: 13px; height: 13px; }
 
 #thumb-size-control {
     display: flex;
@@ -47,6 +77,23 @@
 }
 #thumb-size-control i { opacity: 0.4; }
 #thumb-size-control svg { width: 16px; height: 16px; }
+.thumb-zoom-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    opacity: 0.7;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+.thumb-zoom-btn:hover { opacity: 1; color: var(--text-primary); background: var(--bg-tertiary); }
+.thumb-zoom-btn svg { width: 14px; height: 14px; }
 #thumb-size {
     width: 80px;
     height: 3px;

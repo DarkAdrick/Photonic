@@ -10,9 +10,21 @@
     gap: 6px;
     border-radius: 3px;
     margin: 0 4px;
+    position: relative;
 }
 .tag-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
 .tag-item.active { color: var(--accent); font-weight: 600; }
+.tag-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background: var(--photonic-gradient);
+    border-radius: 0 3px 3px 0;
+}
 .tag-count { font-size: 11px; color: var(--text-secondary); background: var(--bg-tertiary); padding: 1px 6px; border-radius: 8px; margin-left: auto; flex-shrink: 0; }
 .tag-empty { padding: 12px; font-size: 12px; color: var(--text-secondary); text-align: center; }
 .tag-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; display: inline-block; }

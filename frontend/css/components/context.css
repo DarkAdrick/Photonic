@@ -3,8 +3,8 @@
 #context-menu {
     position: fixed;
     z-index: 10000;
-    background: #0F1248;
-    border: 1px solid #2A2E68;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
     border-radius: 6px;
     padding: 4px 0;
     min-width: 180px;
@@ -24,7 +24,7 @@
 .context-item {
     padding: 7px 16px;
     font-size: 13px;
-    color: #C0C2D4;
+    color: var(--text-primary);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -32,13 +32,17 @@
     white-space: nowrap;
 }
 
+.context-item.striped {
+    background: color-mix(in srgb, var(--bg-tertiary) 45%, transparent);
+}
+
 .context-item:hover {
     background: color-mix(in srgb, var(--accent) 13%, transparent);
-    color: #fff;
+    color: var(--text-primary);
 }
 
 .context-item.disabled {
-    color: #4A4E6A;
+    color: color-mix(in srgb, var(--text-secondary) 55%, transparent);
     cursor: default;
     pointer-events: none;
 }
@@ -46,12 +50,12 @@
 .context-item .shortcut {
     margin-left: auto;
     font-size: 11px;
-    color: #5A5E7A;
+    color: var(--text-secondary);
 }
 
 .context-separator {
     height: 1px;
-    background: #2A2E68;
+    background: var(--border);
     margin: 4px 0;
 }
 

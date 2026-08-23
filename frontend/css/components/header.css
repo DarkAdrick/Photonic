@@ -7,7 +7,7 @@
     justify-content: space-between;
     gap: 16px;
     padding: 10px 8px;
-    background: linear-gradient(90deg, #0A0D3A 0%, #0F1248 40%, #141854 100%);
+    background: linear-gradient(90deg, var(--bg-primary) 0%, var(--bg-secondary) 40%, var(--bg-tertiary) 100%);
     border-bottom: 1px solid var(--border);
 }
 
@@ -27,7 +27,27 @@
 .logo-icon {
     height: 36px;
     width: 36px;
-    object-fit: contain;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--photonic-gradient-dark);
+    border: 1px solid var(--border);
+    box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--accent) 6%, transparent),
+        0 4px 12px rgba(0,0,0,0.35);
+    flex-shrink: 0;
+}
+
+.logo-icon svg {
+    width: 20px;
+    height: 20px;
+    color: var(--photonic-2);
+    animation: logoHue 8s linear infinite;
+}
+
+@keyframes logoHue {
+    to { filter: hue-rotate(360deg); }
 }
 
 .logo {
@@ -45,9 +65,10 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    background: var(--bg-tertiary);
+    height: 34px;
+    background: var(--bg-secondary);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 8px;
     padding: 0 8px;
 }
 
@@ -68,6 +89,69 @@
 #photo-count-header {
     font-size: 12px;
     color: var(--text-secondary);
+}
+
+#btn-toggle-filters {
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 8px;
+}
+
+/* ── Donate ──────────────────────────────────────────────────────────────── */
+
+.donate-header-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #e84393;
+    background: color-mix(in srgb, #e84393 10%, transparent);
+    border: 1px solid color-mix(in srgb, #e84393 35%, transparent);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.donate-header-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: color-mix(in srgb, #e84393 30%, transparent);
+    transition: all 0.15s ease;
+}
+
+.donate-header-btn:hover {
+    background: #e84393;
+    border-color: #e84393;
+    box-shadow: 0 0 14px color-mix(in srgb, #e84393 45%, transparent);
+    transform: translateY(-1px);
+}
+
+.donate-header-btn:hover svg { fill: #fff; }
+
+/* ── Settings header btn ─────────────────────────────────────────────────── */
+
+#btn-settings {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+#btn-settings svg {
+    width: 16px;
+    height: 16px;
+}
+
+#btn-settings.active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 /* ── Version Badge ──────────────────────────────────────────────────────── */

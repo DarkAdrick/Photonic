@@ -7,14 +7,23 @@ from typing import Optional
 
 from fastapi import FastAPI, Query
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, Response, StreamingResponse, HTMLResponse
+from fastapi.responses import FileResponse, Response, StreamingResponse, HTMLResponse, JSONResponse
 
 from backend.database import init_db, get_connection
 from backend.paths import APP_DIR, DB_PATH, FRONTEND_DIR
 
-app = FastAPI(title="Photonic", version="0.1.0")
+app = FastAPI(title="Photonic", version="0.2.1")
 
 THUMB_DIR = APP_DIR / "cache" / "thumbnails"
+
+
+def _like_escape(s: str) -> str:
+    return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def _under_pattern(path_str: str) -> str:
+    """LIKE pattern matching any path strictly inside the given folder (not a sibling sharing a prefix)."""
+    return _like_escape(path_str.replace("/", "\\").rstrip("\\")) + "\\\\%"
 
 # ── Scan state (shared across threads) ───────────────────────────────────────
 
@@ -25,7 +34,11 @@ _scan_state = {
     "total": 0,
     "indexed": 0,
     "skipped": 0,
+    "cancel": False,
+    "cancelled": False,
 }
+
+_scan_lock = threading.Lock()
 
 
 @app.on_event("startup")
@@ -79,40 +92,36 @@ def _start_scan(folder_path: str):
     from backend.scanner import scan_folder as _scan
     from backend.thumbnails import generate_all_thumbnails
 
-    def _run():
-        _scan_state["running"] = True
-        _scan_state["folder"] = folder_path
-        _scan_state["done"] = 0
-        _scan_state["total"] = 0
-        _scan_state["indexed"] = 0
-        _scan_state["skipped"] = 0
+    # Set synchronously (caller holds _scan_lock) to avoid a start race
+    _scan_state["running"] = True
+    _scan_state["folder"] = folder_path
+    _scan_state["done"] = 0
+    _scan_state["total"] = 0
+    _scan_state["indexed"] = 0
+    _scan_state["skipped"] = 0
+    _scan_state["cancel"] = False
+    _scan_state["cancelled"] = False
 
+    def _run():
         def progress(done, total, indexed, skipped):
             _scan_state["done"] = done
             _scan_state["total"] = total
             _scan_state["indexed"] = indexed
             _scan_state["skipped"] = skipped
-            if done % 50 == 0 or done == total:
-                conn = get_connection()
-                rows = conn.execute(
-                    "SELECT path FROM photos WHERE hash IS NOT NULL AND path LIKE ?",
-                    (folder_path + "%",)
-                ).fetchall()
-                for r in rows:
-                    generate_all_thumbnails(r["path"])
-                conn.close()
 
-        _scan(folder_path, progress_callback=progress)
+        result = _scan(folder_path, progress_callback=progress, should_cancel=lambda: _scan_state["cancel"])
 
-        conn = get_connection()
-        rows = conn.execute(
-            "SELECT path FROM photos WHERE hash IS NOT NULL AND path LIKE ?",
-            (folder_path + "%",)
-        ).fetchall()
-        for r in rows:
-            generate_all_thumbnails(r["path"])
-        conn.close()
+        if not (result and result.get("cancelled")):
+            conn = get_connection()
+            rows = conn.execute(
+                "SELECT path FROM photos WHERE hash IS NOT NULL AND path LIKE ? ESCAPE '\\'",
+                (_under_pattern(folder_path),)
+            ).fetchall()
+            for r in rows:
+                generate_all_thumbnails(r["path"])
+            conn.close()
 
+        _scan_state["cancelled"] = bool(result and result.get("cancelled"))
         _scan_state["running"] = False
 
     threading.Thread(target=_run, daemon=True).start()
@@ -121,22 +130,29 @@ def _start_scan(folder_path: str):
 def _start_scan_all():
     from backend.scanner import scan_folder as _scan
 
+    # Set synchronously (caller holds _scan_lock) to avoid a start race
+    _scan_state["running"] = True
+    _scan_state["folder"] = "all"
+    _scan_state["done"] = 0
+    _scan_state["total"] = 0
+    _scan_state["indexed"] = 0
+    _scan_state["skipped"] = 0
+    _scan_state["cancel"] = False
+    _scan_state["cancelled"] = False
+
     def _run():
         conn = get_connection()
         folders = conn.execute("SELECT path FROM folders").fetchall()
         conn.close()
 
-        _scan_state["running"] = True
-        _scan_state["folder"] = "all"
-        _scan_state["done"] = 0
-        _scan_state["total"] = 0
-        _scan_state["indexed"] = 0
-        _scan_state["skipped"] = 0
-
         grand_total = 0
         grand_done = 0
+        cancelled = False
 
         for f in folders:
+            if _scan_state["cancel"]:
+                cancelled = True
+                break
             folder_path = f["path"]
             _scan_state["folder"] = folder_path
             _scan_state["done"] = 0
@@ -150,12 +166,16 @@ def _start_scan_all():
                 _scan_state["indexed"] = indexed
                 _scan_state["skipped"] = skipped
 
-            _scan(folder_path, progress_callback=progress)
-            grand_total += _scan_state["total"]
+            result = _scan(folder_path, progress_callback=progress, should_cancel=lambda: _scan_state["cancel"])
+            grand_total += result["total"] if result else 0
             grand_done += _scan_state["done"]
+            if result and result.get("cancelled"):
+                cancelled = True
+                break
 
         _scan_state["done"] = grand_done
         _scan_state["total"] = grand_total
+        _scan_state["cancelled"] = cancelled
         _scan_state["running"] = False
 
     threading.Thread(target=_run, daemon=True).start()
@@ -168,15 +188,20 @@ def status():
     conn = get_connection()
     count = conn.execute("SELECT COUNT(*) FROM photos").fetchone()[0]
     conn.close()
-    return {"status": "running", "version": "0.1.0", "photo_count": count}
+    return {"status": "running", "version": "0.2.1", "photo_count": count}
 
 
 @app.get("/api/folders")
 def list_folders():
     conn = get_connection()
     rows = conn.execute("SELECT id, path FROM folders ORDER BY path").fetchall()
+    result = []
+    for r in rows:
+        base = r["path"].rstrip("/\\")
+        cnt = conn.execute("SELECT COUNT(*) FROM photos WHERE path LIKE ? ESCAPE '\\'", (_under_pattern(base),)).fetchone()[0]
+        result.append({"id": r["id"], "path": r["path"], "photo_count": cnt})
     conn.close()
-    return [{"id": r["id"], "path": r["path"]} for r in rows]
+    return result
 
 
 @app.get("/api/folders/tree")
@@ -238,9 +263,11 @@ def browse_folder(folder_path: Optional[str] = None):
 
         # Group descendants by immediate child folder name
         child_map = {}
+        parent_norm = parent_path.lower().replace("/", "\\")
         for f in all_folders:
             fp = f["path"].rstrip("/\\")
-            if fp.lower().startswith(parent_path.lower()) and fp.lower() != parent_path.lower():
+            fp_norm = fp.lower().replace("/", "\\")
+            if fp_norm != parent_norm and fp_norm.startswith(parent_norm + "\\"):
                 rel = fp[len(parent_path):]
                 rel = rel.lstrip("/\\")
                 if not rel:
@@ -272,26 +299,29 @@ def browse_folder(folder_path: Optional[str] = None):
 
         subfolder_entries = []
         for name, f in sorted(child_map.items(), key=lambda x: x[0].lower()):
-            folder_path = f["path"].rstrip("/\\")
-            cnt = conn.execute("SELECT COUNT(*) FROM photos WHERE path LIKE ?", (folder_path + "%",)).fetchone()[0]
+            sub_path = f["path"].rstrip("/\\")
+            pat = _under_pattern(sub_path)
+            cnt = conn.execute("SELECT COUNT(*) FROM photos WHERE path LIKE ? ESCAPE '\\'", (pat,)).fetchone()[0]
             samples = [r["id"] for r in conn.execute(
-                "SELECT id FROM photos WHERE path LIKE ? ORDER BY date_taken DESC LIMIT 4",
-                (folder_path + "%",)
+                "SELECT id FROM photos WHERE path LIKE ? ESCAPE '\\' ORDER BY date_taken DESC LIMIT 4",
+                (pat,)
             ).fetchall()]
             # If registered, use its id; otherwise generate a synthetic one
             fid = f["id"]
             if fid is None:
-                fid = -hash(folder_path) % 100000
+                fid = -hash(sub_path) % 100000
             subfolder_entries.append({
-                "id": fid, "name": name, "path": folder_path,
+                "id": fid, "name": name, "path": sub_path,
                 "photo_count": cnt, "sample_ids": samples,
             })
 
+        under_pat = _under_pattern(parent_path)
+        deeper_pat = under_pat + "\\\\%"
         direct_photos = [dict(r) for r in conn.execute(
             "SELECT id, filename, width, height, camera_model, date_taken "
-            "FROM photos WHERE path LIKE ? AND path NOT LIKE ? "
+            "FROM photos WHERE path LIKE ? ESCAPE '\\' AND path NOT LIKE ? ESCAPE '\\' "
             "ORDER BY date_taken DESC LIMIT 200",
-            (parent_path + "%", parent_path + "\\%\\%"),
+            (under_pat, deeper_pat),
         ).fetchall()]
 
         conn.close()
@@ -322,10 +352,11 @@ def browse_folder(folder_path: Optional[str] = None):
         entries = []
         for name, f in sorted(child_map.items(), key=lambda x: x[0].lower()):
             folder_path = f["path"].rstrip("/\\")
-            cnt = conn.execute("SELECT COUNT(*) FROM photos WHERE path LIKE ?", (folder_path + "%",)).fetchone()[0]
+            pat = _under_pattern(folder_path)
+            cnt = conn.execute("SELECT COUNT(*) FROM photos WHERE path LIKE ? ESCAPE '\\'", (pat,)).fetchone()[0]
             samples = [r["id"] for r in conn.execute(
-                "SELECT id FROM photos WHERE path LIKE ? ORDER BY date_taken DESC LIMIT 4",
-                (folder_path + "%",)
+                "SELECT id FROM photos WHERE path LIKE ? ESCAPE '\\' ORDER BY date_taken DESC LIMIT 4",
+                (pat,)
             ).fetchall()]
             entries.append({
                 "id": f["id"], "name": name, "path": folder_path,
@@ -366,18 +397,32 @@ def delete_folder(folder_id: int):
 @app.post("/api/scan")
 def scan_folder(payload: dict):
     folder_path = payload.get("path", "").strip()
-    if folder_path == "all":
-        _start_scan_all()
-        return {"ok": True, "message": "rescan all started"}
-    if not folder_path or not Path(folder_path).is_dir():
-        return {"error": "invalid folder path"}
-    _start_scan(folder_path)
+    with _scan_lock:
+        if _scan_state["running"]:
+            return JSONResponse(
+                status_code=409,
+                content={"ok": False, "error": "scan_already_running", "folder": _scan_state["folder"]},
+            )
+        if folder_path == "all":
+            _start_scan_all()
+            return {"ok": True, "message": "rescan all started"}
+        if not folder_path or not Path(folder_path).is_dir():
+            return {"error": "invalid folder path"}
+        _start_scan(folder_path)
     return {"ok": True, "message": "scan started"}
 
 
 @app.get("/api/scan/status")
 def scan_status():
     return _scan_state
+
+
+@app.post("/api/scan/cancel")
+def cancel_scan():
+    if not _scan_state.get("running"):
+        return {"ok": False, "error": "no scan running"}
+    _scan_state["cancel"] = True
+    return {"ok": True}
 
 
 # ── Photos ───────────────────────────────────────────────────────────────────
@@ -395,11 +440,13 @@ def list_photos(
     ext: Optional[str] = None,
     rating: Optional[int] = None,
     tag_id: Optional[int] = None,
+    collection_id: Optional[int] = None,
     country: Optional[str] = None,
     city: Optional[str] = None,
     near_city: Optional[str] = None,
     near_km: Optional[float] = None,
     geo: Optional[str] = None,
+    is_360: Optional[str] = None,
 ):
     conn = get_connection()
     near_lat = near_lng = None
@@ -420,8 +467,21 @@ def list_photos(
     if folder_id:
         folder_row = conn.execute("SELECT path FROM folders WHERE id = ?", (folder_id,)).fetchone()
         if folder_row:
-            where_parts.append("p.path LIKE ?")
-            params.append(folder_row["path"] + "%")
+            where_parts.append("p.path LIKE ? ESCAPE '\\'")
+            params.append(_under_pattern(folder_row["path"]))
+
+    if collection_id is not None:
+        where_parts.append("""p.id IN (
+            SELECT pc.photo_id FROM photo_collections pc
+            JOIN (
+                WITH RECURSIVE descendants AS (
+                    SELECT id FROM collections WHERE id = ?
+                    UNION ALL
+                    SELECT c.id FROM collections c JOIN descendants d ON c.parent_id = d.id
+                ) SELECT id FROM descendants
+            ) d ON pc.collection_id = d.id
+        )""")
+        params.append(collection_id)
 
     if q:
         where_parts.append("(p.filename LIKE ? OR p.camera_model LIKE ? OR p.camera_make LIKE ? OR p.lens LIKE ?)")
@@ -469,6 +529,25 @@ def list_photos(
     elif geo == "0":
         where_parts.append("(p.latitude IS NULL OR p.longitude IS NULL)")
 
+    if is_360 == "1":
+        where_parts.append("""(
+            p.camera_model LIKE '%THETA%' OR 
+            p.camera_make LIKE '%THETA%' OR 
+            p.camera_model LIKE '%INSTA360%' OR 
+            p.camera_make LIKE '%INSTA360%' OR 
+            (p.camera_model LIKE '%MAX%' AND p.camera_make LIKE '%GOPRO%') OR
+            (p.width IS NOT NULL AND p.height IS NOT NULL AND (p.width * 1.0 / p.height) BETWEEN 1.95 AND 2.05)
+        )""")
+    elif is_360 == "0":
+        where_parts.append("""NOT (
+            p.camera_model LIKE '%THETA%' OR 
+            p.camera_make LIKE '%THETA%' OR 
+            p.camera_model LIKE '%INSTA360%' OR 
+            p.camera_make LIKE '%INSTA360%' OR 
+            (p.camera_model LIKE '%MAX%' AND p.camera_make LIKE '%GOPRO%') OR
+            (p.width IS NOT NULL AND p.height IS NOT NULL AND (p.width * 1.0 / p.height) BETWEEN 1.95 AND 2.05)
+        )""")
+
     if near_lat is not None and near_lng is not None and near_km is not None:
         where_parts.append("""(
             6371 * acos(
@@ -483,7 +562,9 @@ def list_photos(
 
     total = conn.execute(f"SELECT COUNT(*) FROM photos p {where}", params).fetchone()[0]
     rows = conn.execute(
-        f"SELECT p.id, p.filename, p.width, p.height, p.camera_model, p.date_taken "
+        f"SELECT p.id, p.filename, p.width, p.height, p.camera_model, p.date_taken, "
+        f"(SELECT COUNT(*) FROM photo_tags pt WHERE pt.photo_id = p.id) AS tag_count, "
+        f"(SELECT COUNT(*) FROM photo_collections pc WHERE pc.photo_id = p.id) AS collection_count "
         f"FROM photos p {where} ORDER BY p.date_taken DESC, p.filename ASC "
         f"LIMIT ? OFFSET ?",
         params + [per_page, offset],
@@ -502,6 +583,8 @@ def list_photos(
                 "height": r["height"],
                 "camera": r["camera_model"],
                 "date": r["date_taken"],
+                "tag_count": r["tag_count"],
+                "collection_count": r["collection_count"],
                 "thumb": f"/api/photos/{r['id']}/thumb/medium",
             }
             for r in rows
@@ -553,6 +636,7 @@ def geo_bounds(
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     rating: Optional[int] = None,
+    collection_id: Optional[int] = None,
     q: Optional[str] = None,
 ):
     conn = get_connection()
@@ -589,8 +673,20 @@ def geo_bounds(
     if folder_id is not None:
         folder_row = conn.execute("SELECT path FROM folders WHERE id = ?", (folder_id,)).fetchone()
         if folder_row:
-            where += " AND path LIKE ?"
-            params.append(folder_row["path"] + "%")
+            where += " AND path LIKE ? ESCAPE '\\'"
+            params.append(_under_pattern(folder_row["path"]))
+    if collection_id is not None:
+        where += """ AND id IN (
+            SELECT pc.photo_id FROM photo_collections pc
+            JOIN (
+                WITH RECURSIVE descendants AS (
+                    SELECT id FROM collections WHERE id = ?
+                    UNION ALL
+                    SELECT c.id FROM collections c JOIN descendants d ON c.parent_id = d.id
+                ) SELECT id FROM descendants
+            ) d ON pc.collection_id = d.id
+        )"""
+        params.append(collection_id)
     row = conn.execute(
         f"SELECT MIN(latitude) as south, MIN(longitude) as west, "
         f"MAX(latitude) as north, MAX(longitude) as east, COUNT(*) as cnt "
@@ -617,7 +713,9 @@ def geo_photos(
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     rating: Optional[int] = None,
+    collection_id: Optional[int] = None,
     q: Optional[str] = None,
+    is_360: Optional[str] = None,
 ):
     conn = get_connection()
     where = "WHERE latitude IS NOT NULL AND longitude IS NOT NULL"
@@ -650,18 +748,50 @@ def geo_photos(
         where += " AND (filename LIKE ? OR camera_model LIKE ? OR camera_make LIKE ? OR lens LIKE ?)"
         like = f"%{q}%"
         params += [like, like, like, like]
+    if is_360 == "1":
+        where += """ AND (
+            camera_model LIKE '%THETA%' OR 
+            camera_make LIKE '%THETA%' OR 
+            camera_model LIKE '%INSTA360%' OR 
+            camera_make LIKE '%INSTA360%' OR 
+            (camera_model LIKE '%MAX%' AND camera_make LIKE '%GOPRO%') OR
+            (width IS NOT NULL AND height IS NOT NULL AND (width * 1.0 / height) BETWEEN 1.95 AND 2.05)
+        )"""
+    elif is_360 == "0":
+        where += """ AND NOT (
+            camera_model LIKE '%THETA%' OR 
+            camera_make LIKE '%THETA%' OR 
+            camera_model LIKE '%INSTA360%' OR 
+            camera_make LIKE '%INSTA360%' OR 
+            (camera_model LIKE '%MAX%' AND camera_make LIKE '%GOPRO%') OR
+            (width IS NOT NULL AND height IS NOT NULL AND (width * 1.0 / height) BETWEEN 1.95 AND 2.05)
+        )"""
     if south is not None and west is not None and north is not None and east is not None:
         where += " AND latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?"
         params += [south, north, west, east]
     if folder_id is not None:
         folder_row = conn.execute("SELECT path FROM folders WHERE id = ?", (folder_id,)).fetchone()
         if folder_row:
-            where += " AND path LIKE ?"
-            params.append(folder_row["path"] + "%")
+            where += " AND path LIKE ? ESCAPE '\\'"
+            params.append(_under_pattern(folder_row["path"]))
+    if collection_id is not None:
+        where += """ AND id IN (
+            SELECT pc.photo_id FROM photo_collections pc
+            JOIN (
+                WITH RECURSIVE descendants AS (
+                    SELECT id FROM collections WHERE id = ?
+                    UNION ALL
+                    SELECT c.id FROM collections c JOIN descendants d ON c.parent_id = d.id
+                ) SELECT id FROM descendants
+            ) d ON pc.collection_id = d.id
+        )"""
+        params.append(collection_id)
 
     total = conn.execute(f"SELECT COUNT(*) FROM photos {where}", params).fetchone()[0]
     rows = conn.execute(
-        f"SELECT id, filename, latitude, longitude, camera_model, date_taken "
+        f"SELECT id, filename, latitude, longitude, camera_model, date_taken, width, height, "
+        f"(SELECT COUNT(*) FROM photo_tags pt WHERE pt.photo_id = photos.id) AS tag_count, "
+        f"(SELECT COUNT(*) FROM photo_collections pc WHERE pc.photo_id = photos.id) AS collection_count "
         f"FROM photos {where}",
         params,
     ).fetchall()
@@ -677,11 +807,57 @@ def geo_photos(
                 "lng": r["longitude"],
                 "camera": r["camera_model"],
                 "date": r["date_taken"],
+                "width": r["width"],
+                "height": r["height"],
+                "tag_count": r["tag_count"],
+                "collection_count": r["collection_count"],
                 "thumb": f"/api/photos/{r['id']}/thumb/small",
             }
             for r in rows
         ],
     }
+
+
+@app.post("/api/photos/bulk-tags")
+def bulk_add_tag(payload: dict):
+    photo_ids = payload.get("photo_ids") or []
+    tag_id = payload.get("tag_id")
+    if not isinstance(photo_ids, list) or not photo_ids or not tag_id:
+        return {"error": "photo_ids (list) and tag_id are required"}
+    conn = get_connection()
+    added = 0
+    try:
+        for pid in photo_ids:
+            cur = conn.execute(
+                "INSERT OR IGNORE INTO photo_tags (photo_id, tag_id) VALUES (?, ?)",
+                (pid, tag_id),
+            )
+            added += cur.rowcount if cur.rowcount > 0 else 0
+        conn.commit()
+    finally:
+        conn.close()
+    return {"ok": True, "added": added}
+
+
+@app.post("/api/photos/bulk-collections")
+def bulk_add_to_collection(payload: dict):
+    photo_ids = payload.get("photo_ids") or []
+    collection_id = payload.get("collection_id")
+    if not isinstance(photo_ids, list) or not photo_ids or not collection_id:
+        return {"error": "photo_ids (list) and collection_id are required"}
+    conn = get_connection()
+    added = 0
+    try:
+        for pid in photo_ids:
+            cur = conn.execute(
+                "INSERT OR IGNORE INTO photo_collections (photo_id, collection_id) VALUES (?, ?)",
+                (pid, collection_id),
+            )
+            added += cur.rowcount if cur.rowcount > 0 else 0
+        conn.commit()
+    finally:
+        conn.close()
+    return {"ok": True, "added": added}
 
 
 @app.get("/api/photos/{photo_id}")
@@ -797,6 +973,357 @@ def get_thumbnail(photo_id: int, size: str):
         del resp.headers["last-modified"]
     return resp
 
+
+@app.get("/api/photos/{photo_id}/raw")
+def get_raw_photo(photo_id: int):
+    conn = get_connection()
+    r = conn.execute("SELECT path, mime_type FROM photos WHERE id = ?", (photo_id,)).fetchone()
+    conn.close()
+    if not r or not Path(r["path"]).is_file():
+        return Response(status_code=404)
+    return FileResponse(r["path"], media_type=r["mime_type"])
+
+
+import os, subprocess, hashlib
+
+VIDEO_CACHE_DIR = APP_DIR / "cache" / "video"
+VIDEO_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+_video_jobs = set()
+_video_jobs_lock = threading.Lock()
+_streamable_videos = set()
+
+
+def _mp4_streamable(path: str) -> bool:
+    """True if the moov atom comes before mdat (playable/seekable while streaming)."""
+    try:
+        with open(path, "rb") as f:
+            offset = 0
+            for _ in range(64):
+                f.seek(offset)
+                header = f.read(8)
+                if len(header) < 8:
+                    return False
+                size = int.from_bytes(header[:4], "big")
+                box = header[4:8]
+                if box == b"moov":
+                    return True
+                if box == b"mdat":
+                    return False
+                if size == 1:
+                    ext = f.read(8)
+                    if len(ext) < 8:
+                        return False
+                    size = int.from_bytes(ext, "big")
+                elif size <= 0:
+                    return False
+                offset += size
+        return False
+    except OSError:
+        return False
+
+
+def _has_rotation(path: str) -> bool:
+    try:
+        probe = subprocess.run(
+            ["ffprobe", "-v", "quiet", "-select_streams", "v:0",
+             "-show_entries", "stream_side_data=rotation", "-of", "csv=p=0", path],
+            capture_output=True, text=True, timeout=10,
+        )
+        return bool((probe.stdout or "").strip())
+    except Exception:
+        return True
+
+
+def _build_video_cache(tag: str, path: str, cached: Path):
+    tmp = cached.with_name(cached.name + ".part")
+    try:
+        rotated = _has_rotation(path)
+        cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+               "-i", path,
+               "-map", "0:v:0", "-map", "0:a?"]
+        if rotated:
+            cmd += ["-c:v", "libx264", "-preset", "fast", "-crf", "18"]
+        else:
+            cmd += ["-c", "copy"]
+        cmd += ["-c:a", "copy", "-movflags", "+faststart", str(tmp)]
+        result = subprocess.run(cmd, timeout=300)
+        if result.returncode == 0 and tmp.is_file() and tmp.stat().st_size > 0:
+            os.replace(tmp, cached)
+        elif tmp.is_file():
+            tmp.unlink()
+    except Exception:
+        if tmp.is_file():
+            try:
+                tmp.unlink()
+            except OSError:
+                pass
+    finally:
+        with _video_jobs_lock:
+            _video_jobs.discard(tag)
+
+
+@app.get("/api/photos/{photo_id}/stream")
+def stream_video(photo_id: int):
+    conn = get_connection()
+    r = conn.execute("SELECT path, mime_type, size FROM photos WHERE id = ?", (photo_id,)).fetchone()
+    conn.close()
+    if not r or not Path(r["path"]).is_file():
+        return Response(status_code=404)
+    path = r["path"]
+    mime = r["mime_type"]
+    if not mime or not mime.startswith("video/"):
+        return FileResponse(path, media_type=mime)
+
+    p = Path(path)
+
+    # WebM streams natively — never copy.
+    if p.suffix.lower() == ".webm":
+        return FileResponse(p, media_type=mime)
+
+    # MP4/MOV already streamable (moov before mdat) and unrotated: serve as-is, no cache copy.
+    if p.suffix.lower() in (".mp4", ".mov"):
+        if path in _streamable_videos:
+            return FileResponse(p, media_type=mime)
+        if _mp4_streamable(path) and not _has_rotation(path):
+            _streamable_videos.add(path)
+            return FileResponse(p, media_type=mime)
+
+    tag = hashlib.md5(f"{path}:{r['size']}".encode()).hexdigest()[:12]
+    cached = VIDEO_CACHE_DIR / f"{tag}.mp4"
+    try:
+        cache_ok = cached.is_file() and cached.stat().st_size > 0 and cached.stat().st_mtime >= p.stat().st_mtime
+    except OSError:
+        cache_ok = False
+    if cache_ok:
+        return FileResponse(cached, media_type="video/mp4")
+
+    # Build the cache in background and serve the original right away so playback starts immediately.
+    with _video_jobs_lock:
+        if tag not in _video_jobs:
+            _video_jobs.add(tag)
+            threading.Thread(target=_build_video_cache, args=(tag, path, cached), daemon=True).start()
+    return FileResponse(p, media_type=mime)
+
+
+# ── Collections ──────────────────────────────────────────────────────────────
+
+@app.get("/api/collections")
+def list_collections():
+    conn = get_connection()
+    rows = conn.execute(
+        "WITH RECURSIVE path_cte(id, name, parent_id, path_str) AS ("
+        "  SELECT id, name, parent_id, name FROM collections WHERE parent_id IS NULL "
+        "  UNION ALL "
+        "  SELECT c.id, c.name, c.parent_id, p.path_str || ' › ' || c.name "
+        "  FROM collections c JOIN path_cte p ON c.parent_id = p.id"
+        ") "
+        "SELECT c.id, p.path_str as name, c.color, c.icon, c.parent_id, COUNT(pc.photo_id) as photo_count "
+        "FROM collections c "
+        "JOIN path_cte p ON c.id = p.id "
+        "LEFT JOIN photo_collections pc ON c.id = pc.collection_id "
+        "GROUP BY c.id ORDER BY p.path_str"
+    ).fetchall()
+    conn.close()
+    return [{"id": r["id"], "name": r["name"], "color": r["color"], "icon": r["icon"], "parent_id": r["parent_id"], "photo_count": r["photo_count"]} for r in rows]
+
+def _aggregate_collection_items(conn):
+    """Per-collection item counts + latest sample ids, aggregated over the whole subtree."""
+    rows = conn.execute("SELECT id, parent_id FROM collections").fetchall()
+    children = {}
+    all_ids = []
+    for r in rows:
+        all_ids.append(r["id"])
+        parent_key = r["parent_id"] if r["parent_id"] is not None else None
+        children.setdefault(parent_key, []).append(r["id"])
+
+    direct = {}
+    for r in conn.execute("SELECT collection_id, photo_id FROM photo_collections"):
+        direct.setdefault(r["collection_id"], set()).add(r["photo_id"])
+
+    memo = {}
+
+    def subtree_ids(cid, visiting):
+        if cid in memo:
+            return memo[cid]
+        if cid in visiting:
+            return set()
+        visiting.add(cid)
+        ids = set(direct.get(cid, set()))
+        for ch in children.get(cid, []):
+            ids |= subtree_ids(ch, visiting)
+        visiting.discard(cid)
+        memo[cid] = ids
+        return ids
+
+    agg_count, agg_samples = {}, {}
+    for cid in all_ids:
+        ids = subtree_ids(cid, set())
+        agg_count[cid] = len(ids)
+        agg_samples[cid] = sorted(ids, reverse=True)[:4]
+    return agg_count, agg_samples
+
+
+@app.get("/api/collections/tree")
+def list_collections_tree():
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT c.id, c.name, c.color, c.icon, c.parent_id "
+        "FROM collections c ORDER BY c.name"
+    ).fetchall()
+    agg_count, _ = _aggregate_collection_items(conn)
+    conn.close()
+
+    entries = {r["id"]: {"id": r["id"], "name": r["name"], "color": r["color"], "icon": r["icon"], "parent_id": r["parent_id"], "photo_count": agg_count.get(r["id"], 0), "children": []} for r in rows}
+    roots = []
+
+    for entry_id, entry in entries.items():
+        parent_id = entry["parent_id"]
+        if parent_id and parent_id in entries:
+            entries[parent_id]["children"].append(entry)
+        else:
+            roots.append(entry)
+
+    def _flatten(nodes, depth=0):
+        result = []
+        for n in nodes:
+            result.append({
+                "id": n["id"],
+                "name": n["name"],
+                "color": n["color"],
+                "icon": n["icon"],
+                "parent_id": n["parent_id"],
+                "photo_count": n["photo_count"],
+                "depth": depth,
+                "has_children": len(n["children"]) > 0,
+            })
+            result.extend(_flatten(n["children"], depth + 1))
+        return result
+
+    return _flatten(roots)
+
+@app.get("/api/collections/browse")
+def browse_collections(parent_id: Optional[int] = None):
+    conn = get_connection()
+
+    if parent_id is not None:
+        rows = conn.execute(
+            "SELECT c.id, c.name, c.color, c.icon "
+            "FROM collections c "
+            "WHERE c.parent_id = ? "
+            "ORDER BY c.name",
+            (parent_id,)
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT c.id, c.name, c.color, c.icon "
+            "FROM collections c "
+            "WHERE c.parent_id IS NULL "
+            "ORDER BY c.name"
+        ).fetchall()
+
+    agg_count, agg_samples = _aggregate_collection_items(conn)
+    conn.close()
+
+    result = []
+    for r in rows:
+        result.append({
+            "id": r["id"], "name": r["name"], "color": r["color"], "icon": r["icon"],
+            "photo_count": agg_count.get(r["id"], 0), "sample_ids": agg_samples.get(r["id"], []),
+        })
+    return result
+
+@app.post("/api/collections")
+def create_collection(payload: dict):
+    name = payload.get("name", "").strip()
+    parent_id = payload.get("parent_id")
+    color = payload.get("color")
+    icon = payload.get("icon")
+    if not name:
+        return {"error": "name is required"}
+    conn = get_connection()
+    try:
+        conn.execute("INSERT INTO collections (name, parent_id, color, icon) VALUES (?, ?, ?, ?)", (name, parent_id, color, icon))
+        conn.commit()
+        coll_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+    except sqlite3.IntegrityError:
+        return {"error": "collection already exists"}
+    finally:
+        conn.close()
+    return {"ok": True, "id": coll_id}
+
+@app.put("/api/collections/{collection_id}")
+def update_collection(collection_id: int, payload: dict):
+    name = payload.get("name", "").strip() if "name" in payload else None
+    color = payload.get("color")
+    icon = payload.get("icon")
+    parent_id = payload.get("parent_id")
+
+    conn = get_connection()
+    try:
+        if name is not None:
+            conn.execute("UPDATE collections SET name = ? WHERE id = ?", (name, collection_id))
+        if color is not None:
+            conn.execute("UPDATE collections SET color = ? WHERE id = ?", (color, collection_id))
+        if icon is not None:
+            conn.execute("UPDATE collections SET icon = ? WHERE id = ?", (icon, collection_id))
+        if "parent_id" in payload:
+            conn.execute("UPDATE collections SET parent_id = ? WHERE id = ?", (parent_id, collection_id))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        return {"error": "collection name already exists at this level"}
+    finally:
+        conn.close()
+    return {"ok": True}
+
+@app.delete("/api/collections/{collection_id}")
+def delete_collection(collection_id: int):
+    conn = get_connection()
+    conn.execute("DELETE FROM collections WHERE id = ?", (collection_id,))
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+# ── Photo Collections ────────────────────────────────────────────────────────
+
+@app.get("/api/photos/{photo_id}/collections")
+def photo_collections(photo_id: int):
+    conn = get_connection()
+    rows = conn.execute(
+        "WITH RECURSIVE path_cte(id, name, parent_id, path_str) AS ("
+        "  SELECT id, name, parent_id, name FROM collections WHERE parent_id IS NULL "
+        "  UNION ALL "
+        "  SELECT c.id, c.name, c.parent_id, p.path_str || ' › ' || c.name "
+        "  FROM collections c JOIN path_cte p ON c.parent_id = p.id"
+        ") "
+        "SELECT c.id, p.path_str as name, c.color, c.icon FROM collections c "
+        "JOIN path_cte p ON c.id = p.id "
+        "JOIN photo_collections pc ON c.id = pc.collection_id "
+        "WHERE pc.photo_id = ? ORDER BY p.path_str", (photo_id,)
+    ).fetchall()
+    conn.close()
+    return [{"id": r["id"], "name": r["name"], "color": r["color"], "icon": r["icon"]} for r in rows]
+
+@app.post("/api/photos/{photo_id}/collections")
+def add_collection_to_photo(photo_id: int, payload: dict):
+    collection_id = payload.get("collection_id")
+    if not collection_id:
+        return {"error": "collection_id is required"}
+    conn = get_connection()
+    try:
+        conn.execute("INSERT OR IGNORE INTO photo_collections (photo_id, collection_id) VALUES (?, ?)", (photo_id, collection_id))
+        conn.commit()
+    finally:
+        conn.close()
+    return {"ok": True}
+
+@app.delete("/api/photos/{photo_id}/collections/{collection_id}")
+def remove_collection_from_photo(photo_id: int, collection_id: int):
+    conn = get_connection()
+    conn.execute("DELETE FROM photo_collections WHERE photo_id = ? AND collection_id = ?", (photo_id, collection_id))
+    conn.commit()
+    conn.close()
+    return {"ok": True}
 
 # ── Tags ─────────────────────────────────────────────────────────────────────
 
@@ -1112,6 +1639,17 @@ def get_stats():
         for r in country_rows
     ]
 
+    count_360 = conn.execute("""
+        SELECT COUNT(*) FROM photos 
+        WHERE 
+            camera_model LIKE '%THETA%' OR 
+            camera_make LIKE '%THETA%' OR 
+            camera_model LIKE '%INSTA360%' OR 
+            camera_make LIKE '%INSTA360%' OR 
+            (camera_model LIKE '%MAX%' AND camera_make LIKE '%GOPRO%') OR
+            (width IS NOT NULL AND height IS NOT NULL AND (width * 1.0 / height) BETWEEN 1.95 AND 2.05)
+    """).fetchone()[0]
+
     conn.close()
 
     video_exts = {".mp4", ".mov", ".avi", ".mkv", ".webm"}
@@ -1124,6 +1662,7 @@ def get_stats():
         "formats": formats,
         "geo_count": geo_count,
         "geo_total": total_photos,
+        "count_360": count_360,
         "timeline": timeline,
         "countries": countries,
         "video_count": video_count,
@@ -1222,6 +1761,11 @@ app.mount("/js", StaticFiles(directory=str(FRONTEND_DIR / "js")), name="js")
 @app.get("/{path:path}")
 def serve_frontend(path: str):
     file = FRONTEND_DIR / path
-    if file.is_file():
-        return FileResponse(str(file))
-    return FileResponse(str(FRONTEND_DIR / "index.html"))
+    if not file.is_file():
+        file = FRONTEND_DIR / "index.html"
+    
+    resp = FileResponse(str(file))
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp

@@ -73,6 +73,21 @@ CREATE TABLE IF NOT EXISTS tags (
     UNIQUE(name, parent_id)
 );
 
+CREATE TABLE IF NOT EXISTS collections (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    name      TEXT    NOT NULL,
+    color     TEXT,
+    icon      TEXT,
+    parent_id INTEGER REFERENCES collections(id) ON DELETE SET NULL,
+    UNIQUE(name, parent_id)
+);
+
+CREATE TABLE IF NOT EXISTS photo_collections (
+    photo_id      INTEGER NOT NULL REFERENCES photos(id) ON DELETE CASCADE,
+    collection_id INTEGER NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+    PRIMARY KEY (photo_id, collection_id)
+);
+
 CREATE TABLE IF NOT EXISTS photo_tags (
     photo_id INTEGER NOT NULL REFERENCES photos(id) ON DELETE CASCADE,
     tag_id   INTEGER NOT NULL REFERENCES tags(id)   ON DELETE CASCADE,
@@ -86,6 +101,7 @@ CREATE INDEX IF NOT EXISTS idx_photos_date       ON photos(date_taken);
 CREATE INDEX IF NOT EXISTS idx_photos_hash       ON photos(hash);
 CREATE INDEX IF NOT EXISTS idx_photos_phash      ON photos(perceptual_hash);
 CREATE INDEX IF NOT EXISTS idx_tags_parent       ON tags(parent_id);
+CREATE INDEX IF NOT EXISTS idx_collections_parent ON collections(parent_id);
 
 CREATE TABLE IF NOT EXISTS _thumb_done (
     photo_id INTEGER PRIMARY KEY REFERENCES photos(id) ON DELETE CASCADE

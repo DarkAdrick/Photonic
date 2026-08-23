@@ -7,31 +7,126 @@
     overflow: hidden;
 }
 
+/* ── Empty State Hero ───────────────────────────────────────────────────── */
+
 #empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     color: var(--text-secondary);
+    position: relative;
+    overflow: hidden;
+    padding: 40px;
+    animation: heroFadeIn 0.5s ease;
+}
+
+@keyframes heroFadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-glow {
+    position: absolute;
+    width: 480px;
+    height: 480px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+        color-mix(in srgb, var(--photonic-1) 14%, transparent),
+        color-mix(in srgb, var(--photonic-5) 10%, transparent) 45%,
+        transparent 70%);
+    filter: blur(40px);
+    pointer-events: none;
+    animation: heroGlow 8s ease-in-out infinite alternate;
+}
+
+@keyframes heroGlow {
+    from { transform: translate(-60%, -55%) scale(1); }
+    to   { transform: translate(-40%, -45%) scale(1.15); }
+}
+
+.hero-icon {
+    width: 84px;
+    height: 84px;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--photonic-gradient-dark);
+    border: 1px solid var(--border);
+    box-shadow:
+        0 0 0 6px color-mix(in srgb, var(--accent) 6%, transparent),
+        0 16px 40px rgba(0,0,0,0.4);
+    margin-bottom: 28px;
+    position: relative;
+}
+
+.hero-icon svg {
+    width: 42px;
+    height: 42px;
+    color: var(--photonic-2);
+    animation: logoHue 8s linear infinite;
 }
 
 #empty-state h2 {
-    font-size: 20px;
-    font-weight: 500;
-    margin-bottom: 8px;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 10px;
     color: var(--text-primary);
+    position: relative;
 }
 
-#empty-state p { margin-bottom: 20px; }
+.hero-gradient-text {
+    background: var(--photonic-gradient);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: heroGradientShift 6s linear infinite;
+}
+
+@keyframes heroGradientShift {
+    to { background-position: 200% center; }
+}
+
+#empty-state p {
+    font-size: 15px;
+    max-width: 380px;
+    line-height: 1.6;
+    margin-bottom: 28px;
+    position: relative;
+}
 
 #btn-add-folder {
-    padding: 8px 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
     background: var(--photonic-gradient);
+    background-size: 150% auto;
     color: #000000;
     border: none;
-    border-radius: 4px;
+    border-radius: 12px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--photonic-5) 25%, transparent);
+    transition: all 0.2s ease;
+    position: relative;
 }
 
-#btn-add-folder:hover { filter: brightness(1.15); }
+#btn-add-folder svg { width: 17px; height: 17px; }
+
+#btn-add-folder:hover {
+    transform: translateY(-2px);
+    background-position: right center;
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--photonic-5) 40%, transparent);
+}
+
+#btn-add-folder:active { transform: translateY(0); }
 
 /* ── Photo Grid ──────────────────────────────────────────────────────────── */
 
@@ -48,7 +143,6 @@
     overflow-y: auto;
     transition: transform 0.2s cubic-bezier(.4,0,.2,1);
     transform-origin: center top;
-    background: var(--photonic-gradient-darker);
 }
 
 #photo-grid.zoom-pulse {
@@ -107,12 +201,13 @@
     left: 0;
     right: 0;
     padding: 3px 6px;
-    background: rgba(0,0,0,0.6);
+    background: var(--text-secondary);
     font-size: 10px;
-    color: var(--text-secondary);
+    color: var(--bg-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    opacity: 0.7;
 }
 
 /* ── Layout Toggle ──────────────────────────────────────────────────────── */
@@ -215,4 +310,121 @@
     outline: 3px dashed #e74c3c;
     outline-offset: -1px;
     opacity: 0.6;
+}
+
+.photo-360-badge {
+    position: absolute;
+    top: clamp(3px, calc(var(--thumb-size, 150px) * 0.05), 8px);
+    left: clamp(3px, calc(var(--thumb-size, 150px) * 0.05), 8px);
+    z-index: 3;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    width: clamp(14px, calc(var(--thumb-size, 150px) * 0.17), 26px);
+    height: clamp(14px, calc(var(--thumb-size, 150px) * 0.17), 26px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transition: all 0.15s ease;
+}
+
+.photo-360-badge svg {
+    width: clamp(8px, calc(var(--thumb-size, 150px) * 0.095), 14px);
+    height: clamp(8px, calc(var(--thumb-size, 150px) * 0.095), 14px);
+}
+
+.photo-card:hover .photo-360-badge {
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: scale(1.1);
+}
+
+.photo-video-badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    width: clamp(18px, calc(var(--thumb-size, 150px) * 0.30), 44px);
+    height: clamp(18px, calc(var(--thumb-size, 150px) * 0.30), 44px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transition: all 0.15s ease;
+}
+
+.photo-video-badge svg {
+    width: clamp(10px, calc(var(--thumb-size, 150px) * 0.135), 20px);
+    height: clamp(10px, calc(var(--thumb-size, 150px) * 0.135), 20px);
+    margin-left: max(1px, calc(var(--thumb-size, 150px) * 0.013)); /* visual alignment of the triangle play icon */
+}
+
+.photo-card:hover .photo-video-badge {
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.photo-card.dragging {
+    opacity: 0.45;
+}
+
+/* ── Meta badges (tags / collections counts) ─────────────────────────── */
+
+.photo-meta-badges {
+    position: absolute;
+    left: 4px;
+    bottom: 21px;
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.photo-card:not(:has(.photo-label)) .photo-meta-badges {
+    bottom: 4px;
+}
+
+html.thumbs-tiny .photo-card .photo-label {
+    display: none;
+}
+
+html.thumbs-tiny .photo-meta-badges {
+    bottom: 4px;
+}
+
+.photo-meta-badge {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: rgba(10, 13, 58, 0.78);
+    border-radius: 7px;
+    padding: 1px 4px;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 12px;
+    color: rgba(255, 255, 255, 0.92);
+    transition: background 0.15s ease;
+}
+
+.photo-meta-badge svg {
+    width: 9px;
+    height: 9px;
+    flex-shrink: 0;
+}
+
+.photo-meta-badge[title*="tag"] svg {
+    color: var(--accent);
+}
+
+.photo-card:hover .photo-meta-badge {
+    background: rgba(10, 13, 58, 0.95);
 }

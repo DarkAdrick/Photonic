@@ -8,15 +8,16 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
+    <link rel="stylesheet" href="/css/style.css?v=0.2.1">
 </head>
 <body>
 
 <header id="header">
     <div class="header-left">
-        <img src="/icon.png" alt="" class="logo-icon">
+        <div class="logo-icon"><i data-lucide="aperture"></i></div>
         <span class="logo">PHOTONIC</span>
-        <span class="version-badge" id="version-badge" title="View changelog">v0.1.1 <b>β</b></span>
+        <span class="version-badge" id="version-badge" title="View changelog">v0.2.1</span>
     </div>
     <div class="header-right">
         <div class="search-box">
@@ -24,6 +25,7 @@
             <input type="text" id="search" placeholder="Search photos...">
         </div>
         <button id="btn-toggle-filters" class="header-btn"><i data-lucide="sliders-horizontal"></i> Filters</button>
+        <a href="https://github.com/sponsors/DarkAdrick" target="_blank" rel="noopener" class="donate-header-btn" title="Donate"><i data-lucide="heart"></i></a>
         <button id="btn-settings" class="header-btn"><i data-lucide="settings"></i></button>
     </div>
 </header>
@@ -31,19 +33,27 @@
 <div id="filter-drawer" class="drawer-closed">
     <div class="filter-row">
         <div class="filter-chip">
-            <label>Camera</label>
+            <label for="filter-camera">Camera</label>
             <select id="filter-camera"><option value="">All</option></select>
         </div>
         <div class="filter-chip">
-            <label>Lens</label>
+            <label for="filter-lens">Lens</label>
             <select id="filter-lens"><option value="">All</option></select>
         </div>
         <div class="filter-chip">
-            <label>Format</label>
+            <label for="filter-ext">Format</label>
             <select id="filter-ext"><option value="">All</option></select>
         </div>
         <div class="filter-chip">
-            <label>Rating</label>
+            <label for="filter-360">360°</label>
+            <select id="filter-360">
+                <option value="">All</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+            </select>
+        </div>
+        <div class="filter-chip">
+            <label for="filter-rating">Rating</label>
             <select id="filter-rating">
                 <option value="">Any</option>
                 <option value="1">1+</option>
@@ -54,23 +64,23 @@
             </select>
         </div>
         <div class="filter-chip">
-            <label>Country</label>
+            <label for="filter-country">Country</label>
             <select id="filter-country"><option value="">All</option></select>
         </div>
         <div class="filter-chip">
-            <label>City</label>
+            <label for="filter-city">City</label>
             <select id="filter-city"><option value="">All</option></select>
         </div>
         <div class="filter-chip filter-chip-date">
-            <label>From</label>
+            <label for="filter-date-from">From</label>
             <input type="date" id="filter-date-from">
         </div>
         <div class="filter-chip filter-chip-date">
-            <label>To</label>
+            <label for="filter-date-to">To</label>
             <input type="date" id="filter-date-to">
         </div>
         <div class="filter-chip">
-            <label>Geolocalized</label>
+            <label for="filter-geo">Geolocalized</label>
             <select id="filter-geo">
                 <option value="">All</option>
                 <option value="1">Yes</option>
@@ -83,9 +93,11 @@
 
 <aside id="sidebar">
     <nav>
+        <div class="sb-quick-title">Views</div>
         <ul>
             <li class="active" data-view="library"><i data-lucide="image"></i>Library</li>
             <li data-view="folders"><i data-lucide="folder"></i>Folders</li>
+            <li data-view="collections"><i data-lucide="library"></i>Collections</li>
             <li data-view="countries"><i data-lucide="globe"></i>Countries</li>
             <li data-view="tags"><i data-lucide="tag"></i>Tags</li>
             <li data-view="cameras"><i data-lucide="camera"></i>Cameras</li>
@@ -94,11 +106,11 @@
             <li data-view="stats"><i data-lucide="bar-chart-2"></i>Stats</li>
         </ul>
     </nav>
-    <div id="sidebar-folders"></div>
+    <div id="sidebar-filters"></div>
+    <div id="sidebar-tags"></div>
     <div id="sidebar-actions">
         <button id="btn-add-folder-sidebar" class="sidebar-btn"><i data-lucide="folder-plus"></i> Add Folder</button>
         <button id="btn-rescan" class="sidebar-btn" disabled><i data-lucide="refresh-cw"></i> Rescan All</button>
-        <a href="https://github.com/sponsors/DarkAdrick" target="_blank" rel="noopener" class="sidebar-btn donate-btn"><i data-lucide="heart"></i> Donate</a>
     </div>
 </aside>
 
@@ -114,9 +126,13 @@
         <div id="cleaning-status" class="hidden"></div>
     </div>
     <div id="empty-state">
-        <h2>Welcome to Photonic</h2>
-        <p>No photos loaded yet. Add a folder to get started.</p>
-        <button id="btn-add-folder">Add Folder</button>
+        <div class="hero-glow"></div>
+        <div class="hero-icon">
+            <i data-lucide="aperture"></i>
+        </div>
+        <h2>Welcome to <span class="hero-gradient-text">Photonic</span></h2>
+        <p>Your photos, beautifully organized. Add a folder to get started.</p>
+        <button id="btn-add-folder"><i data-lucide="folder-plus"></i>Add Folder</button>
     </div>
     <div id="photo-grid" class="hidden">
         <div id="header-photo-grid">
@@ -132,9 +148,46 @@
     <div id="map-photos" class="hidden"></div>
 </main>
 
+<div id="settings-page" class="hidden">
+    <div class="settings-layout">
+        <nav class="settings-nav">
+            <div class="settings-nav-header">
+                <button id="settings-back" class="settings-back-btn"><i data-lucide="arrow-left"></i> Back</button>
+                <h2>Settings</h2>
+            </div>
+            <div class="settings-nav-items">
+                <button class="settings-nav-item active" data-section="settings-application">
+                    <i data-lucide="sliders-horizontal"></i> Application
+                </button>
+                <button class="settings-nav-item" data-section="settings-folders-p">
+                    <i data-lucide="folder"></i> Folders
+                    <span class="settings-nav-badge" id="settings-folders-count">0</span>
+                </button>
+                <button class="settings-nav-item" data-section="settings-collections-p">
+                    <i data-lucide="layers"></i> Collections
+                    <span class="settings-nav-badge" id="settings-collections-count">0</span>
+                </button>
+                <button class="settings-nav-item" data-section="settings-tags-p">
+                    <i data-lucide="tag"></i> Tags
+                    <span class="settings-nav-badge" id="settings-tags-count">0</span>
+                </button>
+            </div>
+        </nav>
+        <div class="settings-content">
+            <div id="settings-application" class="settings-section"></div>
+            <div id="settings-folders-p" class="settings-section hidden"></div>
+            <div id="settings-collections-p" class="settings-section hidden"></div>
+            <div id="settings-tags-p" class="settings-section hidden"></div>
+        </div>
+    </div>
+</div>
+
 <div id="folder-dialog" class="dialog-overlay hidden">
     <div class="dialog">
-        <h3>Add Photo Folder</h3>
+        <div class="dialog-header">
+            <h3>Add Photo Folder</h3>
+            <button id="folder-dialog-close" class="detail-close-btn"><i data-lucide="x"></i></button>
+        </div>
         <input type="text" id="folder-path" placeholder="C:\Users\You\Pictures">
         <div class="dialog-actions">
             <button id="btn-dialog-cancel">Cancel</button>
@@ -145,12 +198,25 @@
 
 <div id="tag-dialog" class="dialog-overlay hidden">
     <div class="dialog tag-dialog-box">
-        <h3 id="tag-dialog-title">Add Tag</h3>
-        <input type="text" id="tag-input" placeholder="Tag name...">
-        <div class="tag-color-section">
-            <label>Color</label>
-            <div id="tag-color-palette" class="tag-color-palette"></div>
-            <input type="color" id="tag-color-picker" value="#5b9fd6">
+        <div class="dialog-header">
+            <h3 id="tag-dialog-title">Add Tag</h3>
+            <button id="tag-dialog-close" class="detail-close-btn"><i data-lucide="x"></i></button>
+        </div>
+        <div class="dialog-tabs" id="tag-dialog-tabs">
+            <button class="dialog-tab active" data-tab="existing">Existing Tags</button>
+            <button class="dialog-tab" data-tab="new">New Tag</button>
+        </div>
+        <div id="tag-create-section" hidden>
+            <input type="text" id="tag-input" placeholder="Tag name...">
+            <div class="tag-color-section">
+                <label for="tag-color-picker">Color</label>
+                <div id="tag-color-palette" class="tag-color-palette"></div>
+                <div class="tag-color-custom">
+                    <span class="tag-color-custom-label">Custom</span>
+                    <input type="color" id="tag-color-picker" value="#5b9fd6">
+                    <input type="text" id="tag-color-hex" value="#5B9FD6" maxlength="7" spellcheck="false">
+                </div>
+            </div>
         </div>
         <div id="tag-existing-list" class="tag-existing-list"></div>
         <div class="dialog-actions">
@@ -165,15 +231,16 @@
     <div id="scan-progress" class="hidden">
         <div id="scan-bar"><div id="scan-fill"></div></div>
         <span id="scan-status"></span>
+        <button id="btn-scan-cancel" class="scan-cancel-btn hidden" title="Cancel scan"><i data-lucide="x"></i></button>
     </div>
     <div id="layout-toggle">
         <button id="btn-layout-grid" class="layout-btn active" title="Grid view"><i data-lucide="grid-3x3"></i></button>
         <button id="btn-layout-masonry" class="layout-btn" title="Masonry view"><i data-lucide="layout-dashboard"></i></button>
     </div>
     <div id="thumb-size-control">
-        <i data-lucide="minimize-2"></i>
-        <input type="range" id="thumb-size" min="60" max="450" value="150">
-        <i data-lucide="maximize-2"></i>
+        <button id="btn-zoom-out" class="thumb-zoom-btn" title="Réduire les miniatures"><i data-lucide="minus"></i></button>
+        <input type="range" id="thumb-size" min="30" max="450" value="150">
+        <button id="btn-zoom-in" class="thumb-zoom-btn" title="Agrandir les miniatures"><i data-lucide="plus"></i></button>
     </div>
 </footer>
 
@@ -181,16 +248,30 @@
     <div id="detail-layout">
         <div id="detail-image">
             <div id="detail-header">
-                <span id="detail-filename"></span>
+                <div class="detail-header-left">
+                    <button id="detail-fullscreen-btn" class="detail-action-btn" title="Plein écran"><i data-lucide="maximize"></i></button>
+                    <span id="detail-filename"></span>
+                </div>
                 <div class="detail-header-actions">
-                    <button id="detail-open" class="detail-action-btn" title="Open in default app"><i data-lucide="external-link"></i></button>
-                    <button id="detail-reveal" class="detail-action-btn" title="Reveal in Explorer"><i data-lucide="folder-open"></i></button>
+                    <button id="detail-360" class="detail-action-btn hidden" title="Visualiser en 360°"><i data-lucide="compass"></i></button>
+                    <div class="detail-menu-wrap">
+                        <button id="detail-more" class="detail-action-btn" title="Plus d'actions"><i data-lucide="more-vertical"></i></button>
+                        <div id="detail-more-menu" class="hidden">
+                            <div class="detail-menu-item" data-action="open"><i data-lucide="external-link"></i>Open in default app</div>
+                            <div class="detail-menu-item striped" data-action="reveal"><i data-lucide="folder-open"></i>Reveal in Explorer</div>
+                            <div class="detail-menu-item" data-action="copy-path"><i data-lucide="copy"></i>Copy file path</div>
+                            <div class="detail-menu-separator"></div>
+                            <div class="detail-menu-item striped danger" data-action="delete"><i data-lucide="trash-2"></i>Delete</div>
+                        </div>
+                    </div>
                     <button id="detail-close" class="detail-close-btn" title="Close"><i data-lucide="x"></i></button>
                 </div>
             </div>
             <div id="detail-stage">
                 <button id="detail-prev" class="detail-nav-btn" title="Previous"><i data-lucide="chevron-left"></i></button>
                 <img id="detail-img" src="" alt="">
+                <div id="detail-360-viewer" class="hidden"></div>
+                <video id="detail-video" class="hidden" controls autoplay loop></video>
                 <button id="detail-next" class="detail-nav-btn" title="Next"><i data-lucide="chevron-right"></i></button>
             </div>
             <div id="detail-footer">
@@ -211,6 +292,10 @@
             <div id="detail-exif">
                 <div id="detail-meta"></div>
             </div>
+            <div id="detail-rating-section">
+                <h4>Rating</h4>
+                <div id="detail-rating"></div>
+            </div>
             <div id="detail-map-section" class="hidden">
                 <h4>Location</h4>
                 <div id="detail-map"></div>
@@ -219,7 +304,10 @@
             <div id="detail-tags-section">
                 <h4>Tags</h4>
                 <div id="detail-tags"></div>
-                <div id="detail-rating"></div>
+            </div>
+            <div id="detail-collections-section">
+                <h4>Collections</h4>
+                <div id="detail-collections"></div>
             </div>
         </div>
     </div>
@@ -237,32 +325,65 @@
     <div class="context-separator"></div>
     <div class="context-item" data-action="add-tag">Add Tag...</div>
     <div class="context-item" data-action="remove-tags">Remove Tags</div>
+    <div class="context-item" data-action="add-collection">Add to Collection...</div>
+    <div class="context-item" data-action="remove-collections">Remove Collections</div>
     <div class="context-separator"></div>
     <div class="context-item context-danger" data-action="delete">Delete Selected</div>
 </div>
 
-<div id="settings-dialog" class="dialog-overlay hidden">
-    <div class="dialog settings-dialog-box">
-        <h3>Settings</h3>
-        <div class="settings-tabs">
-            <button class="settings-tab active" data-tab="settings-tags">Tags</button>
-            <button class="settings-tab" data-tab="settings-folders">Folders</button>
+<div id="collection-dialog" class="dialog-overlay hidden">
+    <div class="dialog tag-dialog-box">
+        <div class="dialog-header">
+            <h3 id="collection-dialog-title">Add Collection</h3>
+            <button id="collection-dialog-close" class="detail-close-btn"><i data-lucide="x"></i></button>
         </div>
-        <div id="settings-tags" class="settings-panel">
-            <div id="settings-tags-list"></div>
+        <div class="dialog-tabs" id="collection-dialog-tabs">
+            <button class="dialog-tab active" data-tab="existing">Existing Collections</button>
+            <button class="dialog-tab" data-tab="new">New Collection</button>
         </div>
-        <div id="settings-folders" class="settings-panel hidden">
-            <div id="settings-folders-list"></div>
+        <div id="collection-create-section">
+            <input type="text" id="collection-input" placeholder="Collection name..." autocomplete="off">
+            <div class="dialog-field">
+                <span class="field-label">Icon</span>
+                <div id="collection-icon-picker" class="icon-picker-grid"></div>
+                <div id="collection-icon-selected" class="icon-picker-selected">
+                    <i data-lucide="library"></i>
+                    <span>library</span>
+                </div>
+                <input type="hidden" id="collection-icon-input" value="">
+            </div>
+            <div class="dialog-field">
+                <label for="collection-parent-select">Parent Collection</label>
+                <select id="collection-parent-select">
+                    <option value="">(None)</option>
+                </select>
+            </div>
+            <div class="tag-color-section">
+                <label for="collection-color-picker">Color</label>
+                <div class="color-palette tag-color-palette" id="collection-color-palette"></div>
+                <div class="tag-color-custom">
+                    <span class="tag-color-custom-label">Custom</span>
+                    <input type="color" id="collection-color-picker" value="#5b9fd6">
+                    <input type="text" id="collection-color-hex" value="#5B9FD6" maxlength="7" spellcheck="false">
+                </div>
+            </div>
+        </div>
+        <div id="collection-existing-section">
+            <div id="collection-existing-list" class="tag-existing-list"></div>
         </div>
         <div class="dialog-actions">
-            <button id="settings-close">Close</button>
+            <button id="collection-dialog-cancel">Cancel</button>
+            <button id="collection-dialog-ok">Add</button>
         </div>
     </div>
 </div>
 
 <div id="confirm-dialog" class="dialog-overlay hidden">
     <div class="dialog confirm-box">
-        <h3 id="confirm-title"></h3>
+        <div class="dialog-header">
+            <h3 id="confirm-title"></h3>
+            <button id="confirm-dialog-close" class="detail-close-btn"><i data-lucide="x"></i></button>
+        </div>
         <p id="confirm-message"></p>
         <div class="dialog-actions">
             <button id="confirm-cancel">Cancel</button>
@@ -281,6 +402,10 @@
             <img src="/icon.png" alt="Photonic" class="cl-hero-logo">
             <div class="cl-hero-text">
                 <h4><span>PHOTONIC</span></h4>
+                <div class="cl-hero-author">
+                    <i data-lucide="user"></i>
+                    <span>Crafted by <b>Adrick</b> · <a href="https://thephoenixfactory.com/" target="_blank" rel="noopener">ThePhoenixFactory</a></span>
+                </div>
                 <p>Solo dev, night coder, tool maker. Currently building Photonic and other stuff at ThePhoenixFactory. I believe software should be simple, fast, and stay out of your way. When I'm not coding, I'm probably riding rollercoasters or creating new artwork.</p>
                 <a href="https://github.com/sponsors/DarkAdrick" target="_blank" rel="noopener" class="cl-hero-donate"><i data-lucide="heart"></i> Sponsor this project</a>
             </div>
@@ -293,6 +418,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
-<script src="/js/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+<script src="/js/app.js?v=0.2.1"></script>
 </body>
 </html>
