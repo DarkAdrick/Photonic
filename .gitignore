@@ -7,7 +7,6 @@ __pycache__/
 *.egg
 dist/
 build/
-*.spec
 
 # Virtual environments
 venv/
@@ -39,5 +38,5 @@ Desktop.ini
 # Logs
 *.log
 
-# PyInstaller
+# Binaires
 *.exe
