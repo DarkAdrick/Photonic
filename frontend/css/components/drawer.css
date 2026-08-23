@@ -41,6 +41,7 @@
 
 .filter-chip select,
 .filter-chip input[type="date"] {
+    height: 27px;
     padding: 5px 8px;
     background: var(--bg-tertiary);
     border: 1px solid var(--border);
@@ -67,6 +68,7 @@
 }
 
 .distance-inputs select {
+    height: 27px;
     padding: 5px 8px;
     background: var(--bg-tertiary);
     border: 1px solid var(--border);
@@ -107,19 +109,30 @@
 }
 
 .filter-clear-btn {
-    padding: 5px 14px;
-    background: transparent;
-    border: 1px solid var(--border);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 27px;
+    padding: 0 14px;
+    background: var(--photonic-gradient);
+    border: none;
     border-radius: 6px;
-    color: var(--text-secondary);
+    color: #000;
     font-size: 12px;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.15s;
     white-space: nowrap;
     align-self: flex-end;
 }
 
+.filter-clear-btn svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+}
+
 .filter-clear-btn:hover {
-    color: #e74c3c;
-    border-color: #e74c3c;
+    filter: brightness(1.12);
+    transform: translateY(-1px);
 }
