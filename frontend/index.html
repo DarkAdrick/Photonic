@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
-    <link rel="stylesheet" href="/css/style.css?v=0.2.3">
+    <link rel="stylesheet" href="/css/style.css?v=0.2.4">
 </head>
 <body>
 
@@ -17,9 +17,10 @@
     <div class="header-left">
         <div class="logo-icon"><i data-lucide="aperture"></i></div>
         <span class="logo">PHOTONIC</span>
-        <span class="version-badge" id="version-badge" title="View changelog">v0.2.3</span>
+        <span class="version-badge" id="version-badge" title="View changelog">v0.2.4</span>
         <a href="https://github.com/DarkAdrick/Photonic/releases" target="_blank" rel="noopener" id="update-pill" class="update-pill hidden" title="New version available — view release"><span class="update-pill-dot"></span><i data-lucide="arrow-up-circle"></i><span id="update-pill-text">Update</span></a>
     </div>
+    <div id="titlebar-drag" class="pywebview-drag-region"></div>
     <div class="header-right">
         <div class="search-box">
             <i data-lucide="search"></i>
@@ -28,6 +29,11 @@
         <button id="btn-toggle-filters" class="header-btn"><i data-lucide="sliders-horizontal"></i> Filters</button>
         <a href="https://github.com/sponsors/DarkAdrick" target="_blank" rel="noopener" class="donate-header-btn" title="Donate"><i data-lucide="heart"></i></a>
         <button id="btn-settings" class="header-btn"><i data-lucide="settings"></i></button>
+        <div id="window-controls" class="hidden">
+            <button id="wc-minimize" class="wc-btn" title="Minimize"><i data-lucide="minus"></i></button>
+            <button id="wc-maximize" class="wc-btn" title="Maximize"><i data-lucide="square"></i></button>
+            <button id="wc-close" class="wc-btn wc-close" title="Close"><i data-lucide="x"></i></button>
+        </div>
     </div>
 </header>
 
@@ -415,11 +421,22 @@
     </div>
 </div>
 
+<div id="win-resize" aria-hidden="true">
+    <div class="wrh wrh-n" data-edge="top"></div>
+    <div class="wrh wrh-s" data-edge="bottom"></div>
+    <div class="wrh wrh-w" data-edge="left"></div>
+    <div class="wrh wrh-e" data-edge="right"></div>
+    <div class="wrh wrh-nw" data-edge="top-left"></div>
+    <div class="wrh wrh-ne" data-edge="top-right"></div>
+    <div class="wrh wrh-sw" data-edge="bottom-left"></div>
+    <div class="wrh wrh-se" data-edge="bottom-right"></div>
+</div>
+
 <script src="https://unpkg.com/chart.js@4.4.4/dist/chart.umd.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-<script src="/js/app.js?v=0.2.3"></script>
+<script src="/js/app.js?v=0.2.4"></script>
 </body>
 </html>

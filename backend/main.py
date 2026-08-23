@@ -75,7 +75,7 @@ def _backfill_geo():
         import time
         time.sleep(2)
         try:
-            import reverse_geocoder as rg
+            from backend.geo import search as geo_search
         except ImportError:
             return
         conn = get_connection()
@@ -87,7 +87,7 @@ def _backfill_geo():
             conn.close()
             return
         coords = [(r["latitude"], r["longitude"]) for r in rows]
-        results = rg.search(coords)
+        results = geo_search(coords)
         for row, res in zip(rows, results):
             conn.execute(
                 "UPDATE photos SET country = ?, city = ? WHERE id = ?",

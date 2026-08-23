@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.2.4 — 23 August 2026
+
+### Desktop window (.exe)
+- [FIX] Drag & drop inside the app no longer moves the whole window: the window is now moved only from the empty header area (double-click it to maximize/restore)
+- [ADD] Window can be resized from all edges and corners, with native resize cursors (min 800×600)
+- [ADD] Minimize / Maximize / Restore / Close buttons in the header — no more Alt+F4 needed
+
+### Geolocation
+- [FIX] Reverse geocoding is now fully offline in the .exe: the GeoNames database is embedded and never downloaded/written next to the executable
+- [FIX] Fixed a resource exhaustion risk in the packaged app: reverse_geocoder multiprocess mode spawned one process tree per query under PyInstaller; single-process mode is now enforced via the new `backend/geo.py`
+
+### Build
+- [EDIT] #Build.bat hardened: detects a broken/moved venv and rebuilds it, installs dependencies via `python -m pip`, embeds `rg_cities1000.csv`, explicit error handling at each step
+- [CLEANUP] Removed unused legacy `frontend/js/old.app.js`
+
 ## v0.2.3 — 23 August 2026
 
 ### Telemetry

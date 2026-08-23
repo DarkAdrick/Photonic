@@ -24,6 +24,50 @@
     gap: 10px;
 }
 
+/* ── Titlebar drag region (frameless .exe window) ───────────────────────── */
+
+#titlebar-drag {
+    flex: 1 1 0;
+    align-self: stretch;
+    min-width: 24px;
+}
+
+/* ── Window controls (frameless .exe window) ────────────────────────────── */
+
+#window-controls {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 4px;
+}
+
+.wc-btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.12s ease;
+}
+
+.wc-btn svg { width: 14px; height: 14px; }
+
+.wc-btn:hover {
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: var(--text-primary);
+}
+
+.wc-close:hover {
+    background: #e84393;
+    color: #fff;
+}
+
 .logo-icon {
     height: 36px;
     width: 36px;

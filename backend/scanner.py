@@ -154,8 +154,8 @@ def _index_file(conn: sqlite3.Connection, fpath: str) -> str:
                         longitude = _gps_to_decimal(lon, lon_ref)
                         if latitude is not None and longitude is not None:
                             try:
-                                import reverse_geocoder as rg
-                                result = rg.search((latitude, longitude))
+                                from backend.geo import search as geo_search
+                                result = geo_search((latitude, longitude))
                                 if result:
                                     country = result[0].get("cc")
                                     city = result[0].get("name")
