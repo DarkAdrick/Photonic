@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.7 — 23 August 2026
+
+### Updates
+- [FIX] Update check now survives GitHub API rate limits (HTTP 403 on shared IPs/VPN): it falls back to the public `releases.atom` feed, which has no rate limit
+- [EDIT] Startup check no longer surfaces a spurious error when the API is temporarily unavailable
+
 ## v0.2.6 — 23 August 2026
 
 ### Packaged app (.exe)

@@ -1802,11 +1802,45 @@ def _fetch_latest_release(timeout: float = 10.0) -> dict:
         return _json.loads(resp.read().decode("utf-8"))
 
 
+def _fetch_latest_release_atom(timeout: float = 10.0) -> dict:
+    """Fallback when the REST API is unavailable or rate-limited (shared IPs,
+    VPN...): scrape the public releases.atom feed, which has no rate limit."""
+    req = urllib.request.Request(f"{RELEASES_PAGE_URL}.atom", headers={
+        "User-Agent": f"Photonic/{APP_VERSION}",
+    })
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        feed = resp.read().decode("utf-8", errors="replace")
+    entry = re.search(r"<entry>(.*?)</entry>", feed, re.S)
+    if not entry:
+        raise ValueError("no release in atom feed")
+    block = entry.group(1)
+    tag = re.search(r"<id>[^<]*?/([^/<]+)</id>", block)
+    link = re.search(r'<link[^>]*rel="alternate"[^>]*href="([^"]+)"', block) \
+        or re.search(r'<link[^>]*href="([^"]+)"', block)
+    if not tag:
+        raise ValueError("unparsable atom entry")
+    return {
+        "tag_name": tag.group(1),
+        "html_url": link.group(1) if link else RELEASES_PAGE_URL,
+    }
+
+
 def _run_update_check():
     global _update_state
     from datetime import datetime, timezone
     try:
-        data = _fetch_latest_release()
+        try:
+            data = _fetch_latest_release()
+        except urllib.error.HTTPError as e:
+            if e.code == 404:  # no releases published yet — not an error for the user
+                new_state = {**_update_state, "latest_version": None, "update_available": False,
+                             "checked_at": datetime.now(timezone.utc).isoformat(), "error": None}
+                with _update_lock:
+                    _update_state = new_state
+                return
+            data = _fetch_latest_release_atom()  # rate limit / API hiccup → atom feed
+        except Exception:
+            data = _fetch_latest_release_atom()  # network error → atom feed
         tag = data.get("tag_name") or data.get("name") or ""
         latest = _parse_version(tag)
         current = _parse_version(APP_VERSION)
@@ -1821,11 +1855,7 @@ def _run_update_check():
             "error": None,
         }
     except urllib.error.HTTPError as e:
-        if e.code == 404:  # no releases published yet — not an error for the user
-            new_state = {**_update_state, "latest_version": None, "update_available": False,
-                         "checked_at": datetime.now(timezone.utc).isoformat(), "error": None}
-        else:
-            new_state = {**_update_state, "error": f"GitHub HTTP {e.code}"}
+        new_state = {**_update_state, "error": f"GitHub HTTP {e.code}"}
     except Exception as e:
         new_state = {**_update_state, "error": str(e)}
     with _update_lock:
