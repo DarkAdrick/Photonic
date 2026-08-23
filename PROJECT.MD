@@ -446,6 +446,8 @@ Photos should never leave the user's computer unless the user explicitly chooses
 - No automatic image uploads
 - No intrusive telemetry
 
+The only outbound data besides the update check is an **anonymous launch ping**: a single request at startup containing nothing but an anonymous random install ID, the app version and the OS. It never includes any photo, path or personal data, and it can be disabled at any time in Settings > Application ("Anonymous usage statistics").
+
 ---
 
 ## 19. Filesystem Monitoring

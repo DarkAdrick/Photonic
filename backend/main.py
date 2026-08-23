@@ -1,7 +1,10 @@
-import sqlite3
+import platform
 import re
 import shutil
+import sqlite3
 import threading
+import time
+import uuid
 from pathlib import Path
 from typing import Optional
 
@@ -9,10 +12,15 @@ from fastapi import FastAPI, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, Response, StreamingResponse, HTMLResponse, JSONResponse
 
-from backend.database import init_db, get_connection
-from backend.paths import APP_DIR, DB_PATH, FRONTEND_DIR
+import urllib.request
+import urllib.error
+import json as _json
 
-app = FastAPI(title="Photonic", version="0.2.1")
+from backend.database import init_db, get_connection
+from backend.paths import APP_DIR, DB_DIR, DB_PATH, FRONTEND_DIR
+from backend.version import APP_VERSION
+
+app = FastAPI(title="Photonic", version=APP_VERSION)
 
 THUMB_DIR = APP_DIR / "cache" / "thumbnails"
 
@@ -49,6 +57,8 @@ def startup():
         shutil.rmtree(str(THUMB_DIR), ignore_errors=True)
     _backfill_geo()
     _auto_resume()
+    _start_update_check(delay=2)  # background update check right after boot, never blocks startup
+    _start_telemetry_ping(delay=5)  # anonymous launch ping (opt-out), fire-and-forget
 
 
 def _auto_resume():
@@ -188,7 +198,7 @@ def status():
     conn = get_connection()
     count = conn.execute("SELECT COUNT(*) FROM photos").fetchone()[0]
     conn.close()
-    return {"status": "running", "version": "0.2.1", "photo_count": count}
+    return {"status": "running", "version": APP_VERSION, "photo_count": count}
 
 
 @app.get("/api/folders")
@@ -1750,6 +1760,186 @@ def get_changelog():
         return {"html": "<p>No changelog available.</p>"}
     md = CHANGELOG_PATH.read_text(encoding="utf-8")
     return {"html": _md_to_changelog_html(md)}
+
+
+# ── Update checker (GitHub releases) ─────────────────────────────────────────
+
+GITHUB_REPO = "DarkAdrick/Photonic"
+GITHUB_LATEST_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
+RELEASES_PAGE_URL = f"https://github.com/{GITHUB_REPO}/releases"
+
+_update_state = {
+    "current_version": APP_VERSION,
+    "latest_version": None,
+    "update_available": False,
+    "release_url": RELEASES_PAGE_URL,
+    "release_name": None,
+    "published_at": None,
+    "checked_at": None,
+    "error": None,
+}
+
+_update_lock = threading.Lock()
+
+
+def _parse_version(s: str):
+    """'v0.2.2' -> (0, 2, 2). Non-numeric parts are ignored."""
+    parts = []
+    for chunk in s.strip().lstrip("vV").split("."):
+        digits = re.match(r"\d+", chunk)
+        if not digits:
+            break
+        parts.append(int(digits.group()))
+    return tuple(parts) if parts else (0,)
+
+
+def _fetch_latest_release(timeout: float = 10.0) -> dict:
+    req = urllib.request.Request(GITHUB_LATEST_URL, headers={
+        "User-Agent": f"Photonic/{APP_VERSION}",
+        "Accept": "application/vnd.github+json",
+    })
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return _json.loads(resp.read().decode("utf-8"))
+
+
+def _run_update_check():
+    global _update_state
+    from datetime import datetime, timezone
+    try:
+        data = _fetch_latest_release()
+        tag = data.get("tag_name") or data.get("name") or ""
+        latest = _parse_version(tag)
+        current = _parse_version(APP_VERSION)
+        new_state = {
+            "current_version": APP_VERSION,
+            "latest_version": tag.lstrip("vV") or None,
+            "update_available": latest > current,
+            "release_url": data.get("html_url") or RELEASES_PAGE_URL,
+            "release_name": data.get("name"),
+            "published_at": data.get("published_at"),
+            "checked_at": datetime.now(timezone.utc).isoformat(),
+            "error": None,
+        }
+    except urllib.error.HTTPError as e:
+        if e.code == 404:  # no releases published yet — not an error for the user
+            new_state = {**_update_state, "latest_version": None, "update_available": False,
+                         "checked_at": datetime.now(timezone.utc).isoformat(), "error": None}
+        else:
+            new_state = {**_update_state, "error": f"GitHub HTTP {e.code}"}
+    except Exception as e:
+        new_state = {**_update_state, "error": str(e)}
+    with _update_lock:
+        _update_state = new_state
+
+
+def _start_update_check(delay: float = 0.0):
+    def _run():
+        if delay:
+            time.sleep(delay)
+        _run_update_check()
+    threading.Thread(target=_run, daemon=True).start()
+
+
+@app.get("/api/update/status")
+def update_status():
+    with _update_lock:
+        state = dict(_update_state)
+        needs_check = state["checked_at"] is None
+    if needs_check:  # first frontend load raced the startup thread — check now in background
+        _start_update_check()
+    return state
+
+
+@app.post("/api/update/check")
+def update_check():
+    _run_update_check()
+    with _update_lock:
+        return dict(_update_state)
+
+
+# ── Telemetry (anonymous launch ping, opt-out) ───────────────────────────────
+
+TELEMETRY_URL = "https://thephoenixfactory.com/photonic/ping.php"
+
+SETTINGS_PATH = APP_DIR / "settings.json"
+INSTALL_ID_PATH = DB_DIR / "install_id"
+
+
+def _read_settings() -> dict:
+    try:
+        return _json.loads(SETTINGS_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def _write_settings(settings: dict) -> None:
+    try:
+        APP_DIR.mkdir(parents=True, exist_ok=True)
+        SETTINGS_PATH.write_text(_json.dumps(settings, indent=2), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def _telemetry_enabled() -> bool:
+    return bool(_read_settings().get("telemetry_enabled", True))
+
+
+def _get_install_id() -> str:
+    """Anonymous per-installation UUID persisted in .photonic/data/install_id."""
+    try:
+        existing = INSTALL_ID_PATH.read_text(encoding="utf-8").strip()
+        if existing:
+            return existing
+    except OSError:
+        pass
+    install_id = str(uuid.uuid4())
+    try:
+        INSTALL_ID_PATH.parent.mkdir(parents=True, exist_ok=True)
+        INSTALL_ID_PATH.write_text(install_id, encoding="utf-8")
+    except OSError:
+        pass
+    return install_id
+
+
+def _run_telemetry_ping():
+    if not _telemetry_enabled():
+        return
+    try:
+        os_name = {"darwin": "macos"}.get(platform.system().lower(), platform.system().lower())
+        payload = _json.dumps({
+            "install_id": _get_install_id(),
+            "app_version": APP_VERSION,
+            "os": os_name,
+            "event": "launch",
+        }).encode("utf-8")
+        req = urllib.request.Request(TELEMETRY_URL, data=payload, headers={
+            "User-Agent": f"Photonic/{APP_VERSION}",
+            "Content-Type": "application/json",
+        })
+        with urllib.request.urlopen(req, timeout=5):
+            pass
+    except Exception:
+        pass  # telemetry must never disturb the app
+
+
+def _start_telemetry_ping(delay: float = 0.0):
+    def _run():
+        if delay:
+            time.sleep(delay)
+        _run_telemetry_ping()
+    threading.Thread(target=_run, daemon=True).start()
+
+
+@app.get("/api/settings/telemetry")
+def get_telemetry_setting():
+    return {"enabled": _telemetry_enabled()}
+
+
+@app.post("/api/settings/telemetry")
+def set_telemetry_setting(payload: dict):
+    enabled = bool(payload.get("enabled", True))
+    _write_settings({**_read_settings(), "telemetry_enabled": enabled})
+    return {"enabled": enabled}
 
 
 # ── Static files & SPA fallback ──────────────────────────────────────────────

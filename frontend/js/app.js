@@ -485,6 +485,7 @@
             const data = await api("GET", "/api/status");
             statusText.textContent = "Connected";
             photoCountH.textContent = data.photo_count > 0 ? `${data.photo_count.toLocaleString()} items` : "";
+            if (data.version && versionBadge) versionBadge.textContent = "v" + data.version;
         } catch {
             statusText.textContent = "Disconnected";
         }
@@ -3521,6 +3522,23 @@
 
             <div class="settings-card settings-card-gradient">
                 <div class="settings-card-header">
+                    <i data-lucide="arrow-up-circle"></i>
+                    <h3>Updates</h3>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-label" id="setting-update-status">${describeUpdateState(lastUpdateState)}</div>
+                        <div class="setting-desc">${lastUpdateState && lastUpdateState.current_version ? "Current version v" + lastUpdateState.current_version + ". " : ""}Photonic checks GitHub for new releases at startup.</div>
+                    </div>
+                    <div class="setting-control" style="display:flex; gap:8px;">
+                        <button class="settings-action-btn" id="setting-update-check"><i data-lucide="refresh-cw"></i> Check for updates</button>
+                        <a class="settings-action-btn" href="${RELEASES_PAGE}" target="_blank" rel="noopener"><i data-lucide="download"></i> Releases</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card settings-card-gradient">
+                <div class="settings-card-header">
                     <i data-lucide="sliders-horizontal"></i>
                     <h3>General</h3>
                 </div>
@@ -3544,6 +3562,18 @@
                     <div class="setting-control">
                         <label class="toggle-switch">
                             <input type="checkbox" id="setting-show-extensions" ${showExts ? "checked" : ""}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-label">Anonymous usage statistics</div>
+                        <div class="setting-desc">Send an anonymous launch ping (app version and OS only). Never any photo or personal data.</div>
+                    </div>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="setting-telemetry" checked>
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
@@ -3713,6 +3743,16 @@
             localStorage.setItem("photonic.showExtensions", e.target.checked);
         });
 
+        const telemetryToggle = document.getElementById("setting-telemetry");
+        let telemetryDirty = false;
+        telemetryToggle.addEventListener("change", (e) => {
+            telemetryDirty = true;
+            api("POST", "/api/settings/telemetry", { enabled: e.target.checked });
+        });
+        api("GET", "/api/settings/telemetry").then(d => {
+            if (!telemetryDirty && d && typeof d.enabled === "boolean") telemetryToggle.checked = d.enabled;
+        }).catch(() => {});
+
         const thumbSlider = document.getElementById("setting-thumb-size");
         const thumbLabel = document.getElementById("setting-thumb-size-label");
         const mainThumb = document.getElementById("thumb-size");
@@ -3739,6 +3779,28 @@
         document.getElementById("setting-rescan").addEventListener("click", () => {
             const btn = document.getElementById("btn-rescan");
             if (btn) btn.click();
+        });
+
+        document.getElementById("setting-update-check").addEventListener("click", async (e) => {
+            const btn = e.currentTarget;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle"></i> Checking…';
+            lucide.createIcons({ root: btn });
+            try {
+                const data = await api("POST", "/api/update/check");
+                applyUpdateState(data, false);
+                if (data.update_available) {
+                    showToast(
+                        `New version <b>v${data.latest_version}</b> available — <a href="${data.release_url || RELEASES_PAGE}" target="_blank" rel="noopener">view release</a>`,
+                        { icon: "arrow-up-circle", duration: 12000 }
+                    );
+                }
+            } catch {
+                applyUpdateState({ ...(lastUpdateState || {}), error: "network" }, false);
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="refresh-cw"></i> Check for updates';
+            lucide.createIcons({ root: btn });
         });
 
         for (const name of THEME_VARS) {
@@ -4080,6 +4142,61 @@
         });
     }
 
+    // ── Update checker (GitHub releases) ─────────────────────────────────
+
+    const RELEASES_PAGE = "https://github.com/DarkAdrick/Photonic/releases";
+    const updatePill = document.getElementById("update-pill");
+    let lastUpdateState = null;
+
+    function describeUpdateState(data) {
+        if (!data) return "Not checked yet.";
+        if (data.update_available) return `New version v${data.latest_version} is available!`;
+        if (data.error) return "Couldn't check for updates.";
+        if (data.checked_at) return "You're up to date.";
+        return "Not checked yet.";
+    }
+
+    function applyUpdateState(data, notify) {
+        lastUpdateState = data;
+        if (data && data.update_available && data.latest_version) {
+            updatePill.classList.remove("hidden");
+            updatePill.href = data.release_url || RELEASES_PAGE;
+            updatePill.title = `New version v${data.latest_version} available — view release`;
+            updatePill.querySelector("#update-pill-text").textContent = "v" + data.latest_version;
+            lucide.createIcons();
+            if (notify) {
+                showToast(
+                    `New version <b>v${data.latest_version}</b> available — <a href="${data.release_url || RELEASES_PAGE}" target="_blank" rel="noopener">view release</a>`,
+                    { icon: "arrow-up-circle", duration: 12000 }
+                );
+            }
+        } else {
+            updatePill.classList.add("hidden");
+        }
+        refreshUpdateSettingsCard();
+    }
+
+    function refreshUpdateSettingsCard() {
+        const label = document.getElementById("setting-update-status");
+        if (label) label.textContent = describeUpdateState(lastUpdateState);
+    }
+
+    async function initUpdateChecker() {
+        // Poll until the backend has completed its startup GitHub check,
+        // so the badge appears on first load without requiring a refresh.
+        const deadline = Date.now() + 30000;
+        while (Date.now() < deadline) {
+            try {
+                const data = await api("GET", "/api/update/status");
+                if (data.checked_at) {
+                    applyUpdateState(data, true);
+                    return;
+                }
+            } catch { /* offline or older backend — stay silent */ }
+            await new Promise(r => setTimeout(r, 1500));
+        }
+    }
+
     // ── Changelog ───────────────────────────────────────────────────────
 
     const changelogDialog = document.getElementById("changelog-dialog");
@@ -4113,4 +4230,5 @@
     loadPhotos();
     loadFilters();
     pollScan();
+    initUpdateChecker();
 })();

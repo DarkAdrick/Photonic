@@ -1,6 +1,24 @@
 # Changelog
 
-## v0.2.1 — 23 August 2026
+## v0.2.3 — 23 August 2026
+
+### Telemetry
+- [ADD] Anonymous launch ping sent once at startup to the Phoenix Factory stats endpoint (install ID, app version and OS only — never any photo, path or personal data)
+- [ADD] Opt-out toggle in Settings > Application > General ("Anonymous usage statistics"), persisted in `.photonic/settings.json`
+- [ADD] Anonymous install ID generated on first launch and stored in `.photonic/data/install_id`
+- [EDIT] PROJECT.MD §18 updated to document the ping; it remains non-intrusive and fully disableable
+
+## v0.2.2 — 23 August 2026
+
+### Updates
+- [ADD] Update checker: Photonic now detects new releases published on GitHub (DarkAdrick/Photonic)
+- [ADD] Automatic check at startup (background, never blocks launch) + manual "Check for updates" button in Settings > Application
+- [ADD] "Update" pill in the header next to the version badge when a new version is available (click to open the release page)
+- [ADD] Toast notification on startup when a new release is detected
+- [ADD] New "Updates" card in Settings > Application with current status and direct link to the GitHub releases page
+- [ADD] Version is now centralized in `backend/version.py` and synced across backend, header badge and settings
+
+## v0.2.1 — 22 August 2026
 
 ### Photo Grid
 - [ADD] Tag & collection count badges on photo cards (tiny pills, bottom-left above the filename, hidden when zero)
