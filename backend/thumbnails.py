@@ -5,7 +5,7 @@ import contextlib
 from pathlib import Path
 from PIL import Image
 
-from backend.paths import CACHE_DIR
+from backend.paths import CACHE_DIR, resource_path
 
 SIZES = {
     "small":  (160, 160),
@@ -13,7 +13,7 @@ SIZES = {
     "large":  (1024, 1024),
 }
 
-ICON_PATH = Path(__file__).resolve().parent.parent / "icon.png"
+ICON_PATH = resource_path("icon.png")
 
 # Videos that failed frame extraction — never re-probed (avoids FFmpeg spam + CPU waste)
 _failed_videos = set()

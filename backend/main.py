@@ -17,7 +17,7 @@ import urllib.error
 import json as _json
 
 from backend.database import init_db, get_connection
-from backend.paths import APP_DIR, DB_DIR, DB_PATH, FRONTEND_DIR
+from backend.paths import APP_DIR, DB_DIR, DB_PATH, FRONTEND_DIR, resource_path
 from backend.version import APP_VERSION
 
 app = FastAPI(title="Photonic", version=APP_VERSION)
@@ -1681,7 +1681,7 @@ def get_stats():
 
 # ── Changelog ────────────────────────────────────────────────────────────────
 
-CHANGELOG_PATH = Path(__file__).resolve().parent.parent / "CHANGELOG.md"
+CHANGELOG_PATH = resource_path("CHANGELOG.md")
 
 _CHIP_MAP = {
     "ADD":    "chip-add",

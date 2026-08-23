@@ -65,6 +65,8 @@ venv_build\Scripts\python.exe -m PyInstaller ^
     --add-data "backend;backend" ^
     --add-data "frontend;frontend" ^
     --add-data "venv_build\Lib\site-packages\reverse_geocoder\rg_cities1000.csv;." ^
+    --add-data "CHANGELOG.md;backend" ^
+    --add-data "icon.png;backend" ^
     --hidden-import backend.main ^
     --hidden-import backend.database ^
     --hidden-import backend.scanner ^

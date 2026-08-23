@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.6 — 23 August 2026
+
+### Packaged app (.exe)
+- [FIX] Changelog modal showed "No changelog available." in the packaged app: CHANGELOG.md was never bundled and its path only resolved in dev — it is now embedded (next to `backend/`) and looked up via the new `backend.paths.resource_path()`
+- [FIX] Same latent issue for `icon.png`, used as thumbnail fallback for broken videos: now bundled too
+
 ## v0.2.5 — 23 August 2026
 
 ### CI / Releases
