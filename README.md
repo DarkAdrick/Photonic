@@ -5,6 +5,8 @@
 
 A local-first, lightweight Windows desktop photo management application.
 
+📚 **[Wiki](https://github.com/DarkAdrick/Photonic/wiki)** — full documentation, FAQ and keyboard shortcuts.
+
 ## Quick Start
 
 ```bash
