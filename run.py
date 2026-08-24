@@ -144,6 +144,7 @@ if __name__ == "__main__":
                 min_size=(800, 600),
                 frameless=True,
                 easy_drag=False,
+                draggable=True,
                 js_api=api,
             )
             api._window = window

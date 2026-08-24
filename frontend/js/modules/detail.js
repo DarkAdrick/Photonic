@@ -365,10 +365,10 @@ export function initDetailModule(context) {
         document.addEventListener("fullscreenchange", () => {
             if (document.fullscreenElement) {
                 detailFullscreenBtn.innerHTML = '<i data-lucide="minimize"></i>';
-                detailFullscreenBtn.title = "Quitter le plein écran";
+                detailFullscreenBtn.title = "Exit fullscreen";
             } else {
                 detailFullscreenBtn.innerHTML = '<i data-lucide="maximize"></i>';
-                detailFullscreenBtn.title = "Plein écran";
+                detailFullscreenBtn.title = "Fullscreen";
             }
             lucide.createIcons();
         });

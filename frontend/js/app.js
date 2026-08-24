@@ -747,7 +747,7 @@
             if (is360Photo(p)) {
                 badge = `<div class="photo-360-badge" title="Photo 360°"><i data-lucide="compass"></i></div>`;
             } else if (isVideo(p)) {
-                badge = `<div class="photo-video-badge" title="Vidéo"><i data-lucide="play"></i></div>`;
+                badge = `<div class="photo-video-badge" title="Video"><i data-lucide="play"></i></div>`;
             }
             card.innerHTML = `
                 <img src="${p.thumb}" alt="${p.filename}" loading="lazy" decoding="async">
@@ -1013,7 +1013,7 @@
                 if (is360Photo(p)) {
                     badge = `<div class="photo-360-badge" title="Photo 360°"><i data-lucide="compass"></i></div>`;
                 } else if (isVideo(p)) {
-                    badge = `<div class="photo-video-badge" title="Vidéo"><i data-lucide="play"></i></div>`;
+                    badge = `<div class="photo-video-badge" title="Video"><i data-lucide="play"></i></div>`;
                 }
                 card.innerHTML = `
                     <img src="/api/photos/${p.id}/thumb/medium" alt="${p.filename}" loading="lazy">
@@ -1120,7 +1120,7 @@
                 if (is360Photo(p)) {
                     badge = `<div class="photo-360-badge" title="Photo 360°"><i data-lucide="compass"></i></div>`;
                 } else if (isVideo(p)) {
-                    badge = `<div class="photo-video-badge" title="Vidéo"><i data-lucide="play"></i></div>`;
+                    badge = `<div class="photo-video-badge" title="Video"><i data-lucide="play"></i></div>`;
                 }
                 card.innerHTML = `
                     <img src="/api/photos/${p.id}/thumb/medium" alt="${p.filename}" loading="lazy">
@@ -1805,7 +1805,7 @@
                 if (is360Photo(p)) {
                     badge = `<div class="photo-360-badge" title="Photo 360°"><i data-lucide="compass"></i></div>`;
                 } else if (isVideo(p)) {
-                    badge = `<div class="photo-video-badge" title="Vidéo"><i data-lucide="play"></i></div>`;
+                    badge = `<div class="photo-video-badge" title="Video"><i data-lucide="play"></i></div>`;
                 }
                 card.innerHTML = `
                     <img src="/api/photos/${p.id}/thumb/medium" alt="${p.filename}" loading="lazy">
@@ -2043,6 +2043,7 @@
             ? Array.from(selectedIds)
             : [id];
         card.classList.add("dragging");
+        e.stopPropagation();
         try {
             e.dataTransfer.setData(DND_MIME, JSON.stringify(dndPhotoIds));
             e.dataTransfer.setData("text/plain", dndPhotoIds.join(","));
@@ -3141,10 +3142,10 @@
     document.addEventListener("fullscreenchange", () => {
         if (document.fullscreenElement) {
             detailFullscreenBtn.innerHTML = '<i data-lucide="minimize"></i>';
-            detailFullscreenBtn.title = "Quitter le plein écran";
+            detailFullscreenBtn.title = "Exit fullscreen";
         } else {
             detailFullscreenBtn.innerHTML = '<i data-lucide="maximize"></i>';
-            detailFullscreenBtn.title = "Plein écran";
+            detailFullscreenBtn.title = "Fullscreen";
         }
         lucide.createIcons({ root: detailFullscreenBtn });
     });

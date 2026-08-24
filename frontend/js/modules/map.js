@@ -103,7 +103,7 @@ export function initMapModule(context) {
             if (is360Photo(p)) {
                 badge = `<div class="photo-360-badge" title="Photo 360°"><i data-lucide="compass"></i></div>`;
             } else if (isVideo(p)) {
-                badge = `<div class="photo-video-badge" title="Vidéo"><i data-lucide="play"></i></div>`;
+                badge = `<div class="photo-video-badge" title="Video"><i data-lucide="play"></i></div>`;
             }
             card.innerHTML = `
                 <img src="${p.thumb}" alt="${p.filename}" loading="lazy">

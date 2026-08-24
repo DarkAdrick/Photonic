@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.8 — 24 August 2026
+
+### Packaged app (.exe)
+- [FIX] Drag & drop of a photo (or selection) onto a sidebar tag/collection was dead in the .exe: pywebview injects a script that cancels any HTML5 drag starting on an `<img>`/`<a>` element (`draggable=False` default), and photo cards are dragged from their thumbnail — the window is now created with `draggable=True` and the grid's `dragstart` no longer bubbles to host-level handlers
+- [EDIT] No change in the browser (dev) build: drag & drop was only broken inside the WebView2 window
+
 ## v0.2.7 — 23 August 2026
 
 ### Updates

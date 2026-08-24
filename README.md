@@ -16,21 +16,47 @@ Browser opens to `http://127.0.0.1:8765`.
 
 ## Screenshots
 
-![Photo Grid](screenshots/Screenshot1.png)
+📖 Full illustrated walkthrough: [docs/userguide.md](docs/userguide.md).
 
-![Photo Details](screenshots/Screenshot2.png)
+### Library
 
-![Search & Filters](screenshots/Screenshot3.png)
+![Photo Grid](screenshots/PhotoGrid.png)
 
-![Folder Management](screenshots/Screenshot4.png)
+### Photo Detail & 360° Viewer
 
-![Map View](screenshots/Screenshot5.png)
+![Photo Detail](screenshots/PhotoDetail.png)
 
-![Rating System](screenshots/Screenshot6.png)
+![360° Explorer](screenshots/360Explorer.png)
 
-![Dark Theme](screenshots/Screenshot7.png)
+![Video Playback](screenshots/Video.png)
 
-![Application Overview](screenshots/Screenshot8.png)
+### Map, Organization & Filters
+
+![Locations Explorer](screenshots/LocationsExplorer.png)
+
+![Countries & Collections](screenshots/CountriesCollections.png)
+
+![Filter Selection Context Menu](screenshots/FilterSelectionContextMenu.png)
+
+![Selection Context Menu](screenshots/SelectionContextMenuSmall.png)
+
+### Cleaning & Statistics
+
+![Cleaning](screenshots/Cleaning.png)
+
+![Statistics](screenshots/Statistics.png)
+
+### Settings
+
+![Settings](screenshots/Settings.png)
+
+![Appearance Settings](screenshots/settings-Appearance.png)
+
+![Tag Settings](screenshots/settingTags.png)
+
+### Changelog
+
+![Changelog](screenshots/Changelog.png)
 
 ## Build
 
@@ -64,6 +90,8 @@ Photonic/
 │   ├── index.html           # App shell (header, sidebar, photo grid, dialogs)
 │   ├── css/style.css        # Dark theme + photo grid styles
 │   └── js/app.js            # API calls, photo grid rendering, folder dialog
+├── docs/
+│   └── userguide.md         # Illustrated user guide
 ├── data/                    # Runtime: SQLite DB (photonic.db)
 ├── cache/
 │   └── thumbnails/          # small/ medium/ large/ (auto-generated)
