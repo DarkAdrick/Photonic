@@ -80,7 +80,7 @@
 }
 
 .hero-gradient-text {
-    background: var(--photonic-gradient);
+    background: var(--photonic-gradient-h);
     background-size: 200% auto;
     -webkit-background-clip: text;
     background-clip: text;

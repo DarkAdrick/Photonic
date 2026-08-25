@@ -198,45 +198,81 @@
     background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
-/* ── Version Badge ──────────────────────────────────────────────────────── */
+/* ── Version Badge (conic-gradient border + glow) ──────────────────────── */
 
-.version-badge {
-    font-size: 12px;
-    padding: 3px 12px;
+.version-badge-outer {
+    --conic-1: #ff4dff;
+    --conic-2: #ff6b2b;
+    --conic-3: #ffe02a;
+    --conic-4: #2bff6e;
+    --conic-5: #00c8ff;
+    position: relative;
+    padding: 1.5px;
     border-radius: 12px;
-    background: var(--photonic-gradient);
-    background-size: 300% 100%;
-    animation: badgeSlide 3s linear infinite, badgeWobble 3s ease-in-out infinite;
-    border: 1px solid rgba(221, 118, 214, 0.5);
-    color: #000000;
+    background: conic-gradient(
+        from var(--badge-angle) at 50% 50%,
+        var(--conic-5) 0deg,
+        var(--conic-1) 72deg,
+        var(--conic-2) 144deg,
+        var(--conic-3) 216deg,
+        var(--conic-4) 288deg,
+        var(--conic-5) 360deg
+    );
+    animation: badgeSpin 4s linear infinite;
     cursor: pointer;
     user-select: none;
-    transition: all 0.15s;
+    vertical-align: middle;
+    z-index: 0;
+}
+
+.version-badge-outer::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 16px;
+    background: conic-gradient(
+        from var(--badge-angle) at 50% 50%,
+        var(--conic-5) 0deg,
+        var(--conic-1) 72deg,
+        var(--conic-2) 144deg,
+        var(--conic-3) 216deg,
+        var(--conic-4) 288deg,
+        var(--conic-5) 360deg
+    );
+    filter: blur(10px);
+    opacity: 0.5;
+    z-index: -1;
+    animation: badgeSpin 4s linear infinite;
+}
+
+.version-badge-inner {
+    display: inline-block;
+    font-size: 12px;
+    padding: 3px 12px;
+    border-radius: 10.5px;
+    background: var(--text-primary);
+    font-weight: bolder;
     letter-spacing: 0.5px;
     white-space: nowrap;
-    text-shadow: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-    font-weight:bolder;
-    text-shadow:0px 0px 1px white, 0px 0px 2px white, 0px 0px 4px white
+    text-shadow: 0 0 8px rgba(255, 77, 255, 0.5);
+    transition: background 0.3s, text-shadow 0.3s;
+    position: relative;
+    z-index: 1;
+    color: var(--bg-secondary);
 }
 
-@keyframes badgeSlide {
-    0% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+@keyframes badgeSpin {
+    from { --badge-angle: 0deg; }
+    to   { --badge-angle: 360deg; }
 }
 
-@keyframes badgeWobble {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(2deg); }
-    75% { transform: rotate(-2deg); }
+.version-badge-outer:hover::before {
+    opacity: 0.75;
+    filter: blur(14px);
 }
 
-.version-badge:hover {
-    background: var(--photonic-gradient-light);
-    background-size: 300% 100%;
-    animation: badgeSlide 3s linear infinite, badgeWobble 3s ease-in-out infinite;
-    color: #000;
-    text-shadow: none;
+.version-badge-outer:hover .version-badge-inner {
+    text-shadow: 0 0 10px rgba(255, 77, 255, 0.7), 0 0 20px rgba(0, 200, 255, 0.3);
 }
 
 /* ── Update Available Pill ──────────────────────────────────────────────── */

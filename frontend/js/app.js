@@ -485,7 +485,11 @@
             const data = await api("GET", "/api/status");
             statusText.textContent = "Connected";
             photoCountH.textContent = data.photo_count > 0 ? `${data.photo_count.toLocaleString()} items` : "";
-            if (data.version && versionBadge) versionBadge.textContent = "v" + data.version;
+            if (data.version && versionBadge) {
+                const inner = versionBadge.querySelector('.version-badge-inner');
+                if (inner) inner.textContent = "v" + data.version;
+                else versionBadge.textContent = "v" + data.version;
+            }
         } catch {
             statusText.textContent = "Disconnected";
         }

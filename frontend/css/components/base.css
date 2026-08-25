@@ -1,5 +1,14 @@
 /* ── Base ──────────────────────────────────────────────────────────────── */
 
+/* Animatable gradient angle (rotating badge backgrounds).
+    Registered so the browser can interpolate it — falls back to a
+    static 45° gradient where @property is unsupported. */
+@property --badge-angle {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 45deg;
+}
+
 *, *::before, *::after {
     margin: 0;
     padding: 0;
@@ -49,6 +58,16 @@
         var(--photonic-1), var(--photonic-2), var(--photonic-3), var(--photonic-4), var(--photonic-5),
         var(--photonic-1), var(--photonic-2), var(--photonic-3), var(--photonic-4), var(--photonic-5),
         var(--photonic-1), var(--photonic-2), var(--photonic-3), var(--photonic-4), var(--photonic-5));
+
+    /* Rotating variants driven by @property --badge-angle */
+    --photonic-gradient-rot: linear-gradient(var(--badge-angle),
+        var(--photonic-1), var(--photonic-2), var(--photonic-3), var(--photonic-4), var(--photonic-5));
+    --photonic-gradient-rot-light: linear-gradient(var(--badge-angle),
+        color-mix(in srgb, var(--photonic-1) 45%, #fff),
+        color-mix(in srgb, var(--photonic-2) 45%, #fff),
+        color-mix(in srgb, var(--photonic-3) 45%, #fff),
+        color-mix(in srgb, var(--photonic-4) 45%, #fff),
+        color-mix(in srgb, var(--photonic-5) 45%, #fff));
 }
 
 html, body {

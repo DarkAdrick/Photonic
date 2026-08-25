@@ -18,6 +18,7 @@ env/
 data/
 cache/
 *.db
+PROJECT.MD
 
 # Environment & secrets
 .env
