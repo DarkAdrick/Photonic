@@ -384,6 +384,50 @@
     color: var(--text-primary);
 }
 
+/* ── Language selector dropdown ─────────────────────────────────────────── */
+
+.lang-settings-wrap {
+    position: relative;
+}
+
+.lang-settings-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-start;
+    min-width: 140px;
+}
+
+.lang-settings-btn .lang-menu-flag {
+    font-size: 16px;
+    line-height: 1;
+    width: 20px;
+    text-align: center;
+}
+
+.lang-settings-btn .lang-menu-flag img {
+    width: 20px;
+    height: 14px;
+    display: block;
+    object-fit: cover;
+    border-radius: 2px;
+    margin: 0 auto;
+}
+
+.lang-settings-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: auto;
+    min-width: 160px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    padding: 4px;
+    z-index: 2100;
+}
+
 /* ── Color Picker ────────────────────────────────────────────────────────── */
 
 .settings-layout-toggle {

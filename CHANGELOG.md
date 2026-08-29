@@ -17,6 +17,11 @@
 ### General
 - [EDIT] Cleaned up hard-coded English across settings (Updates/General/Display/Data cards, Tags/Collections/Folders management pages), stats charts, scan progress and selection bars — all now go through the translation layer
 
+### Code structure & bug fixes
+- [EDIT] Frontend refactored into modular files under `js/modules/` (one file per concern: grid, browse, map, detail, settings, events, i18n, …) sharing a single `window.PhotoApp` namespace (`P`) for state and `P.fn` for cross-module functions
+- [FIX] Fixed several "is not defined" runtime errors introduced by the modular split, where module code referenced bare global names instead of the `P.` namespaced state: `renderMetaBadges`, `folderBrowsePath`, `collectionBrowsePath`, `activeCameraBrowseId`, `detailPanX/Y`, `detailRotation`, `detailThumbVersion`, `detailIndex`, `currentPhotoIds`, `describeUpdateState`, `lastUpdateState` and `RELEASES_PAGE` — these now correctly read/write `P.*` / `P.fn.*`
+- [FIX] Settings > Application > General "Language" selector was broken (a button filled with `<option>` elements and a `change` handler that could not fire): it now opens a proper flag dropdown mirroring the header one, shows the current language as flag + name, and picks among the available translations
+
 ## v0.2.9 — 29 August 2026
 
 ### Locations (map)
