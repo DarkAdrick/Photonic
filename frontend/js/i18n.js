@@ -7,6 +7,9 @@
     const availableLanguages = [
         { code: "en-US", flag: "/i18n/flags/us.svg", name: "English" },
         { code: "fr-FR", flag: "/i18n/flags/fr.svg", name: "Français" },
+        { code: "de-DE", flag: "/i18n/flags/de.svg", name: "Deutsch" },
+        { code: "es-ES", flag: "/i18n/flags/es.svg", name: "Español" },
+        { code: "ja-JP", flag: "/i18n/flags/jp.svg", name: "日本語" },
     ];
 
     let currentDict = {};

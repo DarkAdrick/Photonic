@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.1 — 29 August 2026
+
+### Internationalization (i18n)
+- [ADD] **German** (Deutsch), **Spanish** (Español) and **Japanese** (日本語) translations covering the whole UI — header, filters, sidebar, cleaning, stats, settings (Application/General/Display/Data, Tags/Collections/Folders pages), dialogs, detail panel, context menu, confirmations, changelog, scan/status messages and update notices
+- [ADD] Language switcher (header dropdown and Settings > Application > General) now lists the new languages with their flags (`de.svg`, `es.svg`, `jp.svg`)
+
 ## v1.0.0 — 29 August 2026
 
 ### Internationalization (i18n)
