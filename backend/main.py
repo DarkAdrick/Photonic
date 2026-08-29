@@ -2120,10 +2120,23 @@ def set_telemetry_setting(payload: dict):
     return {"enabled": enabled}
 
 
+@app.get("/api/settings/language")
+def get_language_setting():
+    return {"language": _read_settings().get("language", "en-US")}
+
+
+@app.post("/api/settings/language")
+def set_language_setting(payload: dict):
+    language = str(payload.get("language", "en-US") or "en-US")
+    _write_settings({**_read_settings(), "language": language})
+    return {"language": language}
+
+
 # ── Static files & SPA fallback ──────────────────────────────────────────────
 
 app.mount("/css", StaticFiles(directory=str(FRONTEND_DIR / "css")), name="css")
 app.mount("/js", StaticFiles(directory=str(FRONTEND_DIR / "js")), name="js")
+app.mount("/i18n", StaticFiles(directory=str(FRONTEND_DIR / "i18n")), name="i18n")
 
 
 @app.get("/{path:path}")

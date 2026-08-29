@@ -75,7 +75,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--photonic-gradient-dark);
+    background: var(--bg-primary);
     border: 1px solid var(--border);
     box-shadow:
         0 0 0 3px color-mix(in srgb, var(--accent) 6%, transparent),
@@ -91,7 +91,7 @@
 }
 
 @keyframes logoHue {
-    to { filter: hue-rotate(360deg); }
+    to { filter: hue-rotate(360deg)}
 }
 
 .logo {
@@ -198,6 +198,96 @@
     background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
+/* ── Language dropdown (header flag) ─────────────────────────────────────── */
+
+.lang-dropdown {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.lang-btn {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    line-height: 1;
+}
+
+.lang-btn:hover {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.lang-flag {
+    pointer-events: none;
+    filter: saturate(1.1);
+}
+
+.lang-flag img {
+    width: 22px;
+    height: 15px;
+    display: block;
+    object-fit: cover;
+    border-radius: 2px;
+}
+
+.lang-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 150px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    padding: 4px;
+    z-index: 2000;
+}
+
+.lang-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 13px;
+    border-radius: 7px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.lang-menu-item:hover {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.lang-menu-item .lang-menu-flag {
+    font-size: 16px;
+    line-height: 1;
+    width: 20px;
+    text-align: center;
+}
+
+.lang-menu-item .lang-menu-flag img {
+    width: 20px;
+    height: 14px;
+    display: block;
+    object-fit: cover;
+    border-radius: 2px;
+    margin: 0 auto;
+}
+
+.lang-menu-item.active {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+
 /* ── Version Badge (conic-gradient border + glow) ──────────────────────── */
 
 .version-badge-outer {
@@ -228,7 +318,7 @@
 .version-badge-outer::before {
     content: '';
     position: absolute;
-    inset: -4px;
+    inset: -3px;
     border-radius: 16px;
     background: conic-gradient(
         from var(--badge-angle) at 50% 50%,
@@ -248,17 +338,18 @@
 .version-badge-inner {
     display: inline-block;
     font-size: 12px;
-    padding: 3px 12px;
+    padding: 3.4px 14px;
     border-radius: 10.5px;
-    background: var(--text-primary);
-    font-weight: bolder;
+    background: var(--bg-secondary);
+    /* font-weight: bolder; */
     letter-spacing: 0.5px;
     white-space: nowrap;
     text-shadow: 0 0 8px rgba(255, 77, 255, 0.5);
     transition: background 0.3s, text-shadow 0.3s;
     position: relative;
     z-index: 1;
-    color: var(--bg-secondary);
+    color: var(--text-primary);
+    opacity: 0.75;
 }
 
 @keyframes badgeSpin {
@@ -326,4 +417,3 @@
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.4; transform: scale(0.75); }
 }
-

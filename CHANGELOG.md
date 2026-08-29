@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.0.0 — 29 August 2026
+
+### Internationalization (i18n)
+- [ADD] The whole application UI is now translatable. A new `/i18n` static mount serves per-language dictionaries (`en-US.json`, `fr-FR.json`) and a global `window.I18n` engine loads them, resolves keys with `{placeholder}` substitution and falls back to the raw key (never a broken string) when a translation is missing
+- [ADD] **English** (default) and **French** translations covering the header, filters drawer, sidebar, cleaning tabs, empty state, photo grid, stats, settings, dialogs (tag/collection/folder), detail panel, context menu, collections, confirmations, changelog and scan/status messages
+- [ADD] Most static strings are wired through `data-i18n` / `data-i18n-title` / `data-i18n-placeholder` attributes, while dynamic strings go through a `t()` helper — local `t` variables that would shadow the helper were renamed (e.g. in `renderMetaBadges`, the detail tag loop and the settings tags loop)
+- [ADD] Language is persisted to `localStorage` (`photonic.lang`) and mirrored to the backend `settings.json`, so the choice survives restarts and page reloads
+
+### Language switcher
+- [ADD] Flag dropdown in the header to switch language on the fly — the menu lists every language with its flag and native name, and applying a language re-renders the active settings card, the current view and the header in place
+- [ADD] Language selector in Settings > Application > General ("Language"), kept in sync with the header dropdown
+- [ADD] New backend endpoints `GET/POST /api/settings/language` to read and save the language in `settings.json`
+- [ADD] Flags are bundled **SVG images** (`/i18n/flags/us.svg`, `/i18n/flags/fr.svg`) instead of emoji — emoji regional flags do not render inside WebView2 on Windows and showed up as a single stray glyph (`🇫`)
+
+### General
+- [EDIT] Cleaned up hard-coded English across settings (Updates/General/Display/Data cards, Tags/Collections/Folders management pages), stats charts, scan progress and selection bars — all now go through the translation layer
+
 ## v0.2.9 — 29 August 2026
 
 ### Locations (map)

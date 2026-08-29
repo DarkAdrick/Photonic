@@ -291,6 +291,14 @@
     line-height: 1.4;
 }
 
+.update-last-check {
+    margin-left: 0.5em;
+    font-style: italic;
+    color: var(--text-secondary);
+    font-weight: 400;
+    font-size: 0.8em;
+}
+
 .setting-control {
     flex-shrink: 0;
     margin-left: 20px;

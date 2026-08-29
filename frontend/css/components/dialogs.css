@@ -622,6 +622,7 @@
     text-transform: uppercase;
     color: var(--text-primary);
     border-bottom: 1px solid var(--border);
+    background: var(--bg-tertiary);
 }
 
 .cl-credits-title svg {

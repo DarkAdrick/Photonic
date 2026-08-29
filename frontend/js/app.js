@@ -1,4 +1,5 @@
 (() => {
+    const t = window.I18n ? I18n.t.bind(I18n) : (k, p) => String(k);
     const statusText      = document.getElementById("status-text");
     const scanProgress    = document.getElementById("scan-progress");
     const scanFill        = document.getElementById("scan-fill");
@@ -163,7 +164,7 @@
     let currentPhotoIds = [];
 
     function clearGrid() {
-        photoGrid.querySelectorAll(".photo-card, .country-card").forEach(el => el.remove());
+        photoGrid.querySelectorAll(".photo-card, .country-card, .cleaning-separator").forEach(el => el.remove());
     }
     let detailIndex = 0;
     let detailMap = null;
@@ -247,12 +248,13 @@
         return el;
     }
 
-    function renderMetaBadges(p) {        const t = p.tag_count || 0;
+    function renderMetaBadges(p) {
+        const tagCount = p.tag_count || 0;
         const c = p.collection_count || 0;
-        if (t === 0 && c === 0) return "";
+        if (tagCount === 0 && c === 0) return "";
         let inner = "";
-        if (t > 0) inner += `<div class="photo-meta-badge" title="${t} tag${t > 1 ? "s" : ""}"><i data-lucide="tag"></i><span>${t}</span></div>`;
-        if (c > 0) inner += `<div class="photo-meta-badge" title="${c} collection${c > 1 ? "s" : ""}"><i data-lucide="library"></i><span>${c}</span></div>`;
+        if (tagCount > 0) inner += `<div class="photo-meta-badge" title="${tagCount === 1 ? t("grid.one_tag") : t("grid.tags_badge", { count: tagCount })}"><i data-lucide="tag"></i><span>${tagCount}</span></div>`;
+        if (c > 0) inner += `<div class="photo-meta-badge" title="${c === 1 ? t("grid.one_collection") : t("grid.collections_badge", { count: c })}"><i data-lucide="library"></i><span>${c}</span></div>`;
         return `<div class="photo-meta-badges">${inner}</div>`;
     }
 
@@ -488,15 +490,15 @@
     async function checkStatus() {
         try {
             const data = await api("GET", "/api/status");
-            statusText.textContent = "Connected";
-            photoCountH.textContent = data.photo_count > 0 ? `${data.photo_count.toLocaleString()} items` : "";
+            statusText.textContent = t("status.connected");
+            photoCountH.textContent = data.photo_count > 0 ? t("common.items", { count: data.photo_count.toLocaleString() }) : "";
             if (data.version && versionBadge) {
                 const inner = versionBadge.querySelector('.version-badge-inner');
                 if (inner) inner.textContent = "v" + data.version;
                 else versionBadge.textContent = "v" + data.version;
             }
         } catch {
-            statusText.textContent = "Disconnected";
+            statusText.textContent = t("status.disconnected");
         }
     }
 
@@ -513,6 +515,7 @@
         if (view === "locations") {
             breadcrumbBar.classList.add("hidden");
             statsView.classList.add("hidden");
+            cleaningToolbar.classList.add("hidden");
             emptyState.classList.add("hidden");
             photoGrid.classList.add("hidden");
             mapView.classList.remove("hidden");
@@ -678,7 +681,7 @@
             maxBounds: [[-89, -180], [89, 180]],
             maxBoundsViscosity: 1.0,
         }).setView([46.6, 2.3], 6);
-        const mapLoader = createLoader("Loading");
+        const mapLoader = createLoader(t("map.loading"));
         mapLoader.id = "map-loader";
         mapView.appendChild(mapLoader);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -704,7 +707,7 @@
         const loaderEl = document.getElementById("map-loader");
         const loaderLabel = loaderEl ? loaderEl.querySelector(".app-loader-label") : null;
         if (loaderEl) loaderEl.classList.add("visible");
-        if (loaderLabel) loaderLabel.textContent = "Loading map…";
+        if (loaderLabel) loaderLabel.textContent = t("map.loading_map");
         try {
             await loadMapPhotosInner();
         } catch (err) {
@@ -827,8 +830,8 @@
         if (mapStripObserver) mapStripObserver.observe(mapSentinel);
         fillMapStripViewport();
         renderSelection();
-        photoCountH.textContent = `${data.total.toLocaleString()} geo-tagged`;
-        if (mapPhotoCount) mapPhotoCount.textContent = `${data.total.toLocaleString()} items`;
+        photoCountH.textContent = t("map.geo_tagged", { count: data.total.toLocaleString() });
+        if (mapPhotoCount) mapPhotoCount.textContent = t("common.items", { count: data.total.toLocaleString() });
     }
 
     let mapStripQueue = [];
@@ -890,13 +893,13 @@
 
         let html = "";
         if (folders.length > 0 || collections.length > 0 || tags.length > 0) {
-            html += '<div class="sb-quick-title">Quick Filters</div>';
+            html += '<div class="sb-quick-title">' + t("sidebar.quick_filters") + '</div>';
         }
         if (folders.length > 0) {
             const fCollapsed = localStorage.getItem("sb-folders") === "1";
-            html += '<h4 class="sb-section-header' + (fCollapsed ? " collapsed" : "") + '" data-section="sb-folders"><span class="sb-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg> Folders</h4>';
+            html += '<h4 class="sb-section-header' + (fCollapsed ? " collapsed" : "") + '" data-section="sb-folders"><span class="sb-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg> ' + t("sidebar.folders") + '</h4>';
             html += '<div class="sb-section-content' + (fCollapsed ? " collapsed" : "") + '">';
-            html += '<div class="folder-item' + (activeFolderId === null ? " active" : "") + '" data-folder-id="all">All Items</div>';
+             html += '<div class="folder-item' + (activeFolderId === null ? " active" : "") + '" data-folder-id="all">' + t("sidebar.all_items") + '</div>';
             for (const f of folders) {
                 const active = activeFolderId === f.id ? " active" : "";
                 const indent = f.depth > 0 ? ` style="padding-left:${24 + f.depth * 16}px"` : "";
@@ -907,7 +910,7 @@
 
         if (collections.length > 0) {
             const cCollapsed = localStorage.getItem("sb-collections") === "1";
-            html += '<h4 class="sb-section-header' + (cCollapsed ? " collapsed" : "") + '" data-section="sb-collections"><span class="sb-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg> Collections</h4>';
+            html += '<h4 class="sb-section-header' + (cCollapsed ? " collapsed" : "") + '" data-section="sb-collections"><span class="sb-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg> ' + t("sidebar.collections") + '</h4>';
             html += '<div class="sb-section-content' + (cCollapsed ? " collapsed" : "") + '">';
             for (const c of collections) {
                 const active = activeCollectionId === c.id ? " active" : "";
@@ -921,7 +924,7 @@
 
         if (tags.length > 0) {
             const tCollapsed = localStorage.getItem("sb-tags") === "1";
-            html += '<h4 class="sb-section-header' + (tCollapsed ? " collapsed" : "") + '" data-section="sb-tags"><span class="sb-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"></path><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"></circle></svg> Tags</h4>';
+            html += '<h4 class="sb-section-header' + (tCollapsed ? " collapsed" : "") + '" data-section="sb-tags"><span class="sb-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></span> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"></path><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"></circle></svg> ' + t("sidebar.tags") + '</h4>';
             html += '<div class="sb-section-content' + (tCollapsed ? " collapsed" : "") + '">';
             for (const t of tags) {
                 const active = activeTagId === t.id ? " active" : "";
@@ -991,8 +994,8 @@
                     ? await api("POST", "/api/photos/bulk-tags", { photo_ids: ids, tag_id: tid })
                     : await api("POST", "/api/photos/bulk-collections", { photo_ids: ids, collection_id: cid });
                 if (res && res.ok) {
-                    const verb = (tid !== null) ? "Tagged" : "Added";
-                    showToast(`${verb} ${ids.length} item${ids.length > 1 ? "s" : ""} \u2192 ${getItemLabel(el)}`, { icon: "check" });
+                    const target = getItemLabel(el);
+                    showToast(t(tid !== null ? "toast.tagged" : "toast.added_to", { count: ids.length, target }), { icon: "check" });
                     loadSidebar();
                     if ((tid !== null && activeTagId === tid) || (cid !== null && activeCollectionId === cid)) {
                         if (activeView === "collections") loadCollectionsBrowse();
@@ -1037,7 +1040,7 @@
             return;
         }
         breadcrumbBar.classList.remove("hidden");
-        let html = '<span class="bc-item bc-link" data-bc="folders-root">Folders</span>';
+        let html = `<span class="bc-item bc-link" data-bc="folders-root">${t("sidebar.folders")}</span>`;
         for (let i = 0; i < folderBrowsePath.length; i++) {
             html += '<span class="bc-sep">›</span>';
             if (i < folderBrowsePath.length - 1) {
@@ -1103,7 +1106,7 @@
 
         if (photos.length > 0) {
             const count = photos.length;
-            photoCountH.textContent += (totalFolders > 0 ? " + " : "") + `${count.toLocaleString()} direct item${count > 1 ? "s" : ""}`;
+            photoCountH.textContent += (totalFolders > 0 ? " + " : "") + t("common.direct_items", { count: count.toLocaleString() });
             for (const p of photos) {
                 const card = document.createElement("div");
                 card.className = "photo-card";
@@ -1135,7 +1138,7 @@
             return;
         }
         breadcrumbBar.classList.remove("hidden");
-        let html = '<span class="bc-item bc-link" data-bc="collections-root"><i data-lucide="library" style="width: 14px; height: 14px; margin-right: 4px;"></i>Collections</span>';
+        let html = `<span class="bc-item bc-link" data-bc="collections-root"><i data-lucide="library" style="width: 14px; height: 14px; margin-right: 4px;"></i>${t("sidebar.collections")}</span>`;
         for (let i = 0; i < collectionBrowsePath.length; i++) {
             html += '<span class="bc-sep">›</span>';
             const icon = collectionBrowsePath[i].icon ? `<i data-lucide="${collectionBrowsePath[i].icon}" style="width: 14px; height: 14px; margin-right: 4px;"></i>` : "";
@@ -1176,7 +1179,7 @@
         if (collectionBrowsePath.length === 0 && collections.length === 0) {
             emptyState.classList.remove("hidden");
             photoGrid.classList.add("hidden");
-            photoCountH.textContent = "No collections found.";
+            photoCountH.textContent = t("collections.none_found");
             return;
         }
         emptyState.classList.add("hidden");
@@ -1184,7 +1187,7 @@
         clearGrid();
         
         const totalCollections = collections.length;
-        photoCountH.textContent = totalCollections > 0 ? `${totalCollections} collection${totalCollections > 1 ? "s" : ""}` : "";
+        photoCountH.textContent = totalCollections > 0 ? t("common.collections_count", { count: totalCollections }) : "";
 
         for (const c of collections) {
             const card = document.createElement("div");
@@ -1210,7 +1213,7 @@
 
         if (photos.length > 0) {
             const count = photos.length;
-            photoCountH.textContent += (totalCollections > 0 ? " + " : "") + `${count.toLocaleString()} direct item${count > 1 ? "s" : ""}`;
+            photoCountH.textContent += (totalCollections > 0 ? " + " : "") + t("common.direct_items", { count: count.toLocaleString() });
             for (const p of photos) {
                 const card = document.createElement("div");
                 card.className = "photo-card";
@@ -1245,13 +1248,13 @@
         }
         breadcrumbBar.classList.remove("hidden");
         if (!activeTagBrowseId) {
-            breadcrumbBar.innerHTML = '<span class="bc-item bc-current">Tags</span>';
+            breadcrumbBar.innerHTML = `<span class="bc-item bc-current">${t("sidebar.tags")}</span>`;
         } else {
-            const t = tagsData.find(x => x.id === activeTagBrowseId);
-            const color = t ? (t.color || TAG_COLORS[Math.abs(hashStr(t.name)) % TAG_COLORS.length]) : "#888";
-            const name = t ? t.name : activeTagBrowseId;
+            const tagObj = tagsData.find(x => x.id === activeTagBrowseId);
+            const color = tagObj ? (tagObj.color || TAG_COLORS[Math.abs(hashStr(tagObj.name)) % TAG_COLORS.length]) : "#888";
+            const name = tagObj ? tagObj.name : activeTagBrowseId;
             breadcrumbBar.innerHTML =
-                '<span class="bc-item bc-link" data-bc="tags">Tags</span>' +
+                `<span class="bc-item bc-link" data-bc="tags">${t("sidebar.tags")}</span>` +
                 '<span class="bc-sep">&#8250;</span>' +
                 '<span class="bc-item bc-current"><span class="tag-dot" style="background:' + color + '"></span> ' + name + '</span>';
             breadcrumbBar.querySelector(".bc-link").addEventListener("click", () => {
@@ -1275,32 +1278,32 @@
             emptyState.classList.add("hidden");
             photoGrid.classList.remove("hidden");
             clearGrid();
-            photoCountH.textContent = `${tagsData.length} tags`;
-            for (const t of tagsData) {
+            photoCountH.textContent = t("common.tags_count", { count: tagsData.length });
+            for (const tag of tagsData) {
                 const card = document.createElement("div");
                 card.className = "country-card";
-                const color = t.color || TAG_COLORS[Math.abs(hashStr(t.name)) % TAG_COLORS.length];
-                const thumbs = t.sample_ids.map(id =>
+                const color = tag.color || TAG_COLORS[Math.abs(hashStr(tag.name)) % TAG_COLORS.length];
+                const thumbs = tag.sample_ids.map(id =>
                     `<img src="/api/photos/${id}/thumb/medium" alt="" loading="lazy">`
                 ).join("");
                 card.innerHTML =
                     `<div class="country-card-grid">${thumbs}</div>` +
                     `<div class="country-card-info">` +
                     `<span class="tag-dot" style="background:${color}"></span> ` +
-                    `<span class="country-card-name">${t.name}</span>` +
-                    `<span class="country-card-count">${t.photo_count.toLocaleString()}</span>` +
+                    `<span class="country-card-name">${tag.name}</span>` +
+                    `<span class="country-card-count">${tag.photo_count.toLocaleString()}</span>` +
                     `</div>`;
                 card.addEventListener("click", () => {
-                    activeTagBrowseId = t.id;
+                    activeTagBrowseId = tag.id;
                     loadTagsBrowse();
                 });
                 photoGrid.appendChild(card);
             }
         } else {
-            const t = tagsData.find(x => x.id === activeTagBrowseId);
-            if (t) {
-                const color = t.color || TAG_COLORS[Math.abs(hashStr(t.name)) % TAG_COLORS.length];
-                photoCountH.innerHTML = `<span class="tag-dot" style="background:${color}"></span> ${t.name} — ${t.photo_count.toLocaleString()} items`;
+            const tag = tagsData.find(x => x.id === activeTagBrowseId);
+            if (tag) {
+                const color = tag.color || TAG_COLORS[Math.abs(hashStr(tag.name)) % TAG_COLORS.length];
+                photoCountH.innerHTML = `<span class="tag-dot" style="background:${color}"></span> ${tag.name} — ${t("common.items", { count: tag.photo_count.toLocaleString() })}`;
             }
             loadPhotos();
         }
@@ -1317,10 +1320,10 @@
         }
         breadcrumbBar.classList.remove("hidden");
         if (!activeCameraBrowseId) {
-            breadcrumbBar.innerHTML = '<span class="bc-item bc-current">Cameras</span>';
+            breadcrumbBar.innerHTML = `<span class="bc-item bc-current">${t("sidebar.cameras")}</span>`;
         } else {
             breadcrumbBar.innerHTML =
-                '<span class="bc-item bc-link" data-bc="cameras">Cameras</span>' +
+                `<span class="bc-item bc-link" data-bc="cameras">${t("sidebar.cameras")}</span>` +
                 '<span class="bc-sep">&#8250;</span>' +
                 '<span class="bc-item bc-current">' + activeCameraBrowseId + '</span>';
             breadcrumbBar.querySelector(".bc-link").addEventListener("click", () => {
@@ -1398,12 +1401,12 @@
         }
         breadcrumbBar.classList.remove("hidden");
         if (!activeCountryCode) {
-            breadcrumbBar.innerHTML = '<span class="bc-item bc-current">Countries</span>';
+            breadcrumbBar.innerHTML = `<span class="bc-item bc-current">${t("sidebar.countries")}</span>`;
         } else {
             const c = countriesData.find(x => x.code === activeCountryCode);
             const name = c ? `${countryFlag(c.code)} ${c.name}` : activeCountryCode;
             breadcrumbBar.innerHTML =
-                '<span class="bc-item bc-link" data-bc="countries">Countries</span>' +
+                `<span class="bc-item bc-link" data-bc="countries">${t("sidebar.countries")}</span>` +
                 '<span class="bc-sep">›</span>' +
                 '<span class="bc-item bc-current">' + name + '</span>';
             breadcrumbBar.querySelector(".bc-link").addEventListener("click", () => {
@@ -1450,7 +1453,7 @@
             }
         } else {
             const c = countriesData.find(x => x.code === activeCountryCode);
-            if (c) photoCountH.innerHTML = `${countryFlag(c.code)} ${c.name} — ${c.photo_count.toLocaleString()} items`;
+            if (c) photoCountH.innerHTML = `${countryFlag(c.code)} ${c.name} — ${t("common.items", { count: c.photo_count.toLocaleString() })}`;
             loadPhotos();
         }
     }
@@ -1513,54 +1516,54 @@
         if (cleaningTab === "duplicates") {
             const data = await api("GET", "/api/cleaning/duplicates");
             if (data.count === 0) {
-                photoCountH.textContent = "No duplicates found";
+                photoCountH.textContent = t("cleaning.no_duplicates");
                 emptyState.classList.remove("hidden");
                 photoGrid.classList.add("hidden");
                 return;
             }
-            photoCountH.textContent = `${data.count} duplicate items in ${data.groups.length} groups`;
+            photoCountH.textContent = t("cleaning.duplicates_count", { count: data.count, groups: data.groups.length });
             for (const group of data.groups) {
                 const sep = document.createElement("div");
                 sep.className = "cleaning-separator";
-                sep.innerHTML = `<span>${group.length} identical files — ${(group[0].size / 1048576).toFixed(1)} MB each</span>`;
+                sep.innerHTML = `<span>${t("cleaning.identical_files", { count: group.length, size: (group[0].size / 1048576).toFixed(1) })}</span>`;
                 photoGrid.appendChild(sep);
                 renderCleaningCards(group, true);
             }
         } else if (cleaningTab === "blurry") {
             const data = await api("GET", "/api/cleaning/blurry");
             if (data.count === 0) {
-                photoCountH.textContent = "No blurry items found";
+                photoCountH.textContent = t("cleaning.no_blurry");
                 emptyState.classList.remove("hidden");
                 photoGrid.classList.add("hidden");
                 return;
             }
-            photoCountH.textContent = `${data.count} blurry items`;
+            photoCountH.textContent = t("cleaning.blurry_count", { count: data.count });
             renderCleaningCards(data.photos, true);
         } else if (cleaningTab === "similar") {
             const data = await api("GET", "/api/cleaning/similar");
             if (data.count === 0) {
-                photoCountH.textContent = "No similar items found";
+                photoCountH.textContent = t("cleaning.no_similar");
                 emptyState.classList.remove("hidden");
                 photoGrid.classList.add("hidden");
                 return;
             }
-            photoCountH.textContent = `${data.count} similar items in ${data.groups.length} groups`;
+            photoCountH.textContent = t("cleaning.similar_count", { count: data.count, groups: data.groups.length });
             for (const group of data.groups) {
                 const sep = document.createElement("div");
                 sep.className = "cleaning-separator";
-                sep.innerHTML = `<span>${group.length} similar items</span>`;
+                sep.innerHTML = `<span>${t("cleaning.similar_sep", { count: group.length })}</span>`;
                 photoGrid.appendChild(sep);
                 renderCleaningCards(group, true);
             }
         } else if (cleaningTab === "bad") {
             const data = await api("GET", "/api/cleaning/bad");
             if (data.count === 0) {
-                photoCountH.textContent = "No bad quality items found";
+                photoCountH.textContent = t("cleaning.no_bad");
                 emptyState.classList.remove("hidden");
                 photoGrid.classList.add("hidden");
                 return;
             }
-            photoCountH.textContent = `${data.count} bad quality items`;
+            photoCountH.textContent = t("cleaning.bad_count", { count: data.count });
             renderCleaningCards(data.photos, true);
         }
     }
@@ -1569,7 +1572,7 @@
     async function startAnalysis() {
         btnAnalyze.disabled = true;
         cleaningStatus.classList.remove("hidden");
-        cleaningStatus.textContent = "Starting analysis...";
+        cleaningStatus.textContent = t("cleaning.starting");
         await api("POST", "/api/cleaning/analyze");
         pollAnalysis();
     }
@@ -1600,9 +1603,9 @@
     async function confirmDelete(ids) {
         const n = ids.length;
         const ok = await showConfirm(
-            `Delete ${n} photo${n > 1 ? "s" : ""}?`,
-            `This action cannot be undone. The ${n > 1 ? `${n} files will` : "file will"} be permanently removed.`,
-            "Delete"
+            n === 1 ? t("confirm.delete_photo") : t("confirm.delete_photos", { count: n }),
+            n === 1 ? t("confirm.delete_photo_msg") : t("confirm.delete_photos_msg", { count: n }),
+            t("confirm.delete")
         );
         if (!ok) return false;
         for (const id of ids) selectedIds.add(id);
@@ -1615,9 +1618,9 @@
 
     async function removeTagsFromTargets(ids) {
         const ok = await showConfirm(
-            `Remove all tags from ${ids.length} photo${ids.length > 1 ? "s" : ""}?`,
-            "All tags on the selected items will be removed.",
-            "Remove"
+            t("confirm.remove_all_tags_title", { count: ids.length }),
+            t("confirm.remove_all_tags_msg"),
+            t("context.remove_tags")
         );
         if (!ok) return;
         for (const id of ids) {
@@ -1663,32 +1666,32 @@
             <div class="stats-summary">
                 <div class="stat-card">
                     <div class="stat-value">${d.total_photos.toLocaleString()}</div>
-                    <div class="stat-label">Photos</div>
+                    <div class="stat-label">${t("stats.photos")}</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">${formatSizeShort(d.total_size)}</div>
-                    <div class="stat-label">Total Size</div>
+                    <div class="stat-label">${t("stats.total_size")}</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">${d.geo_count.toLocaleString()} / ${d.geo_total.toLocaleString()}</div>
-                    <div class="stat-label">Geolocalized (${geoPct}%)</div>
+                    <div class="stat-label">${t("stats.geolocalized", { pct: geoPct })}</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">${d.formats.length}</div>
-                    <div class="stat-label">Formats</div>
+                    <div class="stat-label">${t("stats.formats")}</div>
                 </div>
             </div>
             <div class="stats-charts">
                 <div class="stats-chart-box">
-                    <h4>Formats</h4>
+                    <h4>${t("stats.formats")}</h4>
                     <canvas id="chart-format"></canvas>
                 </div>
                 <div class="stats-chart-box">
-                    <h4>Top Countries</h4>
+                    <h4>${t("stats.top_countries")}</h4>
                     <canvas id="chart-countries"></canvas>
                 </div>
                 <div class="stats-chart-box stats-chart-wide">
-                    <h4>Photos over time</h4>
+                    <h4>${t("stats.photos_over_time")}</h4>
                     <canvas id="chart-timeline"></canvas>
                 </div>
             </div>
@@ -1721,7 +1724,7 @@
                             callbacks: {
                                 label: function(ctx) {
                                     const f = d.formats[ctx.dataIndex];
-                                    return ` ${f.count.toLocaleString()} files (${formatSizeShort(f.size)})`;
+                                    return ` ${t("stats.files_with_size", { count: f.count.toLocaleString(), size: formatSizeShort(f.size) })}`;
                                 }
                             }
                         }
@@ -1744,7 +1747,7 @@
                     labels: months,
                     datasets: [
                         {
-                            label: "Monthly",
+                            label: t("stats.monthly"),
                             data: counts,
                             borderColor: "#5b9fd6",
                             backgroundColor: "rgba(91,159,214,0.15)",
@@ -1754,7 +1757,7 @@
                             borderWidth: 2,
                         },
                         {
-                            label: "Cumulative",
+                            label: t("stats.cumulative"),
                             data: cumulative,
                             borderColor: "#2ecc71",
                             borderDash: [4, 3],
@@ -1812,7 +1815,7 @@
             });
         }
 
-        photoCountH.textContent = "Statistics";
+        photoCountH.textContent = t("stats.title");
     }
 
     // ── Filters ───────────────────────────────────────────────────────────
@@ -1829,11 +1832,11 @@
 
     async function loadFilters() {
         const data = await api("GET", "/api/filters");
-        populateSelect(filterCamera, data.cameras, "All");
-        populateSelect(filterLens, data.lenses, "All");
-        populateSelect(filterExt, data.extensions, "All", e => `.${e}`);
-        populateSelect(filterCountry, data.countries, "All countries");
-        populateSelect(filterCity, data.cities, "All cities");
+        populateSelect(filterCamera, data.cameras, t("filter.all"));
+        populateSelect(filterLens, data.lenses, t("filter.all"));
+        populateSelect(filterExt, data.extensions, t("filter.all"), e => `.${e}`);
+        populateSelect(filterCountry, data.countries, t("filter.all_countries"));
+        populateSelect(filterCity, data.cities, t("filter.all_cities"));
     }
 
     function getFilterParams() {
@@ -1893,7 +1896,7 @@
             }
             emptyState.classList.add("hidden");
             photoGrid.classList.remove("hidden");
-            photoCountH.textContent = `${data.total.toLocaleString()} items`;
+            photoCountH.textContent = t("common.items", { count: data.total.toLocaleString() });
 
             for (const p of data.photos) {
                 const card = document.createElement("div");
@@ -2208,7 +2211,7 @@
     function showContextMenu(x, y) {
         const count = contextMenuTargets.length;
         const header = document.getElementById("context-header");
-        header.textContent = count === 1 ? "1 item" : `${count} items`;
+        header.textContent = count === 1 ? t("common.item") : t("common.items", { count: count });
 
         contextMenu.classList.remove("hidden");
         const mw = contextMenu.offsetWidth;
@@ -2320,12 +2323,12 @@
             mapBtnSelectedOnly.classList.remove("active");
             applySelectedOnlyFilter();
         }
-        selectionCount.textContent = n > 0 ? `${n} selected` : "";
+        selectionCount.textContent = n > 0 ? t("grid.selected", { count: n }) : "";
         selectionCount.classList.toggle("hidden", n === 0);
         btnDeselectAll.classList.toggle("hidden", n === 0);
         btnSelectedOnly.classList.toggle("hidden", n === 0);
         if (mapSelectionCount) {
-            mapSelectionCount.textContent = n > 0 ? `${n} selected` : "";
+            mapSelectionCount.textContent = n > 0 ? t("grid.selected", { count: n }) : "";
             mapSelectionCount.classList.toggle("hidden", n === 0);
         }
         if (mapBtnDeselectAll) mapBtnDeselectAll.classList.toggle("hidden", n === 0);
@@ -2554,7 +2557,7 @@
         }
         const addCollBtn = document.createElement("span");
         addCollBtn.className = "collection-pill tag-add";
-        addCollBtn.innerHTML = `<i data-lucide="plus"></i> Add to Collection`;
+        addCollBtn.innerHTML = `<i data-lucide="plus"></i> ${t("detail.add_to_collection")}`;
         addCollBtn.addEventListener("click", () => openCollectionModal(photoId));
         detailCollections.appendChild(addCollBtn);
         lucide.createIcons({ root: detailCollections });
@@ -2563,15 +2566,15 @@
         const tagList = Array.isArray(tagData) ? tagData : [];
 
         detailTags.innerHTML = "";
-        for (const t of tagList) {
-            const color = t.color || TAG_COLORS[Math.abs(hashStr(t.name)) % TAG_COLORS.length];
+        for (const tobj of tagList) {
+            const color = tobj.color || TAG_COLORS[Math.abs(hashStr(tobj.name)) % TAG_COLORS.length];
             const pill = document.createElement("span");
             pill.className = "tag-pill";
-            pill.textContent = t.name;
+            pill.textContent = tobj.name;
             pill.style.setProperty("--tag-color", color);
-            pill.title = "Click to remove";
+            pill.title = t("detail.click_to_remove");
             pill.addEventListener("click", async () => {
-                await api("DELETE", `/api/photos/${photoId}/tags/${t.id}`);
+                await api("DELETE", `/api/photos/${photoId}/tags/${tobj.id}`);
                 await loadDetail(photoId);
             });
             detailTags.appendChild(pill);
@@ -2579,7 +2582,7 @@
 
         const addBtn = document.createElement("span");
         addBtn.className = "tag-pill tag-add";
-        addBtn.innerHTML = `<i data-lucide="plus"></i> Add tag`;
+        addBtn.innerHTML = `<i data-lucide="plus"></i> ${t("detail.add_tag")}`;
         addBtn.addEventListener("click", () => openTagModal(photoId));
         detailTags.appendChild(addBtn);
         lucide.createIcons({ root: detailTags });
@@ -2709,7 +2712,7 @@
         tagModalPhotoId = photoId;
         tagModalBatchIds = null;
         tagModalExistingTags = await api("GET", "/api/tags");
-        tagDialogTitle.textContent = "Add Tag";
+        tagDialogTitle.textContent = t("tag_dialog.add_tag");
         tagInput.value = "";
         tagModalSelectedColor = TAG_COLORS[6];
         tagColorPicker.value = tagModalSelectedColor;
@@ -2737,7 +2740,7 @@
             b.classList.toggle("active", b.dataset.tab === tab);
         });
         tagDialogOk.classList.toggle("hidden", !isNew);
-        tagDialogCancel.textContent = isNew ? "Cancel" : "Close";
+        tagDialogCancel.textContent = isNew ? t("confirm.cancel") : t("common.close");
         if (isNew) {
             tagInput.focus();
         } else {
@@ -2836,7 +2839,7 @@
         tagModalBatchIds = photoIds;
         tagModalPhotoId = null;
         tagModalExistingTags = await api("GET", "/api/tags");
-        tagDialogTitle.textContent = `Add Tag to ${photoIds.length} items`;
+        tagDialogTitle.textContent = t("tag_dialog.add_tag_to", { count: photoIds.length });
         tagInput.value = "";
         tagModalSelectedColor = TAG_COLORS[6];
         tagColorPicker.value = tagModalSelectedColor;
@@ -2881,13 +2884,13 @@
         recurseAdd(collections);
 
         if (collection) {
-            collectionDialogTitle.textContent = "Edit Collection";
+            collectionDialogTitle.textContent = t("collection_dialog.edit");
             collectionInput.value = collection.name || "";
             collectionParentSelect.value = collection.parent_id || "";
             collectionModalSelectedColor = collection.color || TAG_COLORS[6];
             collectionDialogOk.dataset.id = collection.id;
         } else {
-            collectionDialogTitle.textContent = pendingCollectionAssignIds ? "Add to Collection" : "Add Collection";
+            collectionDialogTitle.textContent = pendingCollectionAssignIds ? t("collection_dialog.add_to") : t("collection_dialog.add");
             collectionInput.value = "";
             collectionParentSelect.value = "";
             collectionModalSelectedColor = TAG_COLORS[6];
@@ -2900,7 +2903,7 @@
             document.getElementById("collection-existing-section").hidden = true;
             document.getElementById("collection-create-section").hidden = false;
             collectionDialogOk.classList.remove("hidden");
-            collectionDialogCancel.textContent = "Cancel";
+            collectionDialogCancel.textContent = t("confirm.cancel");
         } else {
             setCollectionTab(assignMode ? "existing" : "new");
         }
@@ -2948,7 +2951,7 @@
             b.classList.toggle("active", b.dataset.tab === tab);
         });
         collectionDialogOk.classList.toggle("hidden", isExisting);
-        collectionDialogCancel.textContent = isExisting ? "Close" : "Cancel";
+        collectionDialogCancel.textContent = isExisting ? t("common.close") : t("confirm.cancel");
         if (isExisting) {
             collectionInput.blur();
         } else {
@@ -3024,7 +3027,7 @@
 
     function renderCollectionExistingList() {
         if (collectionModalExistingCollections.length === 0) {
-            collectionExistingList.innerHTML = '<div style="font-size:12px;color:var(--text-secondary);padding:4px">No collections found.</div>';
+            collectionExistingList.innerHTML = `<div style="font-size:12px;color:var(--text-secondary);padding:4px">${t("collections.none_found")}</div>`;
             return;
         }
         collectionExistingList.innerHTML = "";
@@ -3053,7 +3056,7 @@
         const collections = await api("GET", "/api/collections");
         if (collections.length === 0) return;
         
-        let html = '<div style="padding: 10px;">Select a collection to remove from the selected items:</div><div class="tag-existing-list">';
+        let html = `<div style="padding: 10px;">${t("collection_dialog.select_to_remove")}</div><div class="tag-existing-list">`;
         for (const c of collections) {
             const color = c.color || TAG_COLORS[Math.abs(hashStr(c.name)) % TAG_COLORS.length];
             html += `<div class="tag-existing-item" data-id="${c.id}" style="--tag-color: ${color}">${c.name}</div>`;
@@ -3061,10 +3064,10 @@
         html += '</div>';
 
         const confirmDialogWrapper = document.getElementById("confirm-dialog");
-        document.getElementById("confirm-title").textContent = "Remove Collection";
+        document.getElementById("confirm-title").textContent = t("collection_dialog.remove_title");
         document.getElementById("confirm-message").innerHTML = html;
         document.getElementById("confirm-ok").classList.add("hidden"); // We will just use the list
-        document.getElementById("confirm-cancel").textContent = "Close";
+        document.getElementById("confirm-cancel").textContent = t("common.close");
         confirmDialogWrapper.classList.remove("hidden");
 
         const listItems = confirmDialogWrapper.querySelectorAll(".tag-existing-item");
@@ -3102,10 +3105,10 @@
         await loadSidebar();
         await loadFilters();
         btnRescan.disabled = false;
-        scanStatus.textContent = "Starting scan...";
+        scanStatus.textContent = t("scan.starting");
         const res = await api("POST", "/api/scan", { path });
         if (res.error === "scan_already_running") {
-            scanStatus.textContent = "Scan already running — folder will be included next time";
+            scanStatus.textContent = t("scan.running_next");
             pollScan();
             return;
         }
@@ -3115,10 +3118,10 @@
 
     async function rescanAll() {
         btnRescan.disabled = true;
-        scanStatus.textContent = "Starting scan...";
+        scanStatus.textContent = t("scan.starting");
         const res = await api("POST", "/api/scan", { path: "all" });
         if (res.error === "scan_already_running") {
-            scanStatus.textContent = "Scan already running";
+            scanStatus.textContent = t("scan.running");
             btnRescan.disabled = false;
             pollScan();
             return;
@@ -3148,8 +3151,8 @@
             scanProgress.classList.remove("hidden");
             scanFill.style.width = pct + "%";
             scanStatus.textContent = data.cancel
-                ? `Cancelling... ${data.done.toLocaleString()} / ${data.total.toLocaleString()}`
-                : `${data.done.toLocaleString()} / ${data.total.toLocaleString()} (${pct}%)`;
+                ? t("scan.cancelling", { done: data.done.toLocaleString(), total: data.total.toLocaleString() })
+                : t("scan.progress", { done: data.done.toLocaleString(), total: data.total.toLocaleString(), pct: pct });
             btnRescan.disabled = true;
             if (btnScanCancel) btnScanCancel.classList.toggle("hidden", !!data.cancel);
             scanPollCount++;
@@ -3165,7 +3168,7 @@
         } else if (data.running) {
             scanProgress.classList.remove("hidden");
             scanFill.style.width = "0%";
-            scanStatus.textContent = "Preparing...";
+            scanStatus.textContent = t("scan.preparing");
             btnRescan.disabled = true;
             if (btnScanCancel) btnScanCancel.classList.remove("hidden");
             setTimeout(pollScanLoop, 500);
@@ -3175,8 +3178,8 @@
             scanProgress.classList.add("hidden");
             if (btnScanCancel) btnScanCancel.classList.add("hidden");
             scanFill.style.width = "0%";
-            scanStatus.textContent = data.cancelled ? "Scan cancelled" : "";
-            if (data.cancelled) setTimeout(() => { if (!scanStatus.textContent.startsWith("Starting")) scanStatus.textContent = ""; }, 4000);
+            scanStatus.textContent = data.cancelled ? t("scan.cancelled") : "";
+            if (data.cancelled) setTimeout(() => { if (!scanStatus.textContent.startsWith(t("scan.starting"))) scanStatus.textContent = ""; }, 4000);
             btnRescan.disabled = false;
             document.querySelectorAll(".settings-row-btn.scan").forEach(btn => {
                 btn.disabled = false;
@@ -3658,24 +3661,24 @@
                 <div class="settings-app-details">
                     <div class="settings-app-name">PHOTONIC</div>
                     <span class="settings-app-version" id="settings-page-version"></span>
-                    <p class="settings-app-desc">Media library manager. Organize, tag, and browse your photo and video collection with powerful filtering and cleaning tools.</p>
-                    <button class="settings-action-btn" id="setting-open-changelog"><i data-lucide="scroll-text"></i> What's new &amp; Credits</button>
+                    <p class="settings-app-desc">${t("settings.app.desc")}</p>
+                    <button class="settings-action-btn" id="setting-open-changelog"><i data-lucide="scroll-text"></i> ${t("settings.app.whats_new")}</button>
                 </div>
             </div>
 
             <div class="settings-card settings-card-gradient">
                 <div class="settings-card-header">
                     <i data-lucide="arrow-up-circle"></i>
-                    <h3>Updates</h3>
+                    <h3>${t("settings.updates.title")}</h3>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
                         <div class="setting-label" id="setting-update-status">${describeUpdateState(lastUpdateState)}</div>
-                        <div class="setting-desc">${lastUpdateState && lastUpdateState.current_version ? "Current version v" + lastUpdateState.current_version + ". " : ""}Photonic checks GitHub for new releases at startup.</div>
+                        <div class="setting-desc">${lastUpdateState && lastUpdateState.current_version ? t("settings.updates.current_version", { v: lastUpdateState.current_version }) : ""}${t("settings.updates.desc")}</div>
                     </div>
                     <div class="setting-control" style="display:flex; gap:8px;">
-                        <button class="settings-action-btn" id="setting-update-check"><i data-lucide="refresh-cw"></i> Check for updates</button>
-                        <a class="settings-action-btn" href="${RELEASES_PAGE}" target="_blank" rel="noopener"><i data-lucide="download"></i> Releases</a>
+                        <button class="settings-action-btn" id="setting-update-check"><i data-lucide="refresh-cw"></i> ${t("settings.updates.check")}</button>
+                        <a class="settings-action-btn" href="${RELEASES_PAGE}" target="_blank" rel="noopener"><i data-lucide="download"></i> ${t("settings.updates.releases")}</a>
                     </div>
                 </div>
             </div>
@@ -3683,12 +3686,12 @@
             <div class="settings-card settings-card-gradient">
                 <div class="settings-card-header">
                     <i data-lucide="sliders-horizontal"></i>
-                    <h3>General</h3>
+                    <h3>${t("settings.general.title")}</h3>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Confirm before delete</div>
-                        <div class="setting-desc">Show a confirmation dialog before deleting items, tags, collections, or folders.</div>
+                        <div class="setting-label">${t("settings.general.confirm_delete")}</div>
+                        <div class="setting-desc">${t("settings.general.confirm_delete_desc")}</div>
                     </div>
                     <div class="setting-control">
                         <label class="toggle-switch">
@@ -3699,8 +3702,8 @@
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Show file extensions</div>
-                        <div class="setting-desc">Display file extensions (e.g. .jpg, .png) in the photo grid.</div>
+                        <div class="setting-label">${t("settings.general.show_extensions")}</div>
+                        <div class="setting-desc">${t("settings.general.show_extensions_desc")}</div>
                     </div>
                     <div class="setting-control">
                         <label class="toggle-switch">
@@ -3711,8 +3714,20 @@
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Anonymous usage statistics</div>
-                        <div class="setting-desc">Send an anonymous launch ping (app version and OS only). Never any photo or personal data.</div>
+                        <div class="setting-label" data-i18n="settings.general.language">${t("settings.general.language")}</div>
+                        <div class="setting-desc" data-i18n="settings.general.language_desc">${t("settings.general.language_desc")}</div>
+                    </div>
+                    <div class="setting-control">
+                        <div class="lang-settings-wrap">
+                            <button class="settings-select lang-settings-btn" id="setting-language" type="button"></button>
+                            <div class="lang-menu lang-settings-menu hidden" id="setting-lang-menu"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-label">${t("settings.general.telemetry")}</div>
+                        <div class="setting-desc">${t("settings.general.telemetry_desc")}</div>
                     </div>
                     <div class="setting-control">
                         <label class="toggle-switch">
@@ -3726,78 +3741,78 @@
             <div class="settings-card settings-card-gradient">
                 <div class="settings-card-header">
                     <i data-lucide="layout-grid"></i>
-                    <h3>Display</h3>
+                    <h3>${t("settings.display.title")}</h3>
                 </div>
                 <div class="settings-sub-header">
                     <span class="section-dot"></span>
-                    <h4>General</h4>
+                    <h4>${t("settings.display.general_sub")}</h4>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Thumbnail size</div>
-                        <div class="setting-desc">Adjust the size of photo thumbnails in the grid.</div>
+                        <div class="setting-label">${t("settings.display.thumb_label")}</div>
+                        <div class="setting-desc">${t("settings.display.thumb_desc")}</div>
                     </div>
                     <div class="setting-control">
                         <div class="settings-range-wrap">
                             <input type="range" class="settings-range" id="setting-thumb-size" min="60" max="450" value="${thumbSize}">
-                            <input type="number" class="settings-range-label settings-range-input" id="setting-thumb-size-label" value="${thumbSize}" min="60" max="450" step="1" aria-label="Thumbnail size">
+                            <input type="number" class="settings-range-label settings-range-input" id="setting-thumb-size-label" value="${thumbSize}" min="60" max="450" step="1" aria-label="${t("settings.display.thumb_label")}">
                             <span class="settings-range-unit">px</span>
                         </div>
                     </div>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Default view</div>
-                        <div class="setting-desc" id="default-view-desc">Choose the default layout when browsing your items.${defaultView === "masonry" ? " Masonry is a beta feature and may still have layout glitches." : ""}</div>
+                        <div class="setting-label">${t("settings.display.default_view")}</div>
+                        <div class="setting-desc" id="default-view-desc">${t("settings.display.default_view_desc")}${defaultView === "masonry" ? " " + t("settings.display.default_view_masonry") : ""}</div>
                     </div>
                     <div class="setting-control">
                         <div class="settings-layout-toggle" id="setting-default-view">
-                            <button class="layout-btn${defaultView === "grid" ? " active" : ""}" data-view="grid" title="Grid"><i data-lucide="grid-3x3"></i></button>
-                            <button class="layout-btn${defaultView === "masonry" ? " active" : ""}" data-view="masonry" title="Masonry (beta)"><i data-lucide="layout-dashboard"></i><span class="btn-beta-tag">BETA</span></button>
+                            <button class="layout-btn${defaultView === "grid" ? " active" : ""}" data-view="grid" title="${t("settings.display.grid")}"><i data-lucide="grid-3x3"></i></button>
+                            <button class="layout-btn${defaultView === "masonry" ? " active" : ""}" data-view="masonry" title="${t("settings.display.masonry")}"><i data-lucide="layout-dashboard"></i><span class="btn-beta-tag">BETA</span></button>
                         </div>
                     </div>
                 </div>
                 <div class="settings-sub-header">
                     <span class="section-dot"></span>
-                    <h4>Locations</h4>
+                    <h4>${t("settings.display.locations_sub")}</h4>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Cluster group size</div>
-                        <div class="setting-desc" id="setting-cluster-threshold-desc">On the Locations map, photos are grouped into clusters only where at least this many photos sit close together; anywhere else they render as individual markers.<br>Set it to <b>1</b> to group from 2 photos at the same spot.</div>
+                        <div class="setting-label">${t("settings.display.cluster_label")}</div>
+                        <div class="setting-desc" id="setting-cluster-threshold-desc">${t("settings.display.cluster_desc")}<br>${t("settings.display.cluster_1")}</div>
                     </div>
                     <div class="setting-control">
                         <div class="settings-range-wrap">
                             <input type="range" class="settings-range" id="setting-cluster-threshold" min="1" max="5000" step="1" value="${clusterThreshold}">
-                            <input type="number" class="settings-range-label settings-range-input" id="setting-cluster-threshold-label" value="${clusterThreshold}" min="1" max="5000" step="1" aria-label="Cluster group size">
+                            <input type="number" class="settings-range-label settings-range-input" id="setting-cluster-threshold-label" value="${clusterThreshold}" min="1" max="5000" step="1" aria-label="${t("settings.display.cluster_label")}">
                         </div>
                     </div>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Disable clustering below</div>
-                        <div class="setting-desc" id="setting-cluster-global-desc">Clustering is enabled only once the map holds more than this many geo-tagged photos. Below it, no grouping happens at all and every photo shows as an individual marker.<br>Ex. at <b>700</b>: 701 photos on the map → clustering active; 699 photos → fully deactivated.</div>
+                        <div class="setting-label">${t("settings.display.cluster_global_label")}</div>
+                        <div class="setting-desc" id="setting-cluster-global-desc">${t("settings.display.cluster_global_desc")}<br>${t("settings.display.cluster_global_ex")}</div>
                     </div>
                     <div class="setting-control">
                         <div class="settings-range-wrap">
                             <input type="range" class="settings-range" id="setting-cluster-global" min="300" max="5000" step="1" value="${clusterGlobalThreshold}">
-                            <input type="number" class="settings-range-label settings-range-input" id="setting-cluster-global-label" value="${clusterGlobalThreshold}" min="300" max="5000" step="1" aria-label="Disable clustering below">
+                            <input type="number" class="settings-range-label settings-range-input" id="setting-cluster-global-label" value="${clusterGlobalThreshold}" min="300" max="5000" step="1" aria-label="${t("settings.display.cluster_global_label")}">
                         </div>
                     </div>
                 </div>
                 <div class="settings-sub-header">
                     <span class="section-dot"></span>
-                    <h4>Appearance</h4>
+                    <h4>${t("settings.display.appearance_sub")}</h4>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Theme palettes</div>
-                        <div class="setting-desc">Pick a ready-made color scheme, or fine-tune every color below.</div>
+                        <div class="setting-label">${t("settings.display.palettes_label")}</div>
+                        <div class="setting-desc">${t("settings.display.palettes_desc")}</div>
                     </div>
                     <div class="setting-control palette-groups">
                         ${["dark", "light"].map(mode => `
                             <div class="palette-group">
-                                <span class="palette-group-label">${mode === "dark" ? "Dark" : "Light"}</span>
+                                <span class="palette-group-label">${mode === "dark" ? t("settings.display.dark") : t("settings.display.light")}</span>
                                 <div class="palette-row">
                                     ${THEME_PALETTES.filter(p => p.mode === mode).map(p => `
                                         <button class="palette-swatch${savedPalette === p.id ? " active" : ""}" data-palette="${p.id}" title="${p.name}">
@@ -3816,8 +3831,8 @@
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Background primary</div>
-                        <div class="setting-desc">Main app background and header gradient start.</div>
+                        <div class="setting-label">${t("settings.display.bg_primary")}</div>
+                        <div class="setting-desc">${t("settings.display.bg_primary_desc")}</div>
                     </div>
                     <div class="setting-control">
                         <input type="color" class="settings-color" id="setting-bg-primary" value="${localStorage.getItem("photonic.bg-primary") || "#0A0D3A"}">
@@ -3825,8 +3840,8 @@
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Background secondary</div>
-                        <div class="setting-desc">Panels, cards, menus and header gradient middle.</div>
+                        <div class="setting-label">${t("settings.display.bg_secondary")}</div>
+                        <div class="setting-desc">${t("settings.display.bg_secondary_desc")}</div>
                     </div>
                     <div class="setting-control">
                         <input type="color" class="settings-color" id="setting-bg-secondary" value="${localStorage.getItem("photonic.bg-secondary") || "#0F1248"}">
@@ -3834,8 +3849,8 @@
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Background tertiary</div>
-                        <div class="setting-desc">Inputs, hover states and header gradient end.</div>
+                        <div class="setting-label">${t("settings.display.bg_tertiary")}</div>
+                        <div class="setting-desc">${t("settings.display.bg_tertiary_desc")}</div>
                     </div>
                     <div class="setting-control">
                         <input type="color" class="settings-color" id="setting-bg-tertiary" value="${localStorage.getItem("photonic.bg-tertiary") || "#181C58"}">
@@ -3843,8 +3858,8 @@
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Accent color</div>
-                        <div class="setting-desc">Highlights, active states, buttons and focus rings.</div>
+                        <div class="setting-label">${t("settings.display.accent")}</div>
+                        <div class="setting-desc">${t("settings.display.accent_desc")}</div>
                     </div>
                     <div class="setting-control">
                         <input type="color" class="settings-color" id="setting-accent" value="${localStorage.getItem("photonic.accent") || "#28A8D8"}">
@@ -3852,8 +3867,8 @@
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Borders</div>
-                        <div class="setting-desc">Card outlines, separators and input borders.</div>
+                        <div class="setting-label">${t("settings.display.borders")}</div>
+                        <div class="setting-desc">${t("settings.display.borders_desc")}</div>
                     </div>
                     <div class="setting-control">
                         <input type="color" class="settings-color" id="setting-border" value="${localStorage.getItem("photonic.border") || "#2A2E68"}">
@@ -3861,8 +3876,8 @@
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Text primary</div>
-                        <div class="setting-desc">Titles, filenames and main text.</div>
+                        <div class="setting-label">${t("settings.display.text_primary")}</div>
+                        <div class="setting-desc">${t("settings.display.text_primary_desc")}</div>
                     </div>
                     <div class="setting-control">
                         <input type="color" class="settings-color" id="setting-text-primary" value="${localStorage.getItem("photonic.text-primary") || "#E6E6F0"}">
@@ -3870,8 +3885,8 @@
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Text secondary</div>
-                        <div class="setting-desc">Descriptions, labels and muted text.</div>
+                        <div class="setting-label">${t("settings.display.text_secondary")}</div>
+                        <div class="setting-desc">${t("settings.display.text_secondary_desc")}</div>
                     </div>
                     <div class="setting-control">
                         <input type="color" class="settings-color" id="setting-text-secondary" value="${localStorage.getItem("photonic.text-secondary") || "#8488A8"}">
@@ -3879,11 +3894,11 @@
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Reset colors</div>
-                        <div class="setting-desc">Restore the default Photonic dark theme.</div>
+                        <div class="setting-label">${t("settings.display.reset_colors")}</div>
+                        <div class="setting-desc">${t("settings.display.reset_colors_desc")}</div>
                     </div>
                     <div class="setting-control">
-                        <button class="settings-action-btn" id="setting-reset-colors"><i data-lucide="rotate-ccw"></i> Reset</button>
+                        <button class="settings-action-btn" id="setting-reset-colors"><i data-lucide="rotate-ccw"></i> ${t("settings.display.reset")}</button>
                     </div>
                 </div>
             </div>
@@ -3891,15 +3906,15 @@
             <div class="settings-card settings-card-gradient">
                 <div class="settings-card-header">
                     <i data-lucide="database"></i>
-                    <h3>Data</h3>
+                    <h3>${t("settings.data.title")}</h3>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
-                        <div class="setting-label">Rescan all folders</div>
-                        <div class="setting-desc">Re-scan all folders to pick up new or changed items.</div>
+                        <div class="setting-label">${t("settings.data.rescan_label")}</div>
+                        <div class="setting-desc">${t("settings.data.rescan_desc")}</div>
                     </div>
                     <div class="setting-control">
-                        <button class="settings-action-btn" id="setting-rescan"><i data-lucide="refresh-cw"></i> Rescan</button>
+                        <button class="settings-action-btn" id="setting-rescan"><i data-lucide="refresh-cw"></i> ${t("settings.data.rescan")}</button>
                     </div>
                 </div>
             </div>
@@ -3926,6 +3941,19 @@
             if (!telemetryDirty && d && typeof d.enabled === "boolean") telemetryToggle.checked = d.enabled;
         }).catch(() => {});
 
+        const langSelect = document.getElementById("setting-language");
+        if (langSelect) {
+            langSelect.innerHTML = I18n.availableLanguages.map(l =>
+                `<option value="${l.code}">${l.name}</option>`
+            ).join("");
+            langSelect.value = I18n.getCurrent();
+            langSelect.addEventListener("change", () => {
+                I18n.setLanguage(langSelect.value).then(() => {
+                    refreshAfterLangChange();
+                });
+            });
+        }
+
         const thumbSlider = document.getElementById("setting-thumb-size");
         const thumbLabel = document.getElementById("setting-thumb-size-label");
         const mainThumb = document.getElementById("thumb-size");
@@ -3948,7 +3976,7 @@
                 setLayout(v);
                 document.querySelectorAll("#setting-default-view .layout-btn").forEach(b => b.classList.toggle("active", b === btn));
                 const desc = document.getElementById("default-view-desc");
-                if (desc) desc.textContent = "Choose the default layout when browsing your items." + (v === "masonry" ? " Masonry is a beta feature and may still have layout glitches." : "");
+                if (desc) desc.textContent = t("settings.display.default_view_desc") + (v === "masonry" ? " " + t("settings.display.default_view_masonry") : "");
             });
         });
 
@@ -3961,7 +3989,7 @@
                 clusterLabel.classList.toggle("warn", +v > 100);
                 if (clusterDesc) {
                     clusterDesc.innerHTML = clusterDescBase + (+v > 100
-                        ? '<div class="setting-desc-warn">⚠ Warning: large cluster groups may impact map fluidity.</div>'
+                        ? `<div class="setting-desc-warn">⚠ ${t("settings.display.cluster_warn")}</div>`
                         : "");
                 }
             };
@@ -3987,7 +4015,7 @@
                 clusterGlobalLabel.classList.toggle("warn", +v > 1000);
                 if (clusterGlobalDesc) {
                     clusterGlobalDesc.innerHTML = clusterGlobalDescBase + (+v > 1000
-                        ? '<div class="setting-desc-warn">⚠ Warning: very high values may impact map fluidity.</div>'
+                        ? `<div class="setting-desc-warn">⚠ ${t("settings.display.cluster_global_warn")}</div>`
                         : "");
                 }
             };
@@ -4012,14 +4040,14 @@
         document.getElementById("setting-update-check").addEventListener("click", async (e) => {
             const btn = e.currentTarget;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle"></i> Checking…';
+            btn.innerHTML = `<i data-lucide="loader-circle"></i> ${t("settings.updates.checking")}`;
             lucide.createIcons({ root: btn });
             try {
                 const data = await api("POST", "/api/update/check");
                 applyUpdateState(data, false);
                 if (data.update_available) {
                     showToast(
-                        `New version <b>v${data.latest_version}</b> available — <a href="${data.release_url || RELEASES_PAGE}" target="_blank" rel="noopener">view release</a>`,
+                        t("update.view_release_toast", { v: `v${data.latest_version}`, url: data.release_url || RELEASES_PAGE }),
                         { icon: "arrow-up-circle", duration: 12000 }
                     );
                 }
@@ -4027,7 +4055,7 @@
                 applyUpdateState({ ...(lastUpdateState || {}), error: "network" }, false);
             }
             btn.disabled = false;
-            btn.innerHTML = '<i data-lucide="refresh-cw"></i> Check for updates';
+            btn.innerHTML = `<i data-lucide="refresh-cw"></i> ${t("settings.updates.check")}`;
             lucide.createIcons({ root: btn });
         });
 
@@ -4089,11 +4117,11 @@
         document.getElementById("settings-tags-count").textContent = tags.length;
 
         el.innerHTML = `
-            <div class="settings-section-title">Tags</div>
-            <div class="settings-section-desc">Manage tags used to organize your library. Edit names and colors inline.</div>
+            <div class="settings-section-title">${t("settings.tags")}</div>
+            <div class="settings-section-desc">${t("settings.tags.desc")}</div>
             <div class="settings-section-header">
                 <div></div>
-                <button class="settings-action-btn primary" id="btn-add-tag-setting"><i data-lucide="plus"></i> New Tag</button>
+                <button class="settings-action-btn primary" id="btn-add-tag-setting"><i data-lucide="plus"></i> ${t("settings.tags.new")}</button>
             </div>
             <div class="settings-card">
                 <div id="settings-tags-list"></div>
@@ -4108,10 +4136,10 @@
             row.id = "new-tag-row";
             row.innerHTML = `
                 <input type="color" value="${TAG_COLORS[3]}" id="new-tag-color">
-                <input type="text" placeholder="Tag name" id="new-tag-name">
+                <input type="text" placeholder="${t("tag_dialog.name_placeholder")}" id="new-tag-name">
                 <div class="settings-row-actions">
-                    <button class="settings-row-btn" title="Create tag" id="new-tag-ok"><i data-lucide="check"></i></button>
-                    <button class="settings-row-btn delete" title="Cancel" id="new-tag-cancel"><i data-lucide="x"></i></button>
+                    <button class="settings-row-btn" title="${t("settings.tags.create")}" id="new-tag-ok"><i data-lucide="check"></i></button>
+                    <button class="settings-row-btn delete" title="${t("confirm.cancel")}" id="new-tag-cancel"><i data-lucide="x"></i></button>
                 </div>
             `;
             listEl.prepend(row);
@@ -4135,21 +4163,21 @@
         });
 
         if (!tags.length) {
-            listEl.innerHTML = '<div class="settings-list-empty"><i data-lucide="tag"></i><div>No tags yet</div></div>';
+            listEl.innerHTML = `<div class="settings-list-empty"><i data-lucide="tag"></i><div>${t("settings.tags.none")}</div></div>`;
             lucide.createIcons({ root: el });
             return;
         }
 
-        for (const t of tags) {
-            const color = settingsTagColor(t);
+        for (const tag of tags) {
+            const color = settingsTagColor(tag);
             const row = document.createElement("div");
             row.className = "settings-row";
             row.innerHTML = `
                 <span class="tag-dot" style="background:${color}"></span>
-                <input type="color" value="${color}" data-tag-id="${t.id}">
-                <input type="text" value="${t.name}" data-tag-id="${t.id}">
+                <input type="color" value="${color}" data-tag-id="${tag.id}">
+                <input type="text" value="${tag.name}" data-tag-id="${tag.id}">
                 <div class="settings-row-actions">
-                    <button class="settings-row-btn delete" title="Delete tag" data-tag-id="${t.id}"><i data-lucide="trash-2"></i></button>
+                    <button class="settings-row-btn delete" title="${t("settings.tags.delete")}" data-tag-id="${tag.id}"><i data-lucide="trash-2"></i></button>
                 </div>
             `;
             listEl.appendChild(row);
@@ -4183,7 +4211,7 @@
             btn.addEventListener("click", async () => {
                 const tid = parseInt(btn.dataset.tagId);
                 const name = btn.closest(".settings-row").querySelector('input[type="text"]').value;
-                if (!await showConfirm("Delete Tag", `Delete tag "${name}"? Items will keep their other tags.`, "Delete")) return;
+                if (!await showConfirm(t("settings.tags.delete_title"), t("settings.tags.delete_msg", { name }), t("confirm.delete"))) return;
                 await api("DELETE", `/api/tags/${tid}`);
                 loadSettingsTags();
                 loadSidebar();
@@ -4203,11 +4231,11 @@
         document.getElementById("settings-collections-count").textContent = totalCount;
 
         el.innerHTML = `
-            <div class="settings-section-title">Collections</div>
-            <div class="settings-section-desc">Organize items into collections with nested hierarchy, custom icons, and colors.</div>
+            <div class="settings-section-title">${t("settings.collections")}</div>
+            <div class="settings-section-desc">${t("settings.collections.desc")}</div>
             <div class="settings-section-header">
                 <div></div>
-                <button class="settings-action-btn primary" id="btn-add-collection-setting"><i data-lucide="plus"></i> New Collection</button>
+                <button class="settings-action-btn primary" id="btn-add-collection-setting"><i data-lucide="plus"></i> ${t("settings.collections.new")}</button>
             </div>
             <div class="settings-card">
                 <div id="settings-collections-list"></div>
@@ -4219,7 +4247,7 @@
         const listEl = document.getElementById("settings-collections-list");
 
         if (!collections.length) {
-            listEl.innerHTML = '<div class="settings-list-empty"><i data-lucide="layers"></i><div>No collections yet</div></div>';
+            listEl.innerHTML = `<div class="settings-list-empty"><i data-lucide="layers"></i><div>${t("settings.collections.none")}</div></div>`;
             lucide.createIcons({ root: el });
             return;
         }
@@ -4236,15 +4264,15 @@
                     <span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${n.name}</span>
                 </div>
                 <div class="settings-row-actions">
-                    <button class="settings-row-btn" title="Edit collection" data-id="${n.id}"><i data-lucide="pencil"></i></button>
-                    <button class="settings-row-btn delete" title="Delete collection" data-id="${n.id}"><i data-lucide="trash-2"></i></button>
+                    <button class="settings-row-btn settings-row-btn-edit" title="${t("settings.collections.edit_title")}" data-id="${n.id}"><i data-lucide="pencil"></i></button>
+                    <button class="settings-row-btn delete" title="${t("settings.collections.delete_title")}" data-id="${n.id}"><i data-lucide="trash-2"></i></button>
                 </div>
             `;
             listEl.appendChild(row);
 
-            row.querySelector('[title="Edit collection"]').addEventListener("click", () => openCollectionDialog(n));
-            row.querySelector('[title="Delete collection"]').addEventListener("click", async () => {
-                if (!await showConfirm("Delete Collection", `Delete collection "${n.name}"? Items will be removed from this collection, and sub-collections might be affected.`, "Delete")) return;
+            row.querySelector(".settings-row-btn-edit").addEventListener("click", () => openCollectionDialog(n));
+            row.querySelector(".settings-row-btn.delete").addEventListener("click", async () => {
+                if (!await showConfirm(t("settings.collections.delete_title"), t("settings.collections.delete_msg", { name: n.name }), t("confirm.delete"))) return;
                 await api("DELETE", `/api/collections/${n.id}`);
                 loadSettingsCollections();
                 loadSidebar();
@@ -4267,8 +4295,8 @@
         document.getElementById("settings-folders-count").textContent = folders.length;
 
         el.innerHTML = `
-            <div class="settings-section-title">Folders</div>
-            <div class="settings-section-desc">Manage the folders that Photonic scans for media. Removing a folder keeps its items in the library.</div>
+            <div class="settings-section-title">${t("settings.folders")}</div>
+            <div class="settings-section-desc">${t("settings.folders.desc")}</div>
             <div class="settings-card">
                 <div id="settings-folders-list"></div>
             </div>
@@ -4276,7 +4304,7 @@
         const listEl = document.getElementById("settings-folders-list");
 
         if (!folders.length) {
-            listEl.innerHTML = '<div class="settings-list-empty"><i data-lucide="folder-open"></i><div>No folders added yet</div></div>';
+            listEl.innerHTML = `<div class="settings-list-empty"><i data-lucide="folder-open"></i><div>${t("settings.folders.none")}</div></div>`;
             lucide.createIcons({ root: el });
             return;
         }
@@ -4311,14 +4339,14 @@
             const hasChildren = node.children.length > 0;
             row.innerHTML = `
                 ${hasChildren
-                    ? '<button class="folder-toggle" title="Collapse"><i data-lucide="chevron-down"></i></button>'
+                    ? `<button class="folder-toggle" title="${t("settings.folders.collapse")}"><i data-lucide="chevron-down"></i></button>`
                     : '<span class="folder-toggle-spacer"></span>'}
                 <i data-lucide="${hasChildren ? "folder-open" : "folder"}" style="width:16px;height:16px;color:var(--accent);flex-shrink:0"></i>
                 <span class="settings-folder-path" title="${node.path}">${node.path}</span>
-                <span class="settings-folder-count" title="${(node.photo_count || 0).toLocaleString()} items">${(node.photo_count || 0).toLocaleString()}</span>
+                <span class="settings-folder-count" title="${t("common.items", { count: (node.photo_count || 0).toLocaleString() })}">${(node.photo_count || 0).toLocaleString()}</span>
                 <div class="settings-row-actions">
-                    <button class="settings-row-btn scan" title="Scan this folder" data-folder-path="${node.path}"><i data-lucide="refresh-cw"></i></button>
-                    <button class="settings-row-btn delete" title="Remove folder" data-folder-id="${node.id}"><i data-lucide="trash-2"></i></button>
+                    <button class="settings-row-btn scan" title="${t("settings.folders.scan")}" data-folder-path="${node.path}"><i data-lucide="refresh-cw"></i></button>
+                    <button class="settings-row-btn delete" title="${t("settings.folders.remove")}" data-folder-id="${node.id}"><i data-lucide="trash-2"></i></button>
                 </div>
             `;
             listEl.appendChild(row);
@@ -4351,7 +4379,7 @@
                 if (res.error === "scan_already_running") {
                     btn.disabled = false;
                     btn.querySelector("svg")?.classList.remove("spinning");
-                    scanStatus.textContent = "Scan already running";
+                    scanStatus.textContent = t("settings.folders.scan_running");
                     pollScan();
                     return;
                 }
@@ -4364,7 +4392,7 @@
             btn.addEventListener("click", async () => {
                 const fid = parseInt(btn.dataset.folderId);
                 const path = btn.closest(".settings-row").querySelector(".settings-folder-path").textContent;
-                if (!await showConfirm("Remove Folder", `Remove folder "${path}"? Items in this folder will remain in the library.`, "Remove")) return;
+                if (!await showConfirm(t("settings.folders.remove_title"), t("settings.folders.remove_msg", { path }), t("settings.folders.remove"))) return;
                 await api("DELETE", `/api/folders/${fid}`);
                 loadSettingsFolders();
                 loadSidebar();
@@ -4378,12 +4406,19 @@
     const updatePill = document.getElementById("update-pill");
     let lastUpdateState = null;
 
+    function lastCheckLabel(data) {
+        if (!data || !data.checked_at) return "";
+        const d = new Date(data.checked_at);
+        const s = formatDateTime(d);
+        return s ? `<span class="update-last-check">${t("update.last_check", { s })}</span>` : "";
+    }
+
     function describeUpdateState(data) {
-        if (!data) return "Not checked yet.";
-        if (data.update_available) return `New version v${data.latest_version} is available!`;
-        if (data.error) return "Couldn't check for updates.";
-        if (data.checked_at) return "You're up to date.";
-        return "Not checked yet.";
+        if (!data) return t("update.not_checked");
+        if (data.update_available) return t("update.new_available", { v: `v${data.latest_version}` }) + lastCheckLabel(data);
+        if (data.error) return t("update.check_failed") + lastCheckLabel(data);
+        if (data.checked_at) return t("update.up_to_date") + lastCheckLabel(data);
+        return t("update.not_checked") + lastCheckLabel(data);
     }
 
     function applyUpdateState(data, notify) {
@@ -4391,12 +4426,12 @@
         if (data && data.update_available && data.latest_version) {
             updatePill.classList.remove("hidden");
             updatePill.href = data.release_url || RELEASES_PAGE;
-            updatePill.title = `New version v${data.latest_version} available — view release`;
+            updatePill.title = t("update.new_available_title", { v: `v${data.latest_version}` });
             updatePill.querySelector("#update-pill-text").textContent = "v" + data.latest_version;
             lucide.createIcons();
             if (notify) {
                 showToast(
-                    `New version <b>v${data.latest_version}</b> available — <a href="${data.release_url || RELEASES_PAGE}" target="_blank" rel="noopener">view release</a>`,
+                    t("update.view_release_toast", { v: `v${data.latest_version}`, url: data.release_url || RELEASES_PAGE }),
                     { icon: "arrow-up-circle", duration: 12000 }
                 );
             }
@@ -4408,7 +4443,7 @@
 
     function refreshUpdateSettingsCard() {
         const label = document.getElementById("setting-update-status");
-        if (label) label.textContent = describeUpdateState(lastUpdateState);
+        if (label) label.innerHTML = describeUpdateState(lastUpdateState);
     }
 
     async function initUpdateChecker() {
@@ -4670,6 +4705,75 @@
         window.addEventListener("pywebviewready", initDesktopWindow);
     }
 
+    // ── Internationalization (i18n) ───────────────────────────────────────
+
+    function refreshLangHeader() {
+        const cur = I18n.getCurrent();
+        const flagEl = document.getElementById("lang-flag-current");
+        if (flagEl) {
+            const l = I18n.availableLanguages.find(x => x.code === cur);
+            const src = l ? l.flag : "/i18n/flags/us.svg";
+            flagEl.innerHTML = `<img src="${src}" alt="">`;
+        }
+        const menu = document.getElementById("lang-menu");
+        if (menu) {
+            menu.innerHTML = I18n.availableLanguages.map(l => {
+                const cls = l.code === cur ? " lang-menu-item active" : " lang-menu-item";
+                return `<button class="${cls.trim()}" data-lang="${l.code}"><span class="lang-menu-flag"><img src="${l.flag}" alt=""></span>${l.name}</button>`;
+            }).join("");
+        }
+        const langSelect = document.getElementById("setting-language");
+        if (langSelect) langSelect.value = cur;
+    }
+
+    function refreshAfterLangChange() {
+        I18n.applyI18n();
+        const settingsPageEl = document.getElementById("settings-page");
+        const settingsOpen = settingsPageEl && !settingsPageEl.classList.contains("hidden");
+        if (settingsOpen) {
+            const active = document.querySelector(".settings-nav-item.active");
+            const target = active ? active.dataset.section : "settings-application";
+            if (target === "settings-application") renderApplicationSettings();
+            else if (target === "settings-tags-p") loadSettingsTags();
+            else if (target === "settings-collections-p") loadSettingsCollections();
+            else if (target === "settings-folders-p") loadSettingsFolders();
+            loadSidebar();
+        } else {
+            if (activeView === "locations") loadMapPhotos();
+            else if (activeView === "countries" && !activeCountryCode) loadCountries();
+            else if (activeView === "cameras" && !activeCameraBrowseId) loadCamerasBrowse();
+            else if (activeView === "folders" && !activeFolderId) loadFolderBrowse();
+            else if (activeView === "tags" && !activeTagBrowseId) loadTagsBrowse();
+            else if (activeView === "collections") loadCollectionsBrowse();
+            else loadPhotos();
+            loadSidebar();
+            loadFilters();
+        }
+        refreshLangHeader();
+        lucide.createIcons();
+    }
+
+    function initLangDropdown() {
+        const btn = document.getElementById("btn-lang");
+        const menu = document.getElementById("lang-menu");
+        refreshLangHeader();
+        if (!btn || !menu) return;
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            menu.classList.toggle("hidden");
+        });
+        document.addEventListener("click", () => menu.classList.add("hidden"));
+        menu.addEventListener("click", (e) => {
+            const item = e.target.closest(".lang-menu-item");
+            if (!item) return;
+            const code = item.dataset.lang;
+            menu.classList.add("hidden");
+            if (code !== I18n.getCurrent()) {
+                I18n.setLanguage(code).then(() => refreshAfterLangChange());
+            }
+        });
+    }
+
     // ── Init ──────────────────────────────────────────────────────────────
 
     for (const name of THEME_VARS) {
@@ -4678,10 +4782,16 @@
     }
 
     lucide.createIcons();
-    checkStatus();
-    loadSidebar();
-    loadPhotos();
-    loadFilters();
-    pollScan();
-    initUpdateChecker();
+    I18n.ready().then(() => {
+        I18n.applyI18n();
+        refreshLangHeader();
+        initLangDropdown();
+        lucide.createIcons();
+        checkStatus();
+        loadSidebar();
+        loadPhotos();
+        loadFilters();
+        pollScan();
+        initUpdateChecker();
+    });
 })();

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photonic</title>
+    <title data-i18n="app.title">Photonic</title>
     <link rel="icon" type="image/png" href="/icon.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
@@ -18,21 +18,25 @@
         <div class="logo-icon"><i data-lucide="aperture"></i></div>
         <span class="logo">PHOTONIC</span>
         <span class="version-badge-outer" id="version-badge" title="View changelog"><span class="version-badge-inner">v0.2.9</span></span>
-        <a href="https://github.com/DarkAdrick/Photonic/releases" target="_blank" rel="noopener" id="update-pill" class="update-pill hidden" title="New version available — view release"><span class="update-pill-dot"></span><i data-lucide="arrow-up-circle"></i><span id="update-pill-text">Update</span></a>
+        <a href="https://github.com/DarkAdrick/Photonic/releases" target="_blank" rel="noopener" id="update-pill" class="update-pill hidden" title="New version available — view release"><span class="update-pill-dot"></span><i data-lucide="arrow-up-circle"></i><span id="update-pill-text" data-i18n="header.update">Update</span></a>
     </div>
     <div id="titlebar-drag" class="pywebview-drag-region"></div>
     <div class="header-right">
         <div class="search-box">
             <i data-lucide="search"></i>
-            <input type="text" id="search" placeholder="Search photos...">
+            <input type="text" id="search" placeholder="Search photos..." data-i18n-placeholder="header.search">
         </div>
-        <button id="btn-toggle-filters" class="header-btn"><i data-lucide="sliders-horizontal"></i> Filters</button>
-        <a href="https://github.com/sponsors/DarkAdrick" target="_blank" rel="noopener" class="donate-header-btn" title="Donate"><i data-lucide="heart"></i></a>
-        <button id="btn-settings" class="header-btn"><i data-lucide="settings"></i></button>
+        <button id="btn-toggle-filters" class="header-btn"><i data-lucide="sliders-horizontal"></i><span data-i18n="header.filters">Filters</span></button>
+        <a href="https://github.com/sponsors/DarkAdrick" target="_blank" rel="noopener" class="donate-header-btn" title="Donate" data-i18n-title="header.donate"><i data-lucide="heart"></i></a>
+        <div class="lang-dropdown" id="lang-dropdown">
+            <button id="btn-lang" class="header-btn lang-btn" title="Language"><span class="lang-flag" id="lang-flag-current"><img src="/i18n/flags/us.svg" alt=""></span></button>
+            <div class="lang-menu hidden" id="lang-menu"></div>
+        </div>
+        <button id="btn-settings" class="header-btn" title="Settings" data-i18n-title="header.settings"><i data-lucide="settings"></i></button>
         <div id="window-controls" class="hidden">
-            <button id="wc-minimize" class="wc-btn" title="Minimize"><i data-lucide="minus"></i></button>
-            <button id="wc-maximize" class="wc-btn" title="Maximize"><i data-lucide="square"></i></button>
-            <button id="wc-close" class="wc-btn wc-close" title="Close"><i data-lucide="x"></i></button>
+            <button id="wc-minimize" class="wc-btn" title="Minimize" data-i18n-title="header.minimize"><i data-lucide="minus"></i></button>
+            <button id="wc-maximize" class="wc-btn" title="Maximize" data-i18n-title="header.maximize"><i data-lucide="square"></i></button>
+            <button id="wc-close" class="wc-btn wc-close" title="Close" data-i18n-title="header.close"><i data-lucide="x"></i></button>
         </div>
     </div>
 </header>
@@ -40,29 +44,29 @@
 <div id="filter-drawer" class="drawer-closed">
     <div class="filter-row">
         <div class="filter-chip">
-            <label for="filter-camera">Camera</label>
-            <select id="filter-camera"><option value="">All</option></select>
+            <label for="filter-camera" data-i18n="filter.camera">Camera</label>
+            <select id="filter-camera"><option value="" data-i18n="filter.all">All</option></select>
         </div>
         <div class="filter-chip">
-            <label for="filter-lens">Lens</label>
-            <select id="filter-lens"><option value="">All</option></select>
+            <label for="filter-lens" data-i18n="filter.lens">Lens</label>
+            <select id="filter-lens"><option value="" data-i18n="filter.all">All</option></select>
         </div>
         <div class="filter-chip">
-            <label for="filter-ext">Format</label>
-            <select id="filter-ext"><option value="">All</option></select>
+            <label for="filter-ext" data-i18n="filter.format">Format</label>
+            <select id="filter-ext"><option value="" data-i18n="filter.all">All</option></select>
         </div>
         <div class="filter-chip">
-            <label for="filter-360">360°</label>
+            <label for="filter-360" data-i18n="filter.360">360°</label>
             <select id="filter-360">
-                <option value="">All</option>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
+                <option value="" data-i18n="filter.all">All</option>
+                <option value="yes" data-i18n="filter.yes">Yes</option>
+                <option value="no" data-i18n="filter.no">No</option>
             </select>
         </div>
         <div class="filter-chip">
-            <label for="filter-rating">Rating</label>
+            <label for="filter-rating" data-i18n="filter.rating">Rating</label>
             <select id="filter-rating">
-                <option value="">Any</option>
+                <option value="" data-i18n="filter.any">Any</option>
                 <option value="1">1+</option>
                 <option value="2">2+</option>
                 <option value="3">3+</option>
@@ -71,65 +75,65 @@
             </select>
         </div>
         <div class="filter-chip">
-            <label for="filter-country">Country</label>
-            <select id="filter-country"><option value="">All</option></select>
+            <label for="filter-country" data-i18n="filter.country">Country</label>
+            <select id="filter-country"><option value="" data-i18n="filter.all">All</option></select>
         </div>
         <div class="filter-chip">
-            <label for="filter-city">City</label>
-            <select id="filter-city"><option value="">All</option></select>
+            <label for="filter-city" data-i18n="filter.city">City</label>
+            <select id="filter-city"><option value="" data-i18n="filter.all">All</option></select>
         </div>
         <div class="filter-chip filter-chip-date">
-            <label for="filter-date-from">From</label>
+            <label for="filter-date-from" data-i18n="filter.from">From</label>
             <input type="date" id="filter-date-from">
         </div>
         <div class="filter-chip filter-chip-date">
-            <label for="filter-date-to">To</label>
+            <label for="filter-date-to" data-i18n="filter.to">To</label>
             <input type="date" id="filter-date-to">
         </div>
         <div class="filter-chip">
-            <label for="filter-geo">Geolocalized</label>
+            <label for="filter-geo" data-i18n="filter.geo">Geolocalized</label>
             <select id="filter-geo">
-                <option value="">All</option>
-                <option value="1">Yes</option>
-                <option value="0">No</option>
+                <option value="" data-i18n="filter.all">All</option>
+                <option value="1" data-i18n="filter.yes">Yes</option>
+                <option value="0" data-i18n="filter.no">No</option>
             </select>
         </div>
-        <button id="btn-clear-filters" class="filter-clear-btn"><i data-lucide="x"></i> Clear</button>
+        <button id="btn-clear-filters" class="filter-clear-btn"><i data-lucide="x"></i> <span data-i18n="filter.clear">Clear</span></button>
     </div>
 </div>
 
 <aside id="sidebar">
     <nav>
-        <div class="sb-quick-title">Views</div>
+        <div class="sb-quick-title" data-i18n="sidebar.views">Views</div>
         <ul>
-            <li class="active" data-view="library"><i data-lucide="image"></i>Library</li>
-            <li data-view="folders"><i data-lucide="folder"></i>Folders</li>
-            <li data-view="collections"><i data-lucide="library"></i>Collections</li>
-            <li data-view="countries"><i data-lucide="globe"></i>Countries</li>
-            <li data-view="tags"><i data-lucide="tag"></i>Tags</li>
-            <li data-view="cameras"><i data-lucide="camera"></i>Cameras</li>
-            <li data-view="locations"><i data-lucide="map-pin"></i>Locations</li>
-            <li data-view="cleaning"><i data-lucide="sparkles"></i>Cleaning</li>
-            <li data-view="stats"><i data-lucide="bar-chart-2"></i>Stats</li>
+            <li class="active" data-view="library"><i data-lucide="image"></i><span data-i18n="sidebar.library">Library</span></li>
+            <li data-view="folders"><i data-lucide="folder"></i><span data-i18n="sidebar.folders">Folders</span></li>
+            <li data-view="collections"><i data-lucide="library"></i><span data-i18n="sidebar.collections">Collections</span></li>
+            <li data-view="countries"><i data-lucide="globe"></i><span data-i18n="sidebar.countries">Countries</span></li>
+            <li data-view="tags"><i data-lucide="tag"></i><span data-i18n="sidebar.tags">Tags</span></li>
+            <li data-view="cameras"><i data-lucide="camera"></i><span data-i18n="sidebar.cameras">Cameras</span></li>
+            <li data-view="locations"><i data-lucide="map-pin"></i><span data-i18n="sidebar.locations">Locations</span></li>
+            <li data-view="cleaning"><i data-lucide="sparkles"></i><span data-i18n="sidebar.cleaning">Cleaning</span></li>
+            <li data-view="stats"><i data-lucide="bar-chart-2"></i><span data-i18n="sidebar.stats">Stats</span></li>
         </ul>
     </nav>
     <div id="sidebar-filters"></div>
     <div id="sidebar-tags"></div>
     <div id="sidebar-actions">
-        <button id="btn-add-folder-sidebar" class="sidebar-btn"><i data-lucide="folder-plus"></i> Add Folder</button>
-        <button id="btn-rescan" class="sidebar-btn" disabled><i data-lucide="refresh-cw"></i> Rescan All</button>
+        <button id="btn-add-folder-sidebar" class="sidebar-btn"><i data-lucide="folder-plus"></i> <span data-i18n="sidebar.add_folder">Add Folder</span></button>
+        <button id="btn-rescan" class="sidebar-btn" disabled><i data-lucide="refresh-cw"></i> <span data-i18n="sidebar.rescan_all">Rescan All</span></button>
     </div>
 </aside>
 
 <main id="main">
     <div id="cleaning-toolbar" class="hidden">
         <div id="cleaning-tabs">
-            <button class="cleaning-tab active" data-tab="duplicates">Duplicates</button>
-            <button class="cleaning-tab" data-tab="blurry">Blurry</button>
-            <button class="cleaning-tab" data-tab="similar">Similar</button>
-            <button class="cleaning-tab" data-tab="bad">Bad</button>
+            <button class="cleaning-tab active" data-tab="duplicates" data-i18n="cleaning.tab.duplicates">Duplicates</button>
+            <button class="cleaning-tab" data-tab="blurry" data-i18n="cleaning.tab.blurry">Blurry</button>
+            <button class="cleaning-tab" data-tab="similar" data-i18n="cleaning.tab.similar">Similar</button>
+            <button class="cleaning-tab" data-tab="bad" data-i18n="cleaning.tab.bad">Bad</button>
         </div>
-        <button id="btn-analyze" class="cleaning-btn">Analyze</button>
+        <button id="btn-analyze" class="cleaning-btn" data-i18n="cleaning.analyze">Analyze</button>
         <div id="cleaning-status" class="hidden"></div>
     </div>
     <div id="empty-state">
@@ -139,7 +143,7 @@
         </div>
         <h2>Welcome to <span class="hero-gradient-text">Photonic</span></h2>
         <p>Your photos, beautifully organized. Add a folder to get started.</p>
-        <button id="btn-add-folder"><i data-lucide="folder-plus"></i>Add Folder</button>
+        <button id="btn-add-folder"><i data-lucide="folder-plus"></i><span data-i18n="empty.add_folder">Add Folder</span></button>
     </div>
     <div id="photo-grid" class="hidden">
         <div id="header-photo-grid">
@@ -147,7 +151,7 @@
             <span id="photo-count-header"></span>
             <span id="selection-count" class="hidden">0 selected</span>
             <button id="btn-deselect-all" class="cleaning-btn hidden">Deselect All</button>
-            <button id="btn-selected-only" class="cleaning-btn hidden" title="Show only selected items">Only Selected</button>
+            <button id="btn-selected-only" class="cleaning-btn hidden" title="Show only selected items"><span data-i18n="grid.only_selected">Only Selected</span></button>
         </div>
     </div>
     <div id="stats-view" class="hidden"></div>
@@ -157,7 +161,7 @@
         <span id="map-photo-count"></span>
         <span id="map-selection-count" class="hidden">0 selected</span>
         <button id="map-btn-deselect-all" class="cleaning-btn hidden">Deselect All</button>
-        <button id="map-btn-selected-only" class="cleaning-btn hidden" title="Show only selected items">Only Selected</button>
+        <button id="map-btn-selected-only" class="cleaning-btn hidden" title="Show only selected items"><span data-i18n="grid.only_selected">Only Selected</span></button>
     </div>
     <div id="map-photos" class="hidden"></div>
 </main>
@@ -166,23 +170,23 @@
     <div class="settings-layout">
         <nav class="settings-nav">
             <div class="settings-nav-header">
-                <button id="settings-back" class="settings-back-btn"><i data-lucide="arrow-left"></i> Back</button>
-                <h2>Settings</h2>
+                <button id="settings-back" class="settings-back-btn"><i data-lucide="arrow-left"></i> <span data-i18n="settings.back">Back</span></button>
+                <h2 data-i18n="settings.title">Settings</h2>
             </div>
             <div class="settings-nav-items">
                 <button class="settings-nav-item active" data-section="settings-application">
-                    <i data-lucide="sliders-horizontal"></i> Application
+                    <i data-lucide="sliders-horizontal"></i> <span data-i18n="settings.application">Application</span>
                 </button>
                 <button class="settings-nav-item" data-section="settings-folders-p">
-                    <i data-lucide="folder"></i> Folders
+                    <i data-lucide="folder"></i> <span data-i18n="settings.folders">Folders</span>
                     <span class="settings-nav-badge" id="settings-folders-count">0</span>
                 </button>
                 <button class="settings-nav-item" data-section="settings-collections-p">
-                    <i data-lucide="layers"></i> Collections
+                    <i data-lucide="layers"></i> <span data-i18n="settings.collections">Collections</span>
                     <span class="settings-nav-badge" id="settings-collections-count">0</span>
                 </button>
                 <button class="settings-nav-item" data-section="settings-tags-p">
-                    <i data-lucide="tag"></i> Tags
+                    <i data-lucide="tag"></i> <span data-i18n="settings.tags">Tags</span>
                     <span class="settings-nav-badge" id="settings-tags-count">0</span>
                 </button>
             </div>
@@ -199,13 +203,13 @@
 <div id="folder-dialog" class="dialog-overlay hidden">
     <div class="dialog">
         <div class="dialog-header">
-            <h3>Add Photo Folder</h3>
+            <h3 data-i18n="dialog.add_folder">Add Photo Folder</h3>
             <button id="folder-dialog-close" class="detail-close-btn"><i data-lucide="x"></i></button>
         </div>
-        <input type="text" id="folder-path" placeholder="C:\Users\You\Pictures">
+        <input type="text" id="folder-path" placeholder="C:\Users\You\Pictures" data-i18n-placeholder="dialog.folder_path_placeholder">
         <div class="dialog-actions">
-            <button id="btn-dialog-cancel">Cancel</button>
-            <button id="btn-dialog-ok">Add</button>
+            <button id="btn-dialog-cancel" data-i18n="dialog.cancel">Cancel</button>
+            <button id="btn-dialog-ok" data-i18n="dialog.add">Add</button>
         </div>
     </div>
 </div>
@@ -217,16 +221,16 @@
             <button id="tag-dialog-close" class="detail-close-btn"><i data-lucide="x"></i></button>
         </div>
         <div class="dialog-tabs" id="tag-dialog-tabs">
-            <button class="dialog-tab active" data-tab="existing">Existing Tags</button>
-            <button class="dialog-tab" data-tab="new">New Tag</button>
+            <button class="dialog-tab active" data-tab="existing" data-i18n="tag_dialog.existing">Existing Tags</button>
+            <button class="dialog-tab" data-tab="new" data-i18n="tag_dialog.new">New Tag</button>
         </div>
         <div id="tag-create-section" hidden>
-            <input type="text" id="tag-input" placeholder="Tag name...">
+            <input type="text" id="tag-input" placeholder="Tag name..." data-i18n-placeholder="tag_dialog.name_placeholder">
             <div class="tag-color-section">
-                <label for="tag-color-picker">Color</label>
+                <label for="tag-color-picker" data-i18n="tag_dialog.color">Color</label>
                 <div id="tag-color-palette" class="tag-color-palette"></div>
                 <div class="tag-color-custom">
-                    <span class="tag-color-custom-label">Custom</span>
+                    <span class="tag-color-custom-label" data-i18n="tag_dialog.custom">Custom</span>
                     <input type="color" id="tag-color-picker" value="#5b9fd6">
                     <input type="text" id="tag-color-hex" value="#5B9FD6" maxlength="7" spellcheck="false">
                 </div>
@@ -234,27 +238,27 @@
         </div>
         <div id="tag-existing-list" class="tag-existing-list"></div>
         <div class="dialog-actions">
-            <button id="tag-dialog-cancel">Cancel</button>
-            <button id="tag-dialog-ok">Add</button>
+            <button id="tag-dialog-cancel" data-i18n="dialog.cancel">Cancel</button>
+            <button id="tag-dialog-ok" data-i18n="tag_dialog.ok">Add</button>
         </div>
     </div>
 </div>
 
 <footer id="status-bar">
-    <span id="status-text"><i data-lucide="wifi"></i> Connecting...</span>
+    <span id="status-text"><i data-lucide="wifi"></i><span data-i18n="status.connecting"> Connecting...</span></span>
     <div id="scan-progress" class="hidden">
         <div id="scan-bar"><div id="scan-fill"></div></div>
         <span id="scan-status"></span>
-        <button id="btn-scan-cancel" class="scan-cancel-btn hidden" title="Cancel scan"><i data-lucide="x"></i></button>
+        <button id="btn-scan-cancel" class="scan-cancel-btn hidden" title="Cancel scan" data-i18n-title="status.cancel_scan"><i data-lucide="x"></i></button>
     </div>
     <div id="layout-toggle">
-        <button id="btn-layout-grid" class="layout-btn active" title="Grid view"><i data-lucide="grid-3x3"></i></button>
-        <button id="btn-layout-masonry" class="layout-btn" title="Masonry view"><i data-lucide="layout-dashboard"></i></button>
+        <button id="btn-layout-grid" class="layout-btn active" title="Grid view" data-i18n-title="layout.grid"><i data-lucide="grid-3x3"></i></button>
+        <button id="btn-layout-masonry" class="layout-btn" title="Masonry view" data-i18n-title="layout.masonry"><i data-lucide="layout-dashboard"></i></button>
     </div>
     <div id="thumb-size-control">
-        <button id="btn-zoom-out" class="thumb-zoom-btn" title="Smaller thumbnails"><i data-lucide="minus"></i></button>
+        <button id="btn-zoom-out" class="thumb-zoom-btn" title="Smaller thumbnails" data-i18n-title="thumb.smaller"><i data-lucide="minus"></i></button>
         <input type="range" id="thumb-size" min="30" max="450" value="150">
-        <button id="btn-zoom-in" class="thumb-zoom-btn" title="Larger thumbnails"><i data-lucide="plus"></i></button>
+        <button id="btn-zoom-in" class="thumb-zoom-btn" title="Larger thumbnails" data-i18n-title="thumb.larger"><i data-lucide="plus"></i></button>
     </div>
 </footer>
 
@@ -263,30 +267,30 @@
         <div id="detail-image">
             <div id="detail-header">
                 <div class="detail-header-left">
-                    <button id="detail-fullscreen-btn" class="detail-action-btn" title="Fullscreen"><i data-lucide="maximize"></i></button>
+                    <button id="detail-fullscreen-btn" class="detail-action-btn" title="Fullscreen" data-i18n-title="detail.fullscreen"><i data-lucide="maximize"></i></button>
                     <span id="detail-filename"></span>
                 </div>
                 <div class="detail-header-actions">
-                    <button id="detail-360" class="detail-action-btn hidden" title="View in 360°"><i data-lucide="compass"></i></button>
+                    <button id="detail-360" class="detail-action-btn hidden" title="View in 360°" data-i18n-title="detail.view360"><i data-lucide="compass"></i></button>
                     <div class="detail-menu-wrap">
-                        <button id="detail-more" class="detail-action-btn" title="More actions"><i data-lucide="more-vertical"></i></button>
+                        <button id="detail-more" class="detail-action-btn" title="More actions" data-i18n-title="detail.more"><i data-lucide="more-vertical"></i></button>
                         <div id="detail-more-menu" class="hidden">
-                            <div class="detail-menu-item" data-action="open"><i data-lucide="external-link"></i>Open in default app</div>
-                            <div class="detail-menu-item striped" data-action="reveal"><i data-lucide="folder-open"></i>Reveal in Explorer</div>
-                            <div class="detail-menu-item" data-action="copy-path"><i data-lucide="copy"></i>Copy file path</div>
+                            <div class="detail-menu-item" data-action="open"><i data-lucide="external-link"></i><span data-i18n="detail.open">Open in default app</span></div>
+                            <div class="detail-menu-item striped" data-action="reveal"><i data-lucide="folder-open"></i><span data-i18n="detail.reveal">Reveal in Explorer</span></div>
+                            <div class="detail-menu-item" data-action="copy-path"><i data-lucide="copy"></i><span data-i18n="detail.copy_path">Copy file path</span></div>
                             <div class="detail-menu-separator"></div>
-                            <div class="detail-menu-item striped danger" data-action="delete"><i data-lucide="trash-2"></i>Delete</div>
+                            <div class="detail-menu-item striped danger" data-action="delete"><i data-lucide="trash-2"></i><span data-i18n="detail.delete">Delete</span></div>
                         </div>
                     </div>
-                    <button id="detail-close" class="detail-close-btn" title="Close"><i data-lucide="x"></i></button>
+                    <button id="detail-close" class="detail-close-btn" title="Close" data-i18n-title="detail.close"><i data-lucide="x"></i></button>
                 </div>
             </div>
             <div id="detail-stage">
-                <button id="detail-prev" class="detail-nav-btn" title="Previous"><i data-lucide="chevron-left"></i></button>
+                <button id="detail-prev" class="detail-nav-btn" title="Previous" data-i18n-title="detail.previous"><i data-lucide="chevron-left"></i></button>
                 <img id="detail-img" src="" alt="">
                 <div id="detail-360-viewer" class="hidden"></div>
                 <video id="detail-video" class="hidden" controls autoplay loop></video>
-                <button id="detail-next" class="detail-nav-btn" title="Next"><i data-lucide="chevron-right"></i></button>
+                <button id="detail-next" class="detail-nav-btn" title="Next" data-i18n-title="detail.next"><i data-lucide="chevron-right"></i></button>
             </div>
             <div id="detail-footer">
                 <span id="detail-counter"></span>
@@ -297,8 +301,8 @@
                     <span id="detail-zoom-label">100%</span>
                 </div>
                 <div class="detail-footer-right">
-                    <button id="detail-rotate-ccw" class="detail-action-btn" title="Rotate -90°"><i data-lucide="rotate-ccw"></i></button>
-                    <button id="detail-rotate-cw" class="detail-action-btn" title="Rotate +90°"><i data-lucide="rotate-cw"></i></button>
+                    <button id="detail-rotate-ccw" class="detail-action-btn" title="Rotate -90°" data-i18n-title="detail.rotate_ccw"><i data-lucide="rotate-ccw"></i></button>
+                    <button id="detail-rotate-cw" class="detail-action-btn" title="Rotate +90°" data-i18n-title="detail.rotate_cw"><i data-lucide="rotate-cw"></i></button>
                 </div>
             </div>
         </div>
@@ -307,20 +311,20 @@
                 <div id="detail-meta"></div>
             </div>
             <div id="detail-rating-section">
-                <h4>Rating</h4>
+                <h4 data-i18n="detail.rating">Rating</h4>
                 <div id="detail-rating"></div>
             </div>
             <div id="detail-map-section" class="hidden">
-                <h4>Location</h4>
+                <h4 data-i18n="detail.location">Location</h4>
                 <div id="detail-map"></div>
                 <div id="detail-coords"></div>
             </div>
             <div id="detail-tags-section">
-                <h4>Tags</h4>
+                <h4 data-i18n="detail.tags">Tags</h4>
                 <div id="detail-tags"></div>
             </div>
             <div id="detail-collections-section">
-                <h4>Collections</h4>
+                <h4 data-i18n="detail.collections">Collections</h4>
                 <div id="detail-collections"></div>
             </div>
         </div>
@@ -330,19 +334,19 @@
 <div id="context-menu" class="hidden">
     <div class="context-header" id="context-header"></div>
     <div class="context-separator"></div>
-    <div class="context-item" data-action="open">Open</div>
-    <div class="context-item" data-action="select">Select</div>
-    <div class="context-item" data-action="deselect">Deselect</div>
+    <div class="context-item" data-action="open" data-i18n="context.open">Open</div>
+    <div class="context-item" data-action="select" data-i18n="context.select">Select</div>
+    <div class="context-item" data-action="deselect" data-i18n="context.deselect">Deselect</div>
     <div class="context-separator"></div>
-    <div class="context-item" data-action="select-all">Select All</div>
-    <div class="context-item" data-action="deselect-all">Deselect All</div>
+    <div class="context-item" data-action="select-all" data-i18n="context.select_all">Select All</div>
+    <div class="context-item" data-action="deselect-all" data-i18n="context.deselect_all">Deselect All</div>
     <div class="context-separator"></div>
-    <div class="context-item" data-action="add-tag">Add Tag...</div>
-    <div class="context-item" data-action="remove-tags">Remove Tags</div>
-    <div class="context-item" data-action="add-collection">Add to Collection...</div>
-    <div class="context-item" data-action="remove-collections">Remove Collections</div>
+    <div class="context-item" data-action="add-tag" data-i18n="context.add_tag">Add Tag...</div>
+    <div class="context-item" data-action="remove-tags" data-i18n="context.remove_tags">Remove Tags</div>
+    <div class="context-item" data-action="add-collection" data-i18n="context.add_collection">Add to Collection...</div>
+    <div class="context-item" data-action="remove-collections" data-i18n="context.remove_collections">Remove Collections</div>
     <div class="context-separator"></div>
-    <div class="context-item context-danger" data-action="delete">Delete Selected</div>
+    <div class="context-item context-danger" data-action="delete" data-i18n="context.delete_selected">Delete Selected</div>
 </div>
 
 <div id="collection-dialog" class="dialog-overlay hidden">
@@ -352,13 +356,13 @@
             <button id="collection-dialog-close" class="detail-close-btn"><i data-lucide="x"></i></button>
         </div>
         <div class="dialog-tabs" id="collection-dialog-tabs">
-            <button class="dialog-tab active" data-tab="existing">Existing Collections</button>
-            <button class="dialog-tab" data-tab="new">New Collection</button>
+            <button class="dialog-tab active" data-tab="existing" data-i18n="collection_dialog.existing">Existing Collections</button>
+            <button class="dialog-tab" data-tab="new" data-i18n="collection_dialog.new">New Collection</button>
         </div>
         <div id="collection-create-section">
-            <input type="text" id="collection-input" placeholder="Collection name..." autocomplete="off">
+            <input type="text" id="collection-input" placeholder="Collection name..." autocomplete="off" data-i18n-placeholder="collection_dialog.name_placeholder">
             <div class="dialog-field">
-                <span class="field-label">Icon</span>
+                <span class="field-label" data-i18n="collection_dialog.icon">Icon</span>
                 <div id="collection-icon-picker" class="icon-picker-grid"></div>
                 <div id="collection-icon-selected" class="icon-picker-selected">
                     <i data-lucide="library"></i>
@@ -367,16 +371,16 @@
                 <input type="hidden" id="collection-icon-input" value="">
             </div>
             <div class="dialog-field">
-                <label for="collection-parent-select">Parent Collection</label>
+                <label for="collection-parent-select" data-i18n="collection_dialog.parent">Parent Collection</label>
                 <select id="collection-parent-select">
-                    <option value="">(None)</option>
+                    <option value="" data-i18n="collection_dialog.parent_none">(None)</option>
                 </select>
             </div>
             <div class="tag-color-section">
-                <label for="collection-color-picker">Color</label>
+                <label for="collection-color-picker" data-i18n="collection_dialog.color">Color</label>
                 <div class="color-palette tag-color-palette" id="collection-color-palette"></div>
                 <div class="tag-color-custom">
-                    <span class="tag-color-custom-label">Custom</span>
+                    <span class="tag-color-custom-label" data-i18n="collection_dialog.custom">Custom</span>
                     <input type="color" id="collection-color-picker" value="#5b9fd6">
                     <input type="text" id="collection-color-hex" value="#5B9FD6" maxlength="7" spellcheck="false">
                 </div>
@@ -386,8 +390,8 @@
             <div id="collection-existing-list" class="tag-existing-list"></div>
         </div>
         <div class="dialog-actions">
-            <button id="collection-dialog-cancel">Cancel</button>
-            <button id="collection-dialog-ok">Add</button>
+            <button id="collection-dialog-cancel" data-i18n="dialog.cancel">Cancel</button>
+            <button id="collection-dialog-ok" data-i18n="collection_dialog.add_btn">Add</button>
         </div>
     </div>
 </div>
@@ -410,7 +414,7 @@
     <div class="dialog changelog-box">
         <div class="changelog-main">
             <div class="changelog-header">
-                <h3>Changelog</h3>
+                <h3 data-i18n="changelog.title">Changelog</h3>
                 <button id="changelog-close" class="detail-close-btn"><i data-lucide="x"></i></button>
             </div>
             <div class="cl-hero">
@@ -429,13 +433,13 @@
         </div>
         <div class="cl-credits-drawer" id="cl-credits">
             <div class="cl-credits-section" id="cl-credits-section-sponsors">
-                <div class="cl-credits-title"><i data-lucide="heart-handshake"></i><span>Credit</span></div>
+                <div class="cl-credits-title"><i data-lucide="heart-handshake"></i><span data-i18n="changelog.credit">Credit</span></div>
                 <div class="cl-credits-viewport">
                     <div class="cl-credits-track" id="cl-credits-sponsors"></div>
                 </div>
             </div>
             <div class="cl-credits-section" id="cl-credits-section-thanks">
-                <div class="cl-credits-title cl-credits-title-secondary"><i data-lucide="hand-heart"></i><span>Contributors</span></div>
+                <div class="cl-credits-title cl-credits-title-secondary"><i data-lucide="hand-heart"></i><span data-i18n="changelog.contributors">Contributors</span></div>
                 <div class="cl-credits-viewport">
                     <div class="cl-credits-track" id="cl-credits-thanks-track"></div>
                 </div>
@@ -460,6 +464,7 @@
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-<script src="/js/app.js?v=0.2.9"></script>
+<script src="/js/i18n.js?v=1.0.0"></script>
+<script src="/js/app.js?v=1.0.0"></script>
 </body>
 </html>

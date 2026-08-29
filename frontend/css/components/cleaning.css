@@ -28,7 +28,7 @@
 
 .cleaning-tab:hover { color: var(--text-primary); border-color: var(--accent); }
 .cleaning-tab.active {
-    color: #fff;
+    color: var(--text-primary);
     background: var(--photonic-gradient);
     border-color: transparent;
 }
