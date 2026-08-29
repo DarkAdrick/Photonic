@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.2.9 — 29 August 2026
+
+### Locations (map)
+- [ADD] A selection header now sits under the map resize handle, above the photo strip: it shows the current item count, the number of selected items and a Deselect All button (mirrors the main grid header)
+- [ADD] "Only Selected" button in the selection headers (main grid and map strip): toggles a dynamic filter to show only the currently selected items; auto-disables when the selection is emptied, or with Escape
+- [EDIT] Photo strip header count stays in sync with the current map view
+
+### Settings
+- [EDIT] The Display card is now split into `h4` subsections: **General** (thumbnail size, default view), **Locations** (cluster group size, disable clustering below) and **Appearance** (the former separate Appearance card was merged into Display)
+- [ADD] Manual value input (editable number field) next to every slider — thumbnail size, cluster group size and disable clustering below — so an exact value (e.g. 500) can be typed instead of fighting a sensitive slider; slider and input stay in sync both ways
+- [ADD] Orange visual warning when cluster settings exceed a safe value: **Cluster group size** > 100 and **Disable clustering below** > 1000 — shown in the setting description and on the numeric value
+
+### Changelog & Credits
+- [ADD] Scrolling credits panel in the changelog dialog: animated lists of **sponsors** (GitHub public sponsors + `credits.json`) and **contributors** (`thanks`), hidden when empty
+- [ADD] New backend endpoint `/api/sponsors` that merges the bundled/overridable `credits.json` with public GitHub sponsors (anonymous donors never appear)
+- [ADD] "What's new & Credits" button in Settings > Application to re-open the changelog with the credits drawer
+- [ADD] Changelog now supports version group headers (`## v0.x`)
+- [EDIT] README updated with one-time sponsorship tiers and how in-app credits are assembled
+
 ## v0.2.8 — 24 August 2026
 
 ### Packaged app (.exe)
@@ -119,6 +138,8 @@
 - [ADD] Header settings button highlights while settings are open and closes settings on click (toggle)
 - [EDIT] Header settings button restyled as a 34x34 rounded square matching the donate button
 - [EDIT] Search box and Filters button height aligned with header buttons (34px)
+
+## v0.1.x
 
 ## v0.1.2 — 20 August 2026
 

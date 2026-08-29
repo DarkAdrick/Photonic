@@ -202,6 +202,36 @@
     color: var(--text-primary);
 }
 
+.settings-sub-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0 4px;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    background: var(--bg-primary);
+    padding: 0.3em 0.6em;
+}
+
+.settings-sub-header h4 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+.settings-sub-header:first-child {
+    margin-top: 0;
+}
+
+.settings-sub-header .section-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+}
+
 .settings-card-gradient {
     position: relative;
 }
@@ -223,7 +253,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 0;
+    padding: 6px 0;
     border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
 }
 
@@ -251,6 +281,13 @@
 .setting-desc {
     font-size: 12px;
     color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.setting-desc-warn {
+    margin-top: 6px;
+    color: #f39c12;
+    font-weight: 600;
     line-height: 1.4;
 }
 
@@ -500,6 +537,47 @@
     min-width: 36px;
     text-align: right;
     font-variant-numeric: tabular-nums;
+}
+
+.settings-range-label.warn {
+    color: #f39c12;
+    font-weight: 600;
+}
+
+.settings-range-input {
+    -moz-appearance: textfield;
+    appearance: textfield;
+    width: 64px;
+    padding: 3px 6px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    text-align: right;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.settings-range-input::-webkit-outer-spin-button,
+.settings-range-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.settings-range-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.settings-range-input.warn {
+    color: #f39c12;
+    border-color: rgba(243, 156, 18, 0.5);
+}
+
+.settings-range-unit {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-left: -6px;
 }
 
 /* ── Action Button ───────────────────────────────────────────────────────── */

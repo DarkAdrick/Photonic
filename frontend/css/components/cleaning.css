@@ -48,6 +48,11 @@
 .cleaning-btn:disabled { opacity: 0.4; cursor: default; }
 .cleaning-btn.danger { border-color: #e74c3c; color: #e74c3c; }
 .cleaning-btn.danger:hover:not(:disabled) { background: #e74c3c; color: #fff; }
+.cleaning-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, var(--bg-tertiary));
+}
 
 #cleaning-status {
     font-size: 12px;

@@ -459,24 +459,33 @@
 /* ── Changelog Modal ────────────────────────────────────────────────────── */
 
 .changelog-box {
-    min-width: 500px;
-    max-width: 600px;
+    min-width: 740px;
+    max-width: 860px;
     max-height: 75vh;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    padding: 0;
+    overflow: hidden;
     border-color: rgba(50, 160, 197, 0.2);
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+}
+
+.changelog-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
 }
 
 .changelog-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: -20px -20px 12px;
-    padding: 12px 20px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
     background: color-mix(in srgb, var(--bg-primary) 40%, var(--bg-secondary));
     border-bottom: 1px solid var(--border);
-    border-radius: 12px 12px 0 0;
 }
 
 .changelog-header h3 {
@@ -587,6 +596,100 @@
     height: 14px;
 }
 
+/* ── Changelog credits drawer ─────────────────────────────────────────── */
+
+.cl-credits-drawer {
+    width: 300px;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    border-left: 1px solid var(--border);
+    background: color-mix(in srgb, var(--photonic-1) 6%, var(--bg-secondary));
+    overflow: hidden;
+}
+
+.cl-credits-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    flex-shrink: 0;
+    padding: 12px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+}
+
+.cl-credits-title svg {
+    width: 15px;
+    height: 15px;
+    color: #e84393;
+}
+
+.cl-credits-title-secondary {
+    border-top: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+
+.cl-credits-title-secondary svg {
+    color: var(--accent);
+}
+
+.cl-credits-section {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.cl-credits-viewport {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.cl-credits-track {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    will-change: transform;
+    width: 100%;
+}
+
+.cl-credits-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: linear-gradient(90deg, #e84393, #fd79a8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.cl-credits-thanks-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-align: center;
+    padding: 0 8px;
+}
+
+.cl-credits-thanks-item .cl-credits-name { font-size: 14px; }
+
+.cl-credits-thanks-reason {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
 /* ── Changelog chips ──────────────────────────────────────────────────── */
 
 .cl-chip {
@@ -608,6 +711,23 @@
 .chip-default{ background: rgba(149,165,166,0.15);color: #95a5a6; border: 1px solid rgba(149,165,166,0.3); }
 
 /* ── Changelog Version Sections ──────────────────────────────────────────── */
+
+.cl-group-header {
+    font-size: 18px;
+    font-weight: 800;
+    padding: 14px 12px 6px;
+    margin-top: 8px;
+    background: var(--photonic-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.3px;
+    user-select: none;
+}
+
+.cl-group-header:first-child {
+    margin-top: 0;
+}
 
 .cl-version {
     border-bottom: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);

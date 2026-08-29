@@ -70,6 +70,22 @@
 .map-resize:hover { background: var(--accent); }
 .map-resize:hover::after { background: #fff; }
 
+#map-photos-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 16px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+#map-photo-count { font-weight: 500; }
+#map-selection-count { font-weight: 500; }
+
 #map-photos {
     width: 100%;
     height: 200px;
@@ -88,6 +104,10 @@
 
 #map-photos.has-selection .photo-card:not(.selected):not(.drag-highlight):not(.drag-highlight-deselect) {
     filter: brightness(0.5);
+}
+
+#map-photos.selected-only .photo-card:not(.selected) {
+    display: none;
 }
 
 .map-strip-sentinel {

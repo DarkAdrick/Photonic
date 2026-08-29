@@ -9,6 +9,11 @@
     const selectionBarEl  = document.getElementById("header-photo-grid");
     const breadcrumbBar   = document.getElementById("breadcrumb-bar");
     const mapView         = document.getElementById("map-view");
+    const mapPhotosHeader = document.getElementById("map-photos-header");
+    const mapPhotoCount   = document.getElementById("map-photo-count");
+    const mapSelectionCount = document.getElementById("map-selection-count");
+    const mapBtnDeselectAll = document.getElementById("map-btn-deselect-all");
+    const mapBtnSelectedOnly = document.getElementById("map-btn-selected-only");
     const mapPhotos       = document.getElementById("map-photos");
     const btnAddFolder    = document.getElementById("btn-add-folder");
     const btnAddFolderSb  = document.getElementById("btn-add-folder-sidebar");
@@ -512,6 +517,7 @@
             photoGrid.classList.add("hidden");
             mapView.classList.remove("hidden");
             mapResize.classList.remove("hidden");
+            mapPhotosHeader.classList.remove("hidden");
             mapPhotos.classList.remove("hidden");
             initMap();
             fitMapToFolder();
@@ -524,6 +530,7 @@
             mapView.classList.add("hidden");
             mapResize.classList.add("hidden");
             mapPhotos.classList.add("hidden");
+            mapPhotosHeader.classList.add("hidden");
             photoGrid.classList.remove("hidden");
             activeFolderId = null;
             activeCountryCode = null;
@@ -538,6 +545,7 @@
             mapView.classList.add("hidden");
             mapResize.classList.add("hidden");
             mapPhotos.classList.add("hidden");
+            mapPhotosHeader.classList.add("hidden");
             photoGrid.classList.remove("hidden");
             activeFolderId = null;
             activeTagId = null;
@@ -551,6 +559,7 @@
             mapView.classList.add("hidden");
             mapResize.classList.add("hidden");
             mapPhotos.classList.add("hidden");
+            mapPhotosHeader.classList.add("hidden");
             photoGrid.classList.remove("hidden");
             activeFolderId = null;
             activeTagId = null;
@@ -567,6 +576,7 @@
             mapView.classList.add("hidden");
             mapResize.classList.add("hidden");
             mapPhotos.classList.add("hidden");
+            mapPhotosHeader.classList.add("hidden");
             photoGrid.classList.remove("hidden");
             activeFolderId = null;
             activeTagId = null;
@@ -582,6 +592,7 @@
             mapView.classList.add("hidden");
             mapResize.classList.add("hidden");
             mapPhotos.classList.add("hidden");
+            mapPhotosHeader.classList.add("hidden");
             photoGrid.classList.remove("hidden");
             activeTagId = null;
             activeCountryCode = null;
@@ -592,6 +603,7 @@
             mapView.classList.add("hidden");
             mapResize.classList.add("hidden");
             mapPhotos.classList.add("hidden");
+            mapPhotosHeader.classList.add("hidden");
             photoGrid.classList.remove("hidden");
             cleaningToolbar.classList.remove("hidden");
             selectedIds.clear();
@@ -607,6 +619,7 @@
             mapView.classList.add("hidden");
             mapResize.classList.add("hidden");
             mapPhotos.classList.add("hidden");
+            mapPhotosHeader.classList.add("hidden");
             photoGrid.classList.add("hidden");
             emptyState.classList.add("hidden");
             statsView.classList.remove("hidden");
@@ -620,6 +633,7 @@
             mapView.classList.add("hidden");
             mapResize.classList.add("hidden");
             mapPhotos.classList.add("hidden");
+            mapPhotosHeader.classList.add("hidden");
             if (activeTagId) { activeTagId = null; loadSidebar(); }
             if (activeCountryCode) { activeCountryCode = null; loadSidebar(); }
             activeCameraBrowseId = null;
@@ -655,7 +669,15 @@
 
     function initMap() {
         if (map) return;
-        map = L.map("map-view").setView([46.6, 2.3], 6);
+        map = L.map("map-view", {
+            noWrap: true,
+            worldCopyJump: false,
+            minZoom: 2,
+            // Bounds cover exactly one world so the tile layer never wraps
+            // horizontally or vertically (no repeated world copies).
+            maxBounds: [[-89, -180], [89, 180]],
+            maxBoundsViscosity: 1.0,
+        }).setView([46.6, 2.3], 6);
         const mapLoader = createLoader("Loading");
         mapLoader.id = "map-loader";
         mapView.appendChild(mapLoader);
@@ -680,13 +702,16 @@
 
     async function doLoadMapPhotos() {
         const loaderEl = document.getElementById("map-loader");
-        let loaderTimer = null;
-        if (loaderEl) loaderTimer = setTimeout(() => loaderEl.classList.add("visible"), 250);
+        const loaderLabel = loaderEl ? loaderEl.querySelector(".app-loader-label") : null;
+        if (loaderEl) loaderEl.classList.add("visible");
+        if (loaderLabel) loaderLabel.textContent = "Loading map…";
         try {
             await loadMapPhotosInner();
+        } catch (err) {
+            console.error("Map load failed", err);
         } finally {
-            if (loaderTimer) clearTimeout(loaderTimer);
             if (loaderEl) loaderEl.classList.remove("visible");
+            if (loaderLabel) loaderLabel.textContent = "";
         }
     }
 
@@ -715,18 +740,87 @@
         plainGroup.clearLayers();
         if (map.hasLayer(clusterGroup)) map.removeLayer(clusterGroup);
         if (map.hasLayer(plainGroup)) map.removeLayer(plainGroup);
-        const useCluster = data.total >= 500;
-        const target = useCluster ? clusterGroup : plainGroup;
-        map.addLayer(target);
+
+        // If the map holds more than the global threshold, clustering is
+        // disabled entirely: every photo renders as an individual marker.
+        // Otherwise, photos are bucketed into a spatial grid whose cell size
+        // matches the cluster radius (in screen px). Cells with >= the group-size
+        // threshold become clusters; smaller cells render as individual markers.
+        // A group-size threshold of 1 therefore groups from 2 photos at a spot.
+        const clusterGlobalThreshold = parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "5000") || 5000;
+        const clusteringDisabled = data.total < clusterGlobalThreshold;
+
+        let densePhotos = [];
+        let sparsePhotos = [];
+
+        if (!clusteringDisabled) {
+            const clusterThreshold = parseInt(localStorage.getItem("photonic.clusterThreshold") || "500") || 500;
+            const minClusterSize = Math.max(2, clusterThreshold);
+            const zoom = map.getZoom();
+            const center = map.getCenter();
+            const centerPx = map.project(center, zoom);
+            const radiusPx = 40;
+            const dLng = Math.max(1e-6, Math.abs(map.unproject(L.point(centerPx.x + radiusPx, centerPx.y), zoom).lng - center.lng));
+            const dLat = Math.max(1e-6, Math.abs(map.unproject(L.point(centerPx.x, centerPx.y + radiusPx), zoom).lat - center.lat));
+            const cells = new Map();
+            for (const ph of data.photos) {
+                const key = Math.floor(ph.lat / dLat) + ":" + Math.floor(ph.lng / dLng);
+                let arr = cells.get(key);
+                if (!arr) { arr = []; cells.set(key, arr); }
+                arr.push(ph);
+            }
+            const dense = [];
+            const sparse = [];
+            for (const arr of cells.values()) {
+                (arr.length >= minClusterSize ? dense : sparse).push(...arr);
+            }
+            densePhotos = dense;
+            sparsePhotos = sparse;
+        } else {
+            sparsePhotos = data.photos;
+        }
+        map.addLayer(clusterGroup);
+        map.addLayer(plainGroup);
+
+        // Render markers in async chunks so the main thread (and the map
+        // loader) can breathe on very large datasets instead of freezing.
+        const loaderEl = document.getElementById("map-loader");
+        const loaderLabel = loaderEl ? loaderEl.querySelector(".app-loader-label") : null;
+        let done = 0;
+        const total = data.photos.length;
+        const updateProgress = () => {
+            if (loaderLabel) loaderLabel.textContent = `Placing ${done.toLocaleString()} / ${total.toLocaleString()}…`;
+        };
+        const yieldForUi = () => new Promise(r => setTimeout(r, 0));
+        const CHUNK = 400;
+
+        for (let i = 0; i < densePhotos.length; i += CHUNK) {
+            const lot = densePhotos.slice(i, i + CHUNK).map(ph => {
+                const m = L.marker([ph.lat, ph.lng]);
+                m.on("click", () => openDetail(ph.id));
+                return m;
+            });
+            clusterGroup.addLayers(lot);
+            done += lot.length;
+            updateProgress();
+            await yieldForUi();
+        }
+        for (let i = 0; i < sparsePhotos.length; i += CHUNK) {
+            const end = Math.min(i + CHUNK, sparsePhotos.length);
+            for (let j = i; j < end; j++) {
+                const ph = sparsePhotos[j];
+                const m = L.marker([ph.lat, ph.lng]);
+                m.on("click", () => openDetail(ph.id));
+                plainGroup.addLayer(m);
+                done++;
+            }
+            updateProgress();
+            await yieldForUi();
+        }
 
         mapStripQueue = data.photos.slice();
         if (mapStripObserver) mapStripObserver.disconnect();
         mapPhotos.innerHTML = "";
-        for (const p of data.photos) {
-            const marker = L.marker([p.lat, p.lng]);
-            marker.on("click", () => openDetail(p.id));
-            target.addLayer(marker);
-        }
         mapSentinel = document.createElement("div");
         mapSentinel.className = "map-strip-sentinel";
         mapPhotos.appendChild(mapSentinel);
@@ -734,6 +828,7 @@
         fillMapStripViewport();
         renderSelection();
         photoCountH.textContent = `${data.total.toLocaleString()} geo-tagged`;
+        if (mapPhotoCount) mapPhotoCount.textContent = `${data.total.toLocaleString()} items`;
     }
 
     let mapStripQueue = [];
@@ -2197,15 +2292,54 @@
 
     const selectionCount = document.getElementById("selection-count");
     const btnDeselectAll = document.getElementById("btn-deselect-all");
+    const btnSelectedOnly = document.getElementById("btn-selected-only");
+    let selectedOnlyActive = false;
 
+    function applySelectedOnlyFilter() {
+        photoGrid.classList.toggle("selected-only", selectedOnlyActive);
+        mapPhotos.classList.toggle("selected-only", selectedOnlyActive);
+    }
+
+    function toggleSelectedOnly() {
+        selectedOnlyActive = !selectedOnlyActive;
+        btnSelectedOnly.classList.toggle("active", selectedOnlyActive);
+        mapBtnSelectedOnly.classList.toggle("active", selectedOnlyActive);
+        applySelectedOnlyFilter();
+    }
+
+    btnSelectedOnly.addEventListener("click", toggleSelectedOnly);
+    mapBtnSelectedOnly.addEventListener("click", toggleSelectedOnly);
     btnDeselectAll.addEventListener("click", deselectAll);
+    mapBtnDeselectAll.addEventListener("click", deselectAll);
 
     function updateSelectionBar() {
         const n = selectedIds.size;
+        if (n === 0 && selectedOnlyActive) {
+            selectedOnlyActive = false;
+            btnSelectedOnly.classList.remove("active");
+            mapBtnSelectedOnly.classList.remove("active");
+            applySelectedOnlyFilter();
+        }
         selectionCount.textContent = n > 0 ? `${n} selected` : "";
         selectionCount.classList.toggle("hidden", n === 0);
         btnDeselectAll.classList.toggle("hidden", n === 0);
+        btnSelectedOnly.classList.toggle("hidden", n === 0);
+        if (mapSelectionCount) {
+            mapSelectionCount.textContent = n > 0 ? `${n} selected` : "";
+            mapSelectionCount.classList.toggle("hidden", n === 0);
+        }
+        if (mapBtnDeselectAll) mapBtnDeselectAll.classList.toggle("hidden", n === 0);
+        if (mapBtnSelectedOnly) mapBtnSelectedOnly.classList.toggle("hidden", n === 0);
     }
+
+    document.addEventListener("keydown", (e) => {
+        if ((e.key === "Escape") && selectedOnlyActive) {
+            selectedOnlyActive = false;
+            btnSelectedOnly.classList.remove("active");
+            mapBtnSelectedOnly.classList.remove("active");
+            applySelectedOnlyFilter();
+        }
+    });
 
     // Patch renderSelection to also update selection bar
     const _origRenderSelection = renderSelection;
@@ -3451,6 +3585,7 @@
         document.getElementById("map-view").classList.add("hidden");
         document.getElementById("map-resize").classList.add("hidden");
         document.getElementById("map-photos").classList.add("hidden");
+        mapPhotosHeader.classList.add("hidden");
         cleaningToolbar.classList.add("hidden");
         document.getElementById("sidebar").classList.add("hidden");
         document.getElementById("filter-drawer").classList.add("hidden");
@@ -3513,6 +3648,8 @@
         const showExts = localStorage.getItem("photonic.showExtensions") === "true";
         const thumbSize = parseInt(localStorage.getItem("photonic.thumbnailSize") || "150");
         const defaultView = localStorage.getItem("photonic.defaultView") || "grid";
+        const clusterThreshold = parseInt(localStorage.getItem("photonic.clusterThreshold") || "500");
+        const clusterGlobalThreshold = parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "5000");
         const savedPalette = localStorage.getItem("photonic.palette");
 
         el.innerHTML = `
@@ -3522,6 +3659,7 @@
                     <div class="settings-app-name">PHOTONIC</div>
                     <span class="settings-app-version" id="settings-page-version"></span>
                     <p class="settings-app-desc">Media library manager. Organize, tag, and browse your photo and video collection with powerful filtering and cleaning tools.</p>
+                    <button class="settings-action-btn" id="setting-open-changelog"><i data-lucide="scroll-text"></i> What's new &amp; Credits</button>
                 </div>
             </div>
 
@@ -3590,6 +3728,10 @@
                     <i data-lucide="layout-grid"></i>
                     <h3>Display</h3>
                 </div>
+                <div class="settings-sub-header">
+                    <span class="section-dot"></span>
+                    <h4>General</h4>
+                </div>
                 <div class="setting-row">
                     <div class="setting-info">
                         <div class="setting-label">Thumbnail size</div>
@@ -3598,7 +3740,8 @@
                     <div class="setting-control">
                         <div class="settings-range-wrap">
                             <input type="range" class="settings-range" id="setting-thumb-size" min="60" max="450" value="${thumbSize}">
-                            <span class="settings-range-label" id="setting-thumb-size-label">${thumbSize}px</span>
+                            <input type="number" class="settings-range-label settings-range-input" id="setting-thumb-size-label" value="${thumbSize}" min="60" max="450" step="1" aria-label="Thumbnail size">
+                            <span class="settings-range-unit">px</span>
                         </div>
                     </div>
                 </div>
@@ -3614,12 +3757,37 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="settings-card settings-card-gradient">
-                <div class="settings-card-header">
-                    <i data-lucide="palette"></i>
-                    <h3>Appearance</h3>
+                <div class="settings-sub-header">
+                    <span class="section-dot"></span>
+                    <h4>Locations</h4>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-label">Cluster group size</div>
+                        <div class="setting-desc" id="setting-cluster-threshold-desc">On the Locations map, photos are grouped into clusters only where at least this many photos sit close together; anywhere else they render as individual markers.<br>Set it to <b>1</b> to group from 2 photos at the same spot.</div>
+                    </div>
+                    <div class="setting-control">
+                        <div class="settings-range-wrap">
+                            <input type="range" class="settings-range" id="setting-cluster-threshold" min="1" max="5000" step="1" value="${clusterThreshold}">
+                            <input type="number" class="settings-range-label settings-range-input" id="setting-cluster-threshold-label" value="${clusterThreshold}" min="1" max="5000" step="1" aria-label="Cluster group size">
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <div class="setting-label">Disable clustering below</div>
+                        <div class="setting-desc" id="setting-cluster-global-desc">Clustering is enabled only once the map holds more than this many geo-tagged photos. Below it, no grouping happens at all and every photo shows as an individual marker.<br>Ex. at <b>700</b>: 701 photos on the map → clustering active; 699 photos → fully deactivated.</div>
+                    </div>
+                    <div class="setting-control">
+                        <div class="settings-range-wrap">
+                            <input type="range" class="settings-range" id="setting-cluster-global" min="300" max="5000" step="1" value="${clusterGlobalThreshold}">
+                            <input type="number" class="settings-range-label settings-range-input" id="setting-cluster-global-label" value="${clusterGlobalThreshold}" min="300" max="5000" step="1" aria-label="Disable clustering below">
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-sub-header">
+                    <span class="section-dot"></span>
+                    <h4>Appearance</h4>
                 </div>
                 <div class="setting-row">
                     <div class="setting-info">
@@ -3761,14 +3929,17 @@
         const thumbSlider = document.getElementById("setting-thumb-size");
         const thumbLabel = document.getElementById("setting-thumb-size-label");
         const mainThumb = document.getElementById("thumb-size");
-        thumbSlider.addEventListener("input", (e) => {
-            const v = e.target.value;
-            thumbLabel.textContent = v + "px";
+        function applyThumbSize(v) {
+            v = Math.max(60, Math.min(450, +v || 60));
+            thumbSlider.value = v;
+            thumbLabel.value = v;
             localStorage.setItem("photonic.thumbnailSize", v);
             document.documentElement.style.setProperty("--thumb-size", v + "px");
             document.documentElement.classList.toggle("thumbs-tiny", +v <= 90);
             if (mainThumb) mainThumb.value = v;
-        });
+        }
+        thumbSlider.addEventListener("input", (e) => applyThumbSize(e.target.value));
+        thumbLabel.addEventListener("change", (e) => applyThumbSize(e.target.value));
 
         document.querySelectorAll("#setting-default-view .layout-btn").forEach(btn => {
             btn.addEventListener("click", () => {
@@ -3780,6 +3951,58 @@
                 if (desc) desc.textContent = "Choose the default layout when browsing your items." + (v === "masonry" ? " Masonry is a beta feature and may still have layout glitches." : "");
             });
         });
+
+        const clusterSlider = document.getElementById("setting-cluster-threshold");
+        const clusterLabel = document.getElementById("setting-cluster-threshold-label");
+        const clusterDesc = document.getElementById("setting-cluster-threshold-desc");
+        const clusterDescBase = clusterDesc ? clusterDesc.innerHTML : "";
+        if (clusterSlider && clusterLabel) {
+            const setClusterWarn = (v) => {
+                clusterLabel.classList.toggle("warn", +v > 100);
+                if (clusterDesc) {
+                    clusterDesc.innerHTML = clusterDescBase + (+v > 100
+                        ? '<div class="setting-desc-warn">⚠ Warning: large cluster groups may impact map fluidity.</div>'
+                        : "");
+                }
+            };
+            const applyCluster = (v) => {
+                v = Math.max(1, Math.min(5000, +v || 1));
+                clusterSlider.value = v;
+                clusterLabel.value = v;
+                localStorage.setItem("photonic.clusterThreshold", v);
+                setClusterWarn(v);
+                if (activeView === "locations") { lastMapQueryUrl = null; loadMapPhotos(); }
+            };
+            clusterSlider.addEventListener("input", (e) => applyCluster(e.target.value));
+            clusterLabel.addEventListener("change", (e) => applyCluster(e.target.value));
+            setClusterWarn(clusterSlider.value);
+        }
+
+        const clusterGlobalSlider = document.getElementById("setting-cluster-global");
+        const clusterGlobalLabel = document.getElementById("setting-cluster-global-label");
+        const clusterGlobalDesc = document.getElementById("setting-cluster-global-desc");
+        const clusterGlobalDescBase = clusterGlobalDesc ? clusterGlobalDesc.innerHTML : "";
+        if (clusterGlobalSlider && clusterGlobalLabel) {
+            const setClusterGlobalWarn = (v) => {
+                clusterGlobalLabel.classList.toggle("warn", +v > 1000);
+                if (clusterGlobalDesc) {
+                    clusterGlobalDesc.innerHTML = clusterGlobalDescBase + (+v > 1000
+                        ? '<div class="setting-desc-warn">⚠ Warning: very high values may impact map fluidity.</div>'
+                        : "");
+                }
+            };
+            const applyClusterGlobal = (v) => {
+                v = Math.max(300, Math.min(5000, +v || 300));
+                clusterGlobalSlider.value = v;
+                clusterGlobalLabel.value = v;
+                localStorage.setItem("photonic.clusterGlobalThreshold", v);
+                setClusterGlobalWarn(v);
+                if (activeView === "locations") { lastMapQueryUrl = null; loadMapPhotos(); }
+            };
+            clusterGlobalSlider.addEventListener("input", (e) => applyClusterGlobal(e.target.value));
+            clusterGlobalLabel.addEventListener("change", (e) => applyClusterGlobal(e.target.value));
+            setClusterGlobalWarn(clusterGlobalSlider.value);
+        }
 
         document.getElementById("setting-rescan").addEventListener("click", () => {
             const btn = document.getElementById("btn-rescan");
@@ -3845,6 +4068,8 @@
             localStorage.setItem("photonic.palette", "midnight");
             document.querySelectorAll(".palette-swatch").forEach(s => s.classList.toggle("active", s.dataset.palette === "midnight"));
         });
+
+        document.getElementById("setting-open-changelog").addEventListener("click", openChangelog);
     }
 
     function applyThemeColor(name, value) {
@@ -4214,13 +4439,157 @@
         if (data.html) changelogBody.innerHTML = data.html;
     }
 
-    versionBadge.addEventListener("click", async () => {
+    // ── Credits drawer (scrolling supporters & contributors) ──────────
+
+    const clCreditsDrawer = document.getElementById("cl-credits");
+    const clSponsorsSection = document.getElementById("cl-credits-section-sponsors");
+    const clSponsorsTrack   = document.getElementById("cl-credits-sponsors");
+    const clThanksSection   = document.getElementById("cl-credits-section-thanks");
+    const clThanksTrack     = document.getElementById("cl-credits-thanks-track");
+    const creditsAnims      = [];
+    const CREDIT_SPEED  = 0.45; // px per frame at ~60fps
+
+    // build a single credit row: name (optionally linked) + optional reason
+    function buildCreditRow(entry) {
+        const row = document.createElement("div");
+        row.className = "cl-credits-thanks-item";
+        const nameEl = document.createElement(entry && entry.url ? "a" : "span");
+        nameEl.className = "cl-credits-name";
+        nameEl.textContent = (entry && entry.name) || "";
+        if (entry && entry.url) {
+            nameEl.href = entry.url;
+            nameEl.target = "_blank";
+            nameEl.rel = "noopener";
+            row.classList.add("cl-credits-item-link");
+        }
+        row.appendChild(nameEl);
+        if (entry && entry.reason) {
+            const reasonEl = document.createElement("span");
+            reasonEl.className = "cl-credits-thanks-reason";
+            reasonEl.textContent = entry.reason;
+            row.appendChild(reasonEl);
+        }
+        return row;
+    }
+
+    function scrollCredits(track, rows) {
+        track.innerHTML = "";
+        if (!rows || rows.length === 0) { track.style.transform = "translateY(0px)"; return; }
+
+        const viewport = track.parentElement;
+        const viewportH = viewport.clientHeight || 200;
+        const count = rows.length;
+
+        // measure the packed block of names (natural gap from .cl-credits-track)
+        track.append(...rows);
+        const rowH = Math.max(16, rows[0].offsetHeight);
+        const blockHeight = track.offsetHeight || (count * (rowH + 8));
+        track.innerHTML = "";
+
+        // one loop unit = packed block of names + a FULL blank screen afterwards.
+        // When the last credit exits the top, a whole empty screen scrolls by,
+        // and only then the first name re-enters from the bottom.
+        rows.forEach(r => track.appendChild(r));
+        const spacer = document.createElement("div");
+        spacer.style.height = Math.floor(viewportH) + "px";
+        spacer.style.flexShrink = "0";
+        track.appendChild(spacer);
+        const unitH = track.offsetHeight || Math.max(blockHeight + viewportH, viewportH);
+        const oneUnit = track.innerHTML;
+
+        const copies = Math.max(2, Math.ceil((viewportH + unitH) / unitH));
+        for (let i = 1; i < copies; i++) track.innerHTML += oneUnit;
+
+        stopCredits(track);
+        // start with the first row at the bottom edge, rise one full unit,
+        // then the (identical) next copy takes over seamlessly
+        const startY = viewportH - rowH;
+        const endY   = startY - unitH;
+        const state = { track, y: startY, startY, endY, paused: false, handle: null };
+        state.handle = setInterval(() => stepCredit(state), 16);
+        creditsAnims.push(state);
+
+        // pause while hovering so links can be clicked comfortably
+        viewport.addEventListener("mouseenter", () => { if (!state.paused) { state.paused = true; clearInterval(state.handle); } });
+        viewport.addEventListener("mouseleave", () => {
+            if (state.paused) { state.paused = false; state.handle = setInterval(() => stepCredit(state), 16); }
+        });
+    }
+
+    function stepCredit(a) {
+        a.y -= CREDIT_SPEED;
+        if (a.y <= a.endY) a.y = a.startY;
+        a.track.style.transform = `translateY(${a.y}px)`;
+    }
+
+    function stopCredits(track) {
+        for (let i = creditsAnims.length - 1; i >= 0; i--) {
+            const a = creditsAnims[i];
+            if (!track || a.track === track) {
+                clearInterval(a.handle);
+                creditsAnims.splice(i, 1);
+            }
+        }
+        if (track) track.style.transform = "translateY(0px)";
+    }
+
+    function stopAllCredits() {
+        while (creditsAnims.length) {
+            const a = creditsAnims.pop();
+            clearInterval(a.handle);
+            a.track.style.transform = "translateY(0px)";
+        }
+    }
+
+    function fillCredits({ names, thanks }) {
+        stopAllCredits();
+
+        // sponsors (GitHub + manual credits.json)
+        const sponsorRows = (names || []).map(n => buildCreditRow(n));
+        if (sponsorRows.length) clSponsorsSection.classList.remove("hidden");
+        else clSponsorsSection.classList.add("hidden");
+        scrollCredits(clSponsorsTrack, sponsorRows);
+
+        // contributors (thanks from credits.json / manual)
+        const thanksRows = (thanks || []).map(t => buildCreditRow(t));
+        if (thanksRows.length) clThanksSection.classList.remove("hidden");
+        else clThanksSection.classList.add("hidden");
+        scrollCredits(clThanksTrack, thanksRows);
+
+        // hide the whole drawer if nothing to show
+        if (sponsorRows.length === 0 && thanksRows.length === 0) clCreditsDrawer.classList.add("hidden");
+        else clCreditsDrawer.classList.remove("hidden");
+
+        lucide.createIcons();
+    }
+
+    async function loadCredits(retries = 5) {
+        const data = await api("GET", "/api/sponsors");
+        const names  = data.sponsors || [];
+        const thanks = data.thanks || [];
+        // local credits.json returns immediately; keep a short poll so the
+        // GitHub public-login merge can arrive and start the animation too
+        if (names.length === 0 && thanks.length === 0 && retries > 0) {
+            await new Promise(r => setTimeout(r, 500));
+            return loadCredits(retries - 1);
+        }
+        return { names, thanks };
+    }
+
+    async function openChangelog() {
         await loadChangelog();
         changelogDialog.classList.remove("hidden");
         lucide.createIcons();
-    });
-    changelogClose.addEventListener("click", () => changelogDialog.classList.add("hidden"));
-    changelogDialog.addEventListener("click", (e) => { if (e.target === changelogDialog) changelogDialog.classList.add("hidden"); });
+        try {
+            const data = await loadCredits();
+            fillCredits(data);
+        } catch {
+            clCreditsDrawer.classList.add("hidden");
+        }
+    }
+    versionBadge.addEventListener("click", openChangelog);
+    changelogClose.addEventListener("click", () => { stopAllCredits(); changelogDialog.classList.add("hidden"); });
+    changelogDialog.addEventListener("click", (e) => { if (e.target === changelogDialog) { stopAllCredits(); changelogDialog.classList.add("hidden"); } });
 
     // ── Frameless desktop window (drag / resize / controls) ───────────────
 

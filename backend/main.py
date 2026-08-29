@@ -1707,8 +1707,15 @@ def _md_to_changelog_html(md: str) -> str:
             if current:
                 versions.append(current)
             title = stripped[3:]
-            current = {"title": title, "content": []}
+            # Group headers (e.g. "## v0.2.x") have no " — " date separator
+            if " — " not in title:
+                versions.append({"group": title})
+                current = None
+            else:
+                current = {"title": title, "content": []}
         elif stripped.startswith("### "):
+            if current is None:
+                continue
             if in_list:
                 current["content"].append("</ul>")
                 in_list = False
@@ -1735,8 +1742,14 @@ def _md_to_changelog_html(md: str) -> str:
     if current:
         versions.append(current)
 
+    version_index = 0
     for i, v in enumerate(versions):
-        open_attr = " open" if i == 0 else ""
+        if "group" in v:
+            html_parts.append(f'<div class="cl-group-header">{v["group"]}</div>')
+            continue
+        # open the first real version by default (skip group headers)
+        open_attr = " open" if version_index == 0 else ""
+        version_index += 1
         title_text = v["title"]
         # Split name from date: "v0.1.1 — β — 19 August 2026" → name + date
         parts = title_text.rsplit(" — ", 1)
@@ -1885,6 +1898,141 @@ def update_check():
     _run_update_check()
     with _update_lock:
         return dict(_update_state)
+
+
+# ── Sponsors / credits (GitHub + local credits.json) ─────────────────────────
+
+GITHUB_SPONSORS_URL = f"https://api.github.com/users/DarkAdrick/sponsors"
+
+CREDITS_PATH = APP_DIR / "credits.json"      # user-editable override (.photonic/)
+CREDITS_BUNDLED = resource_path("credits.json")  # shipped default / backup
+
+_sponsors_state = {
+    "github": [],
+    "checked_at": None,
+    "error": None,
+}
+
+_sponsors_lock = threading.Lock()
+
+
+def _normalize_credit(entry) -> dict:
+    """Accept either a plain string (""name") or an object
+    ({"name", "reason", "url"}) and normalize into a consistent dict."""
+    if isinstance(entry, str):
+        name = entry.strip()
+        return {"name": name, "reason": "", "url": ""}
+    if isinstance(entry, dict):
+        return {
+            "name": (entry.get("name") or entry.get("login") or "").strip(),
+            "reason": (entry.get("reason") or "").strip(),
+            "url": (entry.get("url") or "").strip(),
+        }
+    return {"name": "", "reason": "", "url": ""}
+
+
+def _read_local_credits() -> dict:
+    """Merge the user-editable override on top of the bundled file. The
+    override can add sponsors/thanks; both files use the same schema.
+    Entries may be plain strings or objects with name/reason/url."""
+    merged = {"sponsors": [], "thanks": []}
+    for path in (CREDITS_BUNDLED, CREDITS_PATH):
+        try:
+            data = _json.loads(path.read_text(encoding="utf-8-sig"))  # tolerate a UTF-8 BOM
+            merged["sponsors"].extend(_normalize_credit(e) for e in (data.get("sponsors") or []))
+            merged["thanks"].extend(_normalize_credit(e) for e in (data.get("thanks") or []))
+        except (OSError, ValueError):
+            continue
+    # de-duplicate by name, preserve order, drop entries without a name
+    def _dedup(items):
+        seen = set()
+        out = []
+        for it in items:
+            key = it["name"].lower()
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            out.append(it)
+        return out
+    merged["sponsors"] = _dedup(merged["sponsors"])
+    merged["thanks"] = _dedup(merged["thanks"])
+    return merged
+
+
+def _fetch_sponsors(timeout: float = 10.0) -> list:
+    """Fetch public sponsors (logins only). Only accounts that chose to show
+    their sponsorship publicly are returned, so anonymous donors never appear."""
+    page = 1
+    names = []
+    while True:
+        req_url = urllib.request.Request(f"{GITHUB_SPONSORS_URL}?per_page=100&page={page}", headers={
+            "User-Agent": f"Photonic/{APP_VERSION}",
+            "Accept": "application/vnd.github+json",
+        })
+        with urllib.request.urlopen(req_url, timeout=timeout) as resp:
+            data = _json.loads(resp.read().decode("utf-8"))
+        if not data:
+            break
+        for user in data:
+            login = user.get("login")
+            if login:
+                names.append(login)
+        if len(data) < 100:
+            break
+        page += 1
+    return names
+
+
+def _run_sponsors_fetch():
+    global _sponsors_state
+    from datetime import datetime, timezone
+    try:
+        github = _fetch_sponsors()
+    except urllib.error.HTTPError as e:
+        github = []
+        error = f"GitHub HTTP {e.code}"
+    except Exception as e:
+        github = []
+        error = str(e)
+    else:
+        error = None
+    with _sponsors_lock:
+        _sponsors_state = {
+            "github": github,
+            "checked_at": datetime.now(timezone.utc).isoformat(),
+            "error": error,
+        }
+
+
+@app.get("/api/sponsors")
+def sponsors():
+    # Local credits.json entries always return immediately (manual sponsors /
+    # thanks must appear even offline or before the GitHub fetch completes).
+    local = _read_local_credits()
+    with _sponsors_lock:
+        state = dict(_sponsors_state)
+        fresh = state["checked_at"] is not None
+    if not fresh:
+        # kick off GitHub fetch in background, refresh on the next call
+        def _run():
+            _run_sponsors_fetch()
+        threading.Thread(target=_run, daemon=True).start()
+    # merge manual sponsors + cached public logins (as objects)
+    github_objs = [_normalize_credit(l) for l in state["github"]]
+    seen = set()
+    sponsors_list = []
+    for it in local["sponsors"] + github_objs:
+        key = it["name"].lower()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        sponsors_list.append(it)
+    return {
+        "sponsors": sponsors_list,
+        "thanks": local["thanks"],
+        "checked_at": state["checked_at"],
+        "error": state["error"],
+    }
 
 
 # ── Telemetry (anonymous launch ping, opt-out) ───────────────────────────────

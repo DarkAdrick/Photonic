@@ -5,7 +5,7 @@ a = Analysis(
     ['run.py'],
     pathex=[],
     binaries=[],
-    datas=[('backend', 'backend'), ('frontend', 'frontend'), ('venv_build/Lib/site-packages/reverse_geocoder/rg_cities1000.csv', '.'), ('CHANGELOG.md', 'backend'), ('icon.png', 'backend')],
+    datas=[('backend', 'backend'), ('frontend', 'frontend'), ('venv_build/Lib/site-packages/reverse_geocoder/rg_cities1000.csv', '.'), ('CHANGELOG.md', 'backend'), ('credits.json', 'backend'), ('icon.png', 'backend')],
     hiddenimports=['backend.main', 'backend.database', 'backend.scanner', 'backend.thumbnails'],
     hookspath=[],
     hooksconfig={},

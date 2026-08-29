@@ -8,6 +8,7 @@ let mapMoveTimeout = null;
 export function initMapModule(context) {
     const {
         mapPhotos,
+        mapPhotoCount,
         photoCountH,
         openDetail,
         is360Photo,
@@ -116,6 +117,7 @@ export function initMapModule(context) {
         }
         lucide.createIcons();
         photoCountH.textContent = `${data.total.toLocaleString()} geo-tagged`;
+        if (mapPhotoCount) mapPhotoCount.textContent = `${data.total.toLocaleString()} items`;
     }
 
     function invalidateSize() {

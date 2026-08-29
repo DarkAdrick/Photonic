@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
-    <link rel="stylesheet" href="/css/style.css?v=0.2.8">
+    <link rel="stylesheet" href="/css/style.css?v=0.2.9">
 </head>
 <body>
 
@@ -17,7 +17,7 @@
     <div class="header-left">
         <div class="logo-icon"><i data-lucide="aperture"></i></div>
         <span class="logo">PHOTONIC</span>
-        <span class="version-badge-outer" id="version-badge" title="View changelog"><span class="version-badge-inner">v0.2.8</span></span>
+        <span class="version-badge-outer" id="version-badge" title="View changelog"><span class="version-badge-inner">v0.2.9</span></span>
         <a href="https://github.com/DarkAdrick/Photonic/releases" target="_blank" rel="noopener" id="update-pill" class="update-pill hidden" title="New version available — view release"><span class="update-pill-dot"></span><i data-lucide="arrow-up-circle"></i><span id="update-pill-text">Update</span></a>
     </div>
     <div id="titlebar-drag" class="pywebview-drag-region"></div>
@@ -147,11 +147,18 @@
             <span id="photo-count-header"></span>
             <span id="selection-count" class="hidden">0 selected</span>
             <button id="btn-deselect-all" class="cleaning-btn hidden">Deselect All</button>
+            <button id="btn-selected-only" class="cleaning-btn hidden" title="Show only selected items">Only Selected</button>
         </div>
     </div>
     <div id="stats-view" class="hidden"></div>
     <div id="map-view" class="hidden"></div>
     <div id="map-resize" class="map-resize hidden"></div>
+    <div id="map-photos-header" class="hidden">
+        <span id="map-photo-count"></span>
+        <span id="map-selection-count" class="hidden">0 selected</span>
+        <button id="map-btn-deselect-all" class="cleaning-btn hidden">Deselect All</button>
+        <button id="map-btn-selected-only" class="cleaning-btn hidden" title="Show only selected items">Only Selected</button>
+    </div>
     <div id="map-photos" class="hidden"></div>
 </main>
 
@@ -401,23 +408,39 @@
 
 <div id="changelog-dialog" class="dialog-overlay hidden">
     <div class="dialog changelog-box">
-        <div class="changelog-header">
-            <h3>Changelog</h3>
-            <button id="changelog-close" class="detail-close-btn"><i data-lucide="x"></i></button>
-        </div>
-        <div class="cl-hero">
-            <img src="/icon.png" alt="Photonic" class="cl-hero-logo">
-            <div class="cl-hero-text">
-                <h4><span>PHOTONIC</span></h4>
-                <div class="cl-hero-author">
-                    <i data-lucide="user"></i>
-                    <span>Crafted by <b>Adrick</b> · <a href="https://thephoenixfactory.com/" target="_blank" rel="noopener">ThePhoenixFactory</a></span>
+        <div class="changelog-main">
+            <div class="changelog-header">
+                <h3>Changelog</h3>
+                <button id="changelog-close" class="detail-close-btn"><i data-lucide="x"></i></button>
+            </div>
+            <div class="cl-hero">
+                <img src="/icon.png" alt="Photonic" class="cl-hero-logo">
+                <div class="cl-hero-text">
+                    <h4><span>PHOTONIC</span></h4>
+                    <div class="cl-hero-author">
+                        <i data-lucide="user"></i>
+                        <span>Crafted by <b>Adrick</b> · <a href="https://thephoenixfactory.com/" target="_blank" rel="noopener">ThePhoenixFactory</a></span>
+                    </div>
+                    <p>Solo dev, night coder, tool maker. Currently building Photonic and other stuff at ThePhoenixFactory. I believe software should be simple, fast, and stay out of your way. When I'm not coding, I'm probably riding rollercoasters or creating new artwork.</p>
+                    <a href="https://github.com/sponsors/DarkAdrick" target="_blank" rel="noopener" class="cl-hero-donate"><i data-lucide="heart"></i> Sponsor this project</a>
                 </div>
-                <p>Solo dev, night coder, tool maker. Currently building Photonic and other stuff at ThePhoenixFactory. I believe software should be simple, fast, and stay out of your way. When I'm not coding, I'm probably riding rollercoasters or creating new artwork.</p>
-                <a href="https://github.com/sponsors/DarkAdrick" target="_blank" rel="noopener" class="cl-hero-donate"><i data-lucide="heart"></i> Sponsor this project</a>
+            </div>
+            <div class="changelog-content" id="changelog-body"></div>
+        </div>
+        <div class="cl-credits-drawer" id="cl-credits">
+            <div class="cl-credits-section" id="cl-credits-section-sponsors">
+                <div class="cl-credits-title"><i data-lucide="heart-handshake"></i><span>Credit</span></div>
+                <div class="cl-credits-viewport">
+                    <div class="cl-credits-track" id="cl-credits-sponsors"></div>
+                </div>
+            </div>
+            <div class="cl-credits-section" id="cl-credits-section-thanks">
+                <div class="cl-credits-title cl-credits-title-secondary"><i data-lucide="hand-heart"></i><span>Contributors</span></div>
+                <div class="cl-credits-viewport">
+                    <div class="cl-credits-track" id="cl-credits-thanks-track"></div>
+                </div>
             </div>
         </div>
-        <div class="changelog-content" id="changelog-body"></div>
     </div>
 </div>
 
@@ -437,6 +460,6 @@
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-<script src="/js/app.js?v=0.2.8"></script>
+<script src="/js/app.js?v=0.2.9"></script>
 </body>
 </html>

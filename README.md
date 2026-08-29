@@ -223,12 +223,27 @@ If you find Photonic useful, consider sponsoring the development:
 
 | Tier | Price | Benefits |
 |------|-------|----------|
-| ☕ Coffee | 2 €/month | Name listed in README |
+| ☕ Coffee | 2 €/month | Name listed in credits |
 | ⭐ Supporter | 5 €/month | Name listed + early access to new features |
 | 🚀 Backer | 10 €/month | Name listed + early access + priority support |
 | 💎 Patron | 25 €/month | Name listed + early access + priority support + feature requests |
 
+#### One-time
+
+Prefer a one-off thank-you instead of a subscription? Any amount is appreciated — every contributor gets a spot in the in-app **credits**:
+
+| Tier | Amount | Benefits |
+|------|--------|----------|
+| ☕ Tip | 5 € once | Name listed in credits |
+| ⭐ Supporter | 15 € once | Name listed in credits + README |
+| 🚀 Backer | 30 € once | Name listed + early access to new features |
+| 💎 Patron | 60 € once | Name listed + early access + priority support + feature requests |
+
+> *Anonymity respected — your name appears in the credits only if you agree.*
+
 [Sponsor DarkAdrick on GitHub](https://github.com/sponsors/DarkAdrick)
+
+**Maintainers:** in-app credits combine GitHub Sponsors (public logins) with [`credits.json`](credits.json) (root, shipped) and `.photonic/credits.json` (local override, takes priority). Use it to credit manual donations (e.g. IRL), code/MR helpers, or anyone who helped — see the file's `"sponsors"` and `"thanks"` arrays. Each entry can be a plain string (`"Name"`) or an object `{ "name": "Name", "reason": "optional caption", "url": "https://optional-link" }` (the `url`, if present, makes the name clickable). Anonymous people simply aren't listed.
 
 ---
 
