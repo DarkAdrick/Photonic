@@ -25,6 +25,10 @@
   "filter.yes": "Sí",
   "filter.no": "No",
   "filter.clear": "Limpiar",
+  "filter.hidden": "Oculto",
+  "filter.hidden_no": "No",
+  "filter.hidden_yes": "Sí",
+  "filter.hidden_only": "Solo ocultos",
 
   "sidebar.views": "Vistas",
   "sidebar.quick_filters": "Filtros rápidos",
@@ -117,6 +121,8 @@
   "context.remove_tags": "Quitar etiquetas",
   "context.add_collection": "Añadir a la colección...",
   "context.remove_collections": "Quitar de las colecciones",
+  "context.hide": "Ocultar",
+  "context.show": "Mostrar",
   "context.delete_selected": "Eliminar seleccionados",
 
   "collection_dialog.add": "Añadir colección",
@@ -140,10 +146,14 @@
   "changelog.title": "Registro de cambios",
   "changelog.credit": "Agradecimientos",
   "changelog.contributors": "Colaboradores",
+  "changelog.crafted_by": "Creado por",
+  "changelog.hero_desc": "Desarrollador en solitario, programador nocturno y creador de herramientas. Actualmente estoy construyendo Photonic y otras cosas en ThePhoenixFactory. Creo que el software debe ser simple, rápido y no estorbar. Cuando no estoy programando, probablemente estoy montando en montañas rusas o creando nuevas obras de arte.",
+  "changelog.sponsor": "Apoyar este proyecto",
 
   "common.item": "1 elemento",
   "common.items": "{count} elementos",
   "common.close": "Cerrar",
+  "common.hidden": "Oculto",
   "common.direct_items": "{count} elementos directos",
   "common.collections_count": "{count} colecciones",
   "common.tags_count": "{count} etiquetas",
@@ -217,6 +227,8 @@
   "settings.general.confirm_delete_desc": "Mostrar un diálogo de confirmación antes de eliminar elementos, etiquetas, colecciones o carpetas.",
   "settings.general.show_extensions": "Mostrar extensiones de archivo",
   "settings.general.show_extensions_desc": "Mostrar extensiones de archivo (p. ej. .jpg, .png) en la cuadrícula de fotos.",
+  "settings.general.show_hidden_default": "Mostrar fotos ocultas por defecto",
+  "settings.general.show_hidden_default_desc": "Mostrar las fotos ocultas en la biblioteca por defecto en lugar de excluirlas.",
   "settings.general.telemetry": "Estadísticas de uso anónimas",
   "settings.general.telemetry_desc": "Enviar un ping de inicio anónimo (solo versión de la app y sistema operativo). Nunca fotos ni datos personales.",
 

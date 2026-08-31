@@ -56,11 +56,17 @@ echo Building Photonic.exe...
 echo.
 
 rem --- 3. Idem pour PyInstaller : on passe par le module, pas par l'exe
+rem --- 3b. Recupere la version (source unique backend/version.py) pour
+rem         nommer l'exe "Photonic-vX.Y.Z.exe"
+for /f %%v in ('venv_build\Scripts\python.exe -c "import backend.version, sys; sys.stdout.write(backend.version.APP_VERSION)"') do set VER=%%v
+if "%VER%"=="" set VER=0.0.0
+set NAME=Photonic-v%VER%
+
 venv_build\Scripts\python.exe -m PyInstaller ^
     --noconfirm ^
     --onefile ^
     --windowed ^
-    --name Photonic ^
+    --name %NAME% ^
     --icon icon.ico ^
     --add-data "backend;backend" ^
     --add-data "frontend;frontend" ^
@@ -81,6 +87,6 @@ if errorlevel 1 (
 )
 
 echo.
-echo BUILD OK - dist\Photonic.exe
+echo BUILD OK - dist\%NAME%.exe
 echo.
 pause

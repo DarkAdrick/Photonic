@@ -47,6 +47,10 @@
                     </div>
                 </div>
                 <div class="stats-charts">
+                    <div class="stats-chart-box stats-chart-wide">
+                        <h4>${t("stats.photos_over_time")}</h4>
+                        <canvas id="chart-timeline"></canvas>
+                    </div>
                     <div class="stats-chart-box">
                         <h4>${t("stats.formats")}</h4>
                         <canvas id="chart-format"></canvas>
@@ -54,10 +58,6 @@
                     <div class="stats-chart-box">
                         <h4>${t("stats.top_countries")}</h4>
                         <canvas id="chart-countries"></canvas>
-                    </div>
-                    <div class="stats-chart-box stats-chart-wide">
-                        <h4>${t("stats.photos_over_time")}</h4>
-                        <canvas id="chart-timeline"></canvas>
                     </div>
                 </div>
             `;

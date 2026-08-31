@@ -25,6 +25,10 @@
   "filter.yes": "Ja",
   "filter.no": "Nein",
   "filter.clear": "Zurücksetzen",
+  "filter.hidden": "Ausgeblendet",
+  "filter.hidden_no": "Nein",
+  "filter.hidden_yes": "Ja",
+  "filter.hidden_only": "Nur ausgeblendete",
 
   "sidebar.views": "Ansichten",
   "sidebar.quick_filters": "Schnellfilter",
@@ -117,6 +121,8 @@
   "context.remove_tags": "Tags entfernen",
   "context.add_collection": "Zur Sammlung hinzufügen...",
   "context.remove_collections": "Aus Sammlungen entfernen",
+  "context.hide": "Ausblenden",
+  "context.show": "Einblenden",
   "context.delete_selected": "Ausgewählte löschen",
 
   "collection_dialog.add": "Sammlung hinzufügen",
@@ -140,10 +146,14 @@
   "changelog.title": "Änderungsprotokoll",
   "changelog.credit": "Danksagung",
   "changelog.contributors": "Mitwirkende",
+  "changelog.crafted_by": "Erstellt von",
+  "changelog.hero_desc": "Solo-Entwickler, Nachtprogrammierer, Werkzeugmacher. Ich baue derzeit Photonic und andere Dinge bei ThePhoenixFactory. Ich bin überzeugt, dass Software einfach, schnell und unaufdringlich sein sollte. Wenn ich nicht programmiere, fahre ich wahrscheinlich Achterbahn oder erschaffe neue Kunstwerke.",
+  "changelog.sponsor": "Dieses Projekt unterstützen",
 
   "common.item": "1 Element",
   "common.items": "{count} Elemente",
   "common.close": "Schließen",
+  "common.hidden": "Ausgeblendet",
   "common.direct_items": "{count} direkte Elemente",
   "common.collections_count": "{count} Sammlungen",
   "common.tags_count": "{count} Tags",
@@ -217,6 +227,8 @@
   "settings.general.confirm_delete_desc": "Vor dem Löschen von Elementen, Tags, Sammlungen oder Ordnern einen Bestätigungsdialog anzeigen.",
   "settings.general.show_extensions": "Dateierweiterungen anzeigen",
   "settings.general.show_extensions_desc": "Dateierweiterungen (z. B. .jpg, .png) im Fotoblock anzeigen.",
+  "settings.general.show_hidden_default": "Ausgeblendete Fotos standardmäßig anzeigen",
+  "settings.general.show_hidden_default_desc": "Ausgeblendete Fotos in der Bibliothek standardmäßig anzeigen, anstatt sie auszuschließen.",
   "settings.general.telemetry": "Anonyme Nutzungsstatistiken",
   "settings.general.telemetry_desc": "Einen anonymen Start-Ping senden (nur App-Version und Betriebssystem). Niemals Fotos oder persönliche Daten.",
 

@@ -1,5 +1,37 @@
 # Changelog
 
+## v1.0.2 — 31 August 2026
+
+### Hidden photos
+- [ADD] The "Hidden" filter is now a **3-state selector** (Not hidden / Hidden / Only hidden) replacing the previous boolean checkbox — the first state (default) excludes hidden photos, the last shows only hidden ones
+- [ADD] Hidden photos get a **distinct visual treatment**: the thumbnail is dimmed/desaturated, an eye-off overlay with diagonal hatching, an icon and a "Hidden" label is drawn on the card, and the card's file-name label keeps its normal text on an accent-colored background
+- [ADD] Hidden photos are excluded by default from every view (grid, browse folders/collections/tags/cameras/countries, map, stats and filters) and can be re-included per-session with the new filter
+- [ADD] New option in **Settings > Display > General**: "Show hidden photos by default" — when enabled the app starts with hidden photos visible instead of excluded (default: off)
+
+### Hide / Show toggling
+- [FIX] The "Hide"/"Show" action (context menu and the **H** shortcut) no longer depends on the active hidden filter — it now acts on the **actual state of the selected photos**: right-click on a hidden photo offers "Show", on a visible one "Hide"
+- [ADD] With a **mixed selection** (both hidden and visible photos) the context menu shows **both** "Hide" and "Show" options; the **H** shortcut defaults to hiding whenever at least one selected photo is not hidden (and shows them only when all are hidden)
+
+### Drag & drop
+- [ADD] When dragging several photos (a multi-selection) toward a tag, collection or other drop target, a **custom drag ghost** follows the cursor: the dragged photo thumbnail with a count badge (`+N`) representing the remaining selected photos
+
+### Selection
+- [FIX] The selection visual markers no longer disappear when switching views (e.g. Library → Collections → Library): the counter stayed (e.g. "28 selected") but the freshly re-rendered cards were not highlighted — `renderSelection()` is now re-applied after each grid/browse re-render (library grid, folders and collections browse), so the highlighted `selected` state stays in sync with the count in every view
+
+### Last view on startup
+- [ADD] The app now **remembers the last active view and restores it on restart/F5**: the sidebar view (Library, Folders, Collections, Countries, Tags, Cameras, Locations, Cleaning, Stats) plus its navigation context (folder/collection path, tag, country, camera) and the Settings page (pane + section) are persisted to `localStorage` and reapplied automatically
+- [FIX] The restore is applied **synchronously at boot** (before translations resolve) so the previous view is shown immediately — this removes the brief "default Library" flash at startup and, for the **Localisation** view, the momentary coexistence of the photo grid with the map / map-photo strip
+
+### Packaged app
+- [ADD] Local and GitHub-built executables are now named with the app version, e.g. **`Photonic-v1.0.2.exe`** — the version is read from the single source of truth `backend/version.py` (local `#Build.bat` and the `Photonic.spec`/GitHub release workflow both use it), so the asset name always matches the running app version
+
+### Statistics
+- [EDIT] The **"Photos over time"** timeline chart now comes **first** in the Statistics view (before Formats and Top Countries), keeping its full-width layout while the doughnut and bar charts sit side by side below it
+- [FIX] The Statistics view now re-renders in the current language when you switch language from the header — previously it fell through to the main view and kept the old translated labels until you left and reopened the tab
+
+### Changelog & Credits
+- [ADD] The changelog **hero** (author line "Crafted by", the developer description and the "Sponsor this project" button) is now translated across all languages, alongside the existing title / credits / contributors headings
+
 ## v1.0.1 — 29 August 2026
 
 ### Internationalization (i18n)

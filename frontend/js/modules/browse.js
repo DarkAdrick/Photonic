@@ -34,7 +34,10 @@
     
         async function loadFolderBrowse() {
             const fpath = P.folderBrowsePath.length > 0 ? P.folderBrowsePath[P.folderBrowsePath.length - 1].path : null;
-            const url = fpath ? `/api/folders/browse?folder_path=${encodeURIComponent(fpath)}` : "/api/folders/browse";
+            const hq = P.fn.hiddenQuery();
+            const url = fpath
+                ? `/api/folders/browse?folder_path=${encodeURIComponent(fpath)}${hq ? "&" + hq : ""}`
+                : `/api/folders/browse${hq ? "?" + hq : ""}`;
             const data = await P.fn.api("GET", url);
             renderFolderBreadcrumb();
     
@@ -78,7 +81,7 @@
                 P.photoCountH.textContent += (totalFolders > 0 ? " + " : "") + t("common.direct_items", { count: count.toLocaleString() });
                 for (const p of photos) {
                     const card = document.createElement("div");
-                    card.className = "photo-card";
+                    card.className = "photo-card" + (P.fn.isPhotoHidden(p) ? " photo-card-hidden" : "");
                     card.title = p.filename;
                     let badge = "";
                     if (P.fn.is360Photo(p)) {
@@ -89,6 +92,7 @@
                     card.innerHTML = `
                         <img src="/api/photos/${p.id}/thumb/medium" alt="${p.filename}" loading="lazy">
                         ${badge}
+                        ${P.fn.renderHiddenBadge(p)}
                         ${P.fn.renderMetaBadges(p)}
                         <div class="photo-label">${p.filename}</div>
                     `;
@@ -96,6 +100,7 @@
                     P.photoGrid.appendChild(card);
                 }
                 lucide.createIcons();
+                P.fn.renderSelection();
             }
         }
     
@@ -134,12 +139,16 @@
     
         async function loadCollectionsBrowse() {
             const cid = P.collectionBrowsePath.length > 0 ? P.collectionBrowsePath[P.collectionBrowsePath.length - 1].id : null;
-            const url = cid ? `/api/collections/browse?parent_id=${cid}` : "/api/collections/browse";
+            const hq = P.fn.hiddenQuery();
+            const hid = hq ? "&" + hq : "";
+            const url = cid
+                ? `/api/collections/browse?parent_id=${cid}${hid}`
+                : `/api/collections/browse${hq ? "?" + hq : ""}`;
             const collections = await P.fn.api("GET", url);
             
             let photos = [];
             if (cid) {
-                const photosData = await P.fn.api("GET", `/api/photos?collection_id=${cid}&per_page=500`);
+                const photosData = await P.fn.api("GET", `/api/photos?collection_id=${cid}&per_page=500${hid}`);
                 photos = photosData.photos || [];
             }
     
@@ -185,7 +194,7 @@
                 P.photoCountH.textContent += (totalCollections > 0 ? " + " : "") + t("common.direct_items", { count: count.toLocaleString() });
                 for (const p of photos) {
                     const card = document.createElement("div");
-                    card.className = "photo-card";
+                    card.className = "photo-card" + (P.fn.isPhotoHidden(p) ? " photo-card-hidden" : "");
                     card.title = p.filename;
                     let badge = "";
                     if (P.fn.is360Photo(p)) {
@@ -196,6 +205,7 @@
                     card.innerHTML = `
                         <img src="/api/photos/${p.id}/thumb/medium" alt="${p.filename}" loading="lazy">
                         ${badge}
+                        ${P.fn.renderHiddenBadge(p)}
                         ${P.fn.renderMetaBadges(p)}
                         <div class="photo-label">${p.filename}</div>
                     `;
@@ -204,6 +214,7 @@
                 }
             }
             lucide.createIcons();
+            P.fn.renderSelection();
         }
     
         // ── Tags Browse (main area) ────────────────────────────────────────────
@@ -234,7 +245,8 @@
         }
     
         async function loadTagsBrowse() {
-            tagsData = await P.fn.api("GET", "/api/tags/browse");
+            const hq = P.fn.hiddenQuery();
+            tagsData = await P.fn.api("GET", `/api/tags/browse${hq ? "?" + hq : ""}`);
             if (!Array.isArray(tagsData)) tagsData = [];
             renderTagBreadcrumb();
             if (!P.activeTagBrowseId) {
@@ -303,7 +315,8 @@
         }
     
         async function loadCamerasBrowse() {
-            camerasData = await P.fn.api("GET", "/api/cameras/browse");
+            const hq = P.fn.hiddenQuery();
+            camerasData = await P.fn.api("GET", `/api/cameras/browse${hq ? "?" + hq : ""}`);
             if (!Array.isArray(camerasData)) camerasData = [];
             renderCameraBreadcrumb();
             if (!P.activeCameraBrowseId) {
@@ -386,7 +399,8 @@
         }
     
         async function loadCountries() {
-            countriesData = await P.fn.api("GET", "/api/countries");
+            const hq = P.fn.hiddenQuery();
+            countriesData = await P.fn.api("GET", `/api/countries${hq ? "?" + hq : ""}`);
             if (!Array.isArray(countriesData)) countriesData = [];
             renderBreadcrumb();
             if (!P.activeCountryCode) {

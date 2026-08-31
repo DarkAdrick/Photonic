@@ -34,7 +34,7 @@
     
                 for (const p of data.photos) {
                     const card = document.createElement("div");
-                    card.className = "photo-card";
+                    card.className = "photo-card" + (P.fn.isPhotoHidden(p) ? " photo-card-hidden" : "");
                     card.dataset.photoId = p.id;
                     card.title = p.filename;
                     let badge = "";
@@ -46,6 +46,7 @@
                     card.innerHTML = `
                         <img src="/api/photos/${p.id}/thumb/medium" alt="${p.filename}" loading="lazy">
                         ${badge}
+                        ${P.fn.renderHiddenBadge(p)}
                         ${P.fn.renderMetaBadges(p)}
                         <div class="photo-label">${p.filename}</div>
                     `;
@@ -56,6 +57,7 @@
                 P.hasMore = data.photos.length === 200;
                 P.currentPage++;
             } while (P.hasMore && P.photoGrid.scrollHeight <= P.photoGrid.clientHeight);
+            renderSelection();
         }
     
         P.photoGrid.addEventListener("scroll", () => {
@@ -72,7 +74,7 @@
         function getVisiblePhotoCards() {
             const cards = Array.from(P.photoGrid.querySelectorAll(".photo-card[data-photo-id]"));
             if (!P.mapPhotos.classList.contains("hidden")) {
-                cards.push(...mapPhotos.querySelectorAll(".photo-card[data-photo-id]"));
+                cards.push(...P.mapPhotos.querySelectorAll(".photo-card[data-photo-id]"));
             }
             return cards;
         }
@@ -280,6 +282,7 @@
                 : [id];
             card.classList.add("dragging");
             e.stopPropagation();
+            P.fn.setDnDGhost(e, card, P.dndPhotoIds.length);
             try {
                 e.dataTransfer.setData(DND_MIME, JSON.stringify(P.dndPhotoIds));
                 e.dataTransfer.setData("text/plain", P.dndPhotoIds.join(","));
@@ -291,6 +294,7 @@
             const card = e.target.closest(".photo-card");
             if (card) card.classList.remove("dragging");
             P.dndPhotoIds = [];
+            P.fn.clearDnDGhost();
         }
     
         P.photoGrid.addEventListener("dragstart", gridDragStart);
@@ -325,6 +329,18 @@
         // ── Context Menu ──────────────────────────────────────────────────────
     
         let contextMenuTargets = [];
+
+        async function hidePhotos(ids, hidden) {
+            ids = (ids || []).filter(Number.isFinite);
+            if (ids.length === 0) return;
+            const hid = hidden !== false;
+            await P.fn.api("POST", "/api/photos/bulk-hide", { photo_ids: ids, hidden: hid });
+            for (const id of ids) P.selectedIds.delete(id);
+            P.lastSelectedId = null;
+            P.lastMapQueryUrl = null;
+            renderSelection();
+            P.fn.onFilterChange();
+        }
     
         function gridContextMenu(e) {
             const id = getPhotoIdFromEvent(e);
@@ -355,7 +371,7 @@
     
             const isCleaning = P.activeView === "cleaning";
             const isMulti = count > 1;
-    
+
             P.contextMenu.querySelector('[data-action="open"]').classList.toggle("disabled", isMulti);
             P.contextMenu.querySelector('[data-action="select"]').classList.toggle("hidden", isMulti);
             P.contextMenu.querySelector('[data-action="deselect"]').classList.toggle("hidden", isMulti);
@@ -363,6 +379,14 @@
             P.contextMenu.querySelector('[data-action="remove-tags"]').classList.toggle("hidden", isCleaning);
             P.contextMenu.querySelector('[data-action="add-collection"]').classList.toggle("hidden", isCleaning);
             P.contextMenu.querySelector('[data-action="remove-collections"]').classList.toggle("hidden", isCleaning);
+            P.contextMenu.querySelector('[data-action="hide"]').classList.toggle("hidden", isCleaning);
+            P.contextMenu.querySelector('[data-action="show"]').classList.toggle("hidden", isCleaning);
+
+            const hideInfo = P.fn.getSelectionHiddenInfo(contextMenuTargets);
+            P.contextMenu.querySelector('[data-action="hide"]').classList.toggle("hidden", hideInfo.shown === 0);
+            P.contextMenu.querySelector('[data-action="show"]').classList.toggle("hidden", hideInfo.hidden === 0);
+
+
     
             const visibleItems = P.contextMenu.querySelectorAll(".context-item:not(.hidden)");
             visibleItems.forEach(item => item.classList.remove("striped"));
@@ -411,6 +435,12 @@
                 }
             } else if (action === "remove-collections") {
                 P.fn.removeCollectionsFromTargets(targets);
+            } else if (action === "hide") {
+                const ids = targets.length > 0 ? targets : Array.from(P.selectedIds);
+                P.fn.hidePhotos(ids, true);
+            } else if (action === "show") {
+                const ids = targets.length > 0 ? targets : Array.from(P.selectedIds);
+                P.fn.hidePhotos(ids, false);
             } else if (action === "delete") {
                 const ids = targets.length > 0 ? targets : Array.from(P.selectedIds);
                 if (ids.length > 0) P.fn.confirmDelete(ids);
@@ -525,8 +555,11 @@
             P.filterCity.value = "";
             P.filterGeo.value = "";
             P.filter360.value = "";
+            P.filterHidden.value = "hide";
+            P.hiddenFilter = "hide";
             P.activeTagId = null;
             P.activeCountryCode = null;
+            if (P.activeView === "locations") P.lastMapQueryUrl = null;
             onFilterChange();
         }
     
@@ -539,6 +572,7 @@
         P.fn.isPhotoDnd = isPhotoDnd;
         P.fn.parsePhotoDnd = parsePhotoDnd;
         P.fn.hideContextMenu = hideContextMenu;
+        P.fn.hidePhotos = hidePhotos;
         P.fn.onFilterChange = onFilterChange;
         P.fn.onSearch = onSearch;
         P.fn.clearFilters = clearFilters;

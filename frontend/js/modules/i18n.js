@@ -52,6 +52,7 @@
                 else if (P.activeView === "folders" && !P.activeFolderId) P.fn.loadFolderBrowse();
                 else if (P.activeView === "tags" && !P.activeTagBrowseId) P.fn.loadTagsBrowse();
                 else if (P.activeView === "collections") P.fn.loadCollectionsBrowse();
+                else if (P.activeView === "stats") P.fn.loadStats();
                 else P.fn.loadPhotos();
                 P.fn.loadSidebar();
                 P.fn.loadFilters();

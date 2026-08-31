@@ -8,6 +8,8 @@
         }
     
         lucide.createIcons();
+        P.fn.restoreView({ load: false });
+        window.addEventListener("beforeunload", () => P.fn.saveRestoreState());
         I18n.ready().then(() => {
             I18n.applyI18n();
             P.fn.refreshLangHeader();
@@ -15,7 +17,8 @@
             lucide.createIcons();
             P.fn.checkStatus();
             P.fn.loadSidebar();
-            P.fn.loadPhotos();
+            if (P.filterHidden) P.filterHidden.value = P.hiddenFilter;
+            P.fn.restoreView();
             P.fn.loadFilters();
             P.fn.pollScan();
             P.fn.initUpdateChecker();

@@ -31,6 +31,13 @@ jobs:
           venv_build\Scripts\python.exe -m pip install --upgrade pip -q
           venv_build\Scripts\python.exe -m pip install -r requirements.txt pyinstaller -q
 
+      - name: Get version
+        id: version
+        run: |
+          $ver = venv_build\Scripts\python.exe -c "import backend.version, sys; sys.stdout.write(backend.version.APP_VERSION)"
+          echo "ver=$ver" | Out-File -Append $env:GITHUB_OUTPUT
+          echo "exe=Photonic-v$ver.exe" | Out-File -Append $env:GITHUB_OUTPUT
+
       - name: Build Photonic.exe
         run: venv_build\Scripts\python.exe -m PyInstaller --noconfirm Photonic.spec
 
@@ -38,11 +45,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Photonic-windows-x64
-          path: dist/Photonic.exe
+          path: dist/${{ steps.version.outputs.exe }}
 
       - name: Create GitHub Release (tag uniquement)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/Photonic.exe
+          files: dist/${{ steps.version.outputs.exe }}
           generate_release_notes: true

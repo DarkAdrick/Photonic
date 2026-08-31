@@ -21,6 +21,11 @@
         P.filterCity.addEventListener("change", P.fn.onFilterChange);
         P.filterGeo.addEventListener("change", P.fn.onFilterChange);
         P.filter360.addEventListener("change", P.fn.onFilterChange);
+        P.filterHidden.addEventListener("change", () => {
+            P.hiddenFilter = P.filterHidden.value || "hide";
+            if (P.activeView === "locations") P.lastMapQueryUrl = null;
+            P.fn.onFilterChange();
+        });
         P.btnClearFilters.addEventListener("click", P.fn.clearFilters);
         P.btnAddFolder.addEventListener("click", P.fn.openDialog);
         P.btnAddFolderSb.addEventListener("click", P.fn.openDialog);
@@ -225,6 +230,13 @@
                 if (e.key === "Escape") P.fn.closeDetail();
                 if (e.key === "ArrowLeft") P.fn.navigateDetail(-1);
                 if (e.key === "ArrowRight") P.fn.navigateDetail(1);
+                if ((e.key === "h" || e.key === "H") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    e.preventDefault();
+                    if (P.detailCurrentPhotoId != null) {
+                        P.fn.hidePhotos([P.detailCurrentPhotoId], !P.fn.isPhotoHidden(P.detailCurrentPhotoData));
+                        P.fn.closeDetail();
+                    }
+                }
             } else if (e.key === "Escape") {
                 if (P.selectedIds.size > 0) P.fn.deselectAll();
                 P.fn.hideContextMenu();
@@ -235,6 +247,12 @@
                     e.preventDefault();
                     for (const c of P.fn.getVisiblePhotoCards()) P.selectedIds.add(parseInt(c.dataset.photoId));
                     P.fn.renderSelection();
+                }
+            } else if ((e.key === "h" || e.key === "H") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault();
+                if (P.selectedIds.size > 0) {
+                    const ids = Array.from(P.selectedIds);
+                    P.fn.hidePhotos(ids, P.fn.getSelectionHiddenInfo(ids).shown > 0);
                 }
             }
         });

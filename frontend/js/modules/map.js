@@ -18,6 +18,8 @@
             if (P.filterRating.value) params.set("rating", P.filterRating.value);
             const q = P.searchInput.value.trim();
             if (q) params.set("q", q);
+            if (P.hiddenFilter === "all") params.set("show_hidden", "1");
+            else if (P.hiddenFilter === "only") params.set("hidden_only", "1");
             let url = "/api/photos/geo/bounds";
             const qs = params.toString();
             if (qs) url += "?" + qs;
@@ -92,6 +94,8 @@
             if (P.filterRating.value) url += `&rating=${filterRating.value}`;
             const q = P.searchInput.value.trim();
             if (q) url += `&q=${encodeURIComponent(q)}`;
+            const hq = P.fn.hiddenQuery();
+            if (hq) url += `&${hq}`;
             if (url === P.lastMapQueryUrl) return;
             const data = await P.fn.api("GET", url);
             P.lastMapQueryUrl = url;
@@ -200,7 +204,7 @@
             const frag = document.createDocumentFragment();
             for (const p of items) {
                 const card = document.createElement("div");
-                card.className = "photo-card";
+                card.className = "photo-card" + (P.fn.isPhotoHidden(p) ? " photo-card-hidden" : "");
                 card.dataset.photoId = p.id;
                 let badge = "";
                 if (P.fn.is360Photo(p)) {
@@ -211,6 +215,7 @@
                 card.innerHTML = `
                     <img src="${p.thumb}" alt="${p.filename}" loading="lazy" decoding="async">
                     ${badge}
+                    ${P.fn.renderHiddenBadge(p)}
                     ${P.fn.renderMetaBadges(p)}
                 `;
                 frag.appendChild(card);

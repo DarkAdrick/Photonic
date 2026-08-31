@@ -25,6 +25,10 @@
   "filter.yes": "はい",
   "filter.no": "いいえ",
   "filter.clear": "クリア",
+  "filter.hidden": "非表示",
+  "filter.hidden_no": "いいえ",
+  "filter.hidden_yes": "はい",
+  "filter.hidden_only": "非表示のみ",
 
   "sidebar.views": "ビュー",
   "sidebar.quick_filters": "クイックフィルター",
@@ -117,6 +121,8 @@
   "context.remove_tags": "タグを削除",
   "context.add_collection": "コレクションに追加...",
   "context.remove_collections": "コレクションから削除",
+  "context.hide": "非表示",
+  "context.show": "表示",
   "context.delete_selected": "選択項目を削除",
 
   "collection_dialog.add": "コレクションを追加",
@@ -140,10 +146,14 @@
   "changelog.title": "変更履歴",
   "changelog.credit": "クレジット",
   "changelog.contributors": "貢献者",
+  "changelog.crafted_by": "作成者:",
+  "changelog.hero_desc": "ソロ開発者、夜のコーダー、ツール制作者。現在は ThePhoenixFactory で Photonic やその他のものを開発しています。ソフトウェアはシンプルで速く、邪魔にならないものであるべきだと思っています。コードを書いていないときは、おそらくジェットコースターに乗るか、新しいアート作品を制作しています。",
+  "changelog.sponsor": "このプロジェクトを支援する",
 
   "common.item": "1 件",
   "common.items": "{count} 件",
   "common.close": "閉じる",
+  "common.hidden": "非表示",
   "common.direct_items": "{count} 件の直接アイテム",
   "common.collections_count": "{count} コレクション",
   "common.tags_count": "{count} タグ",
@@ -217,6 +227,8 @@
   "settings.general.confirm_delete_desc": "アイテム、タグ、コレクション、フォルダを削除する前に確認ダイアログを表示します。",
   "settings.general.show_extensions": "ファイル拡張子を表示",
   "settings.general.show_extensions_desc": "写真グリッドにファイル拡張子（例: .jpg、.png）を表示します。",
+  "settings.general.show_hidden_default": "非表示の写真をデフォルトで表示",
+  "settings.general.show_hidden_default_desc": "非表示の写真をライブラリでデフォルトで表示（除外せずに表示）します。",
   "settings.general.telemetry": "匿名の利用統計",
   "settings.general.telemetry_desc": "匿名の起動 Ping（アプリのバージョンと OS のみ）を送信します。写真や個人データは決して送信されません。",
 

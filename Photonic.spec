@@ -1,5 +1,14 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+def _app_version():
+    ns = {}
+    with open('backend/version.py', 'r', encoding='utf-8') as f:
+        exec(compile(f.read(), 'backend/version.py', 'exec'), ns)
+    return ns.get('APP_VERSION', '0.0.0')
+
+
+APP_VERSION = _app_version()
+
 
 a = Analysis(
     ['run.py'],
@@ -22,7 +31,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='Photonic',
+    name='Photonic-v' + APP_VERSION,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

@@ -47,6 +47,8 @@
             if (P.filterCity.value) p.set("city", P.filterCity.value);
             if (P.filterGeo.value) p.set("geo", P.filterGeo.value);
             if (P.filter360.value) p.set("is_360", P.filter360.value === "yes" ? "1" : "0");
+            if (P.hiddenFilter === "all") p.set("show_hidden", "1");
+            else if (P.hiddenFilter === "only") p.set("hidden_only", "1");
             return p;
         }
     

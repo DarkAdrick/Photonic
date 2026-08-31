@@ -25,6 +25,10 @@
   "filter.yes": "Yes",
   "filter.no": "No",
   "filter.clear": "Clear",
+  "filter.hidden": "Hidden",
+  "filter.hidden_no": "No",
+  "filter.hidden_yes": "Yes",
+  "filter.hidden_only": "Only hidden",
 
   "sidebar.views": "Views",
   "sidebar.quick_filters": "Quick Filters",
@@ -117,6 +121,8 @@
   "context.remove_tags": "Remove Tags",
   "context.add_collection": "Add to Collection...",
   "context.remove_collections": "Remove Collections",
+  "context.hide": "Hide",
+  "context.show": "Show",
   "context.delete_selected": "Delete Selected",
 
   "collection_dialog.add": "Add Collection",
@@ -140,10 +146,14 @@
   "changelog.title": "Changelog",
   "changelog.credit": "Credit",
   "changelog.contributors": "Contributors",
+  "changelog.crafted_by": "Crafted by",
+  "changelog.hero_desc": "Solo dev, night coder, tool maker. Currently building Photonic and other stuff at ThePhoenixFactory. I believe software should be simple, fast, and stay out of your way. When I'm not coding, I'm probably riding rollercoasters or creating new artwork.",
+  "changelog.sponsor": "Sponsor this project",
 
   "common.item": "1 item",
   "common.items": "{count} items",
   "common.close": "Close",
+  "common.hidden": "Hidden",
   "common.direct_items": "{count} direct items",
   "common.collections_count": "{count} collections",
   "common.tags_count": "{count} tags",
@@ -217,6 +227,8 @@
   "settings.general.confirm_delete_desc": "Show a confirmation dialog before deleting items, tags, collections, or folders.",
   "settings.general.show_extensions": "Show file extensions",
   "settings.general.show_extensions_desc": "Display file extensions (e.g. .jpg, .png) in the photo grid.",
+  "settings.general.show_hidden_default": "Show hidden photos by default",
+  "settings.general.show_hidden_default_desc": "Display hidden photos in the library by default instead of excluding them.",
   "settings.general.telemetry": "Anonymous usage statistics",
   "settings.general.telemetry_desc": "Send an anonymous launch ping (app version and OS only). Never any photo or personal data.",
 

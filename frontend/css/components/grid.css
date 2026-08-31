@@ -210,6 +210,46 @@
     opacity: 0.7;
 }
 
+.photo-card-hidden img {
+    filter: grayscale(0.35) brightness(0.82);
+}
+
+.photo-hidden-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    background: repeating-linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.07) 0 8px,
+        rgba(255, 255, 255, 0.02) 8px 16px
+    );
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: rgba(255, 255, 255, 0.92);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+}
+
+.photo-hidden-overlay svg {
+    width: clamp(16px, calc(var(--thumb-size, 150px) * 0.24), 34px);
+    height: clamp(16px, calc(var(--thumb-size, 150px) * 0.24), 34px);
+}
+
+.photo-hidden-overlay span {
+    font-size: clamp(8px, calc(var(--thumb-size, 150px) * 0.1), 12px);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.photo-card-hidden .photo-label {
+    background: var(--accent);
+    color: #fff;
+    opacity: 0.92;
+}
+
 /* ── Layout Toggle ──────────────────────────────────────────────────────── */
 
 #layout-toggle {
@@ -378,6 +418,42 @@
 
 .photo-card.dragging {
     opacity: 0.45;
+}
+
+.dnd-ghost {
+    position: fixed;
+    left: -9999px;
+    top: -9999px;
+    width: 72px;
+    height: 72px;
+    pointer-events: none;
+}
+
+.dnd-ghost-img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.dnd-ghost-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border-radius: 11px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 22px;
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    border: 2px solid var(--bg-primary);
 }
 
 /* ── Meta badges (tags / collections counts) ─────────────────────────── */

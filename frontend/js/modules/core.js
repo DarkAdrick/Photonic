@@ -40,6 +40,7 @@
          P.filterCity      = document.getElementById("filter-city");
          P.filterGeo       = document.getElementById("filter-geo");
          P.filter360       = document.getElementById("filter-360");
+         P.filterHidden    = document.getElementById("filter-hidden");
          P.btnClearFilters = document.getElementById("btn-clear-filters");
          P.navItems        = document.querySelectorAll("#sidebar nav li");
     
@@ -136,4 +137,53 @@
     
     // --- exports ---
         P.fn.showConfirm = showConfirm;
+        P.fn.hiddenQuery = function () {
+            if (P.hiddenFilter === "all") return "show_hidden=1";
+            if (P.hiddenFilter === "only") return "hidden_only=1";
+            return "";
+        };
+        P.fn.isPhotoHidden = function (p) {
+            return !!(p && (p.hidden === true || p.is_hidden === 1));
+        };
+        P.fn.renderHiddenBadge = function (p) {
+            if (!P.fn.isPhotoHidden(p)) return "";
+            return '<div class="photo-hidden-overlay"><i data-lucide="eye-off"></i><span data-i18n="common.hidden">Hidden</span></div>';
+        };
+        P.fn.getSelectionHiddenInfo = function (ids) {
+            const cards = P.fn.getVisiblePhotoCards();
+            let hidden = 0, shown = 0;
+            for (const id of ids) {
+                const card = cards.find(c => parseInt(c.dataset.photoId) === id);
+                if (!card) continue;
+                if (card.classList.contains("photo-card-hidden")) hidden++;
+                else shown++;
+            }
+            return { hidden: hidden, shown: shown };
+        };
+        P.fn.setDnDGhost = function (e, card, count) {
+            if (P.dndGhost) { P.dndGhost.remove(); P.dndGhost = null; }
+            if (!e || !e.dataTransfer || !card) return;
+            const ghost = document.createElement("div");
+            ghost.className = "dnd-ghost";
+            const img = card.querySelector("img");
+            if (img) {
+                const g = img.cloneNode(false);
+                g.className = "dnd-ghost-img";
+                ghost.appendChild(g);
+            }
+            if (count > 1) {
+                const badge = document.createElement("div");
+                badge.className = "dnd-ghost-badge";
+                badge.textContent = "+" + (count - 1);
+                ghost.appendChild(badge);
+            }
+            document.body.appendChild(ghost);
+            try {
+                e.dataTransfer.setDragImage(ghost, 28, 28);
+            } catch (_) {}
+            P.dndGhost = ghost;
+        };
+        P.fn.clearDnDGhost = function () {
+            if (P.dndGhost) { P.dndGhost.remove(); P.dndGhost = null; }
+        };
 })(window.PhotoApp = window.PhotoApp || {});

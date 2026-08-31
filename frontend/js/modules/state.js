@@ -7,6 +7,8 @@
          P.activeCameraBrowseId = null;
          P.activeCountryCode = null;
          P.activeView = "library";
+         P.settingsSection = "settings-application";
+         P.hiddenFilter = localStorage.getItem("photonic.showHiddenDefault") === "true" ? "all" : "hide";
          P.cleaningTab = "duplicates";
          P.selectedIds = new Set();
          P.folderBrowsePath = [];
@@ -66,6 +68,7 @@
          P.dragHighlightIds = new Set();
          P.contextMenuPhotoId = null;
          P.dndPhotoIds = [];
+         P.dndGhost = null;
     
     // --- exports ---
         P.fn.clearGrid = clearGrid;

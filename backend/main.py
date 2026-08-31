@@ -33,6 +33,22 @@ def _under_pattern(path_str: str) -> str:
     """LIKE pattern matching any path strictly inside the given folder (not a sibling sharing a prefix)."""
     return _like_escape(path_str.replace("/", "\\").rstrip("\\")) + "\\\\%"
 
+
+def _hidden_sql(alias: str, show_hidden: bool = False, hidden_only: bool = False) -> str:
+    """SQL condition fragment filtering hidden photos.
+
+    show_hidden=True → include everything ('').
+    hidden_only=True → only hidden photos ('is_hidden = 1').
+    otherwise        → exclude hidden photos ('is_hidden = 0').
+    `alias` is the table prefix ('', 'p.', 'ph.') used where applicable.
+    """
+    col = f"{alias}is_hidden"
+    if hidden_only:
+        return f"{col} = 1"
+    if show_hidden:
+        return ""
+    return f"{col} = 0"
+
 # ── Scan state (shared across threads) ───────────────────────────────────────
 
 _scan_state = {
@@ -194,21 +210,27 @@ def _start_scan_all():
 # ── API ──────────────────────────────────────────────────────────────────────
 
 @app.get("/api/status")
-def status():
+def status(show_hidden: bool = False, hidden_only: bool = False):
     conn = get_connection()
-    count = conn.execute("SELECT COUNT(*) FROM photos").fetchone()[0]
+    cond = _hidden_sql("", show_hidden, hidden_only)
+    if cond:
+        count = conn.execute(f"SELECT COUNT(*) FROM photos WHERE {cond}").fetchone()[0]
+    else:
+        count = conn.execute("SELECT COUNT(*) FROM photos").fetchone()[0]
     conn.close()
     return {"status": "running", "version": APP_VERSION, "photo_count": count}
 
 
 @app.get("/api/folders")
-def list_folders():
+def list_folders(show_hidden: bool = False, hidden_only: bool = False):
     conn = get_connection()
     rows = conn.execute("SELECT id, path FROM folders ORDER BY path").fetchall()
+    cond = _hidden_sql("", show_hidden, hidden_only)
+    hf = ("AND " + cond + " ") if cond else ""
     result = []
     for r in rows:
         base = r["path"].rstrip("/\\")
-        cnt = conn.execute("SELECT COUNT(*) FROM photos WHERE path LIKE ? ESCAPE '\\'", (_under_pattern(base),)).fetchone()[0]
+        cnt = conn.execute("SELECT COUNT(*) FROM photos WHERE path LIKE ? ESCAPE '\\' " + hf, (_under_pattern(base),)).fetchone()[0]
         result.append({"id": r["id"], "path": r["path"], "photo_count": cnt})
     conn.close()
     return result
@@ -256,8 +278,11 @@ def list_folders_tree():
 
 
 @app.get("/api/folders/browse")
-def browse_folder(folder_path: Optional[str] = None):
+def browse_folder(folder_path: Optional[str] = None, show_hidden: bool = False, hidden_only: bool = False):
     import re, os
+
+    cond = _hidden_sql("", show_hidden, hidden_only)
+    hf = ("AND " + cond + " ") if cond else ""
 
     def _name(path_str):
         return re.split(r"[/\\]", path_str)[-1]
@@ -311,9 +336,9 @@ def browse_folder(folder_path: Optional[str] = None):
         for name, f in sorted(child_map.items(), key=lambda x: x[0].lower()):
             sub_path = f["path"].rstrip("/\\")
             pat = _under_pattern(sub_path)
-            cnt = conn.execute("SELECT COUNT(*) FROM photos WHERE path LIKE ? ESCAPE '\\'", (pat,)).fetchone()[0]
+            cnt = conn.execute("SELECT COUNT(*) FROM photos WHERE path LIKE ? ESCAPE '\\' " + hf, (pat,)).fetchone()[0]
             samples = [r["id"] for r in conn.execute(
-                "SELECT id FROM photos WHERE path LIKE ? ESCAPE '\\' ORDER BY date_taken DESC LIMIT 4",
+                "SELECT id FROM photos WHERE path LIKE ? ESCAPE '\\' " + hf + "ORDER BY date_taken DESC LIMIT 4",
                 (pat,)
             ).fetchall()]
             # If registered, use its id; otherwise generate a synthetic one
@@ -328,8 +353,8 @@ def browse_folder(folder_path: Optional[str] = None):
         under_pat = _under_pattern(parent_path)
         deeper_pat = under_pat + "\\\\%"
         direct_photos = [dict(r) for r in conn.execute(
-            "SELECT id, filename, width, height, camera_model, date_taken "
-            "FROM photos WHERE path LIKE ? ESCAPE '\\' AND path NOT LIKE ? ESCAPE '\\' "
+            "SELECT id, filename, width, height, camera_model, date_taken, is_hidden "
+            "FROM photos WHERE path LIKE ? ESCAPE '\\' AND path NOT LIKE ? ESCAPE '\\' " + hf +
             "ORDER BY date_taken DESC LIMIT 200",
             (under_pat, deeper_pat),
         ).fetchall()]
@@ -363,9 +388,9 @@ def browse_folder(folder_path: Optional[str] = None):
         for name, f in sorted(child_map.items(), key=lambda x: x[0].lower()):
             folder_path = f["path"].rstrip("/\\")
             pat = _under_pattern(folder_path)
-            cnt = conn.execute("SELECT COUNT(*) FROM photos WHERE path LIKE ? ESCAPE '\\'", (pat,)).fetchone()[0]
+            cnt = conn.execute("SELECT COUNT(*) FROM photos WHERE path LIKE ? ESCAPE '\\' " + hf, (pat,)).fetchone()[0]
             samples = [r["id"] for r in conn.execute(
-                "SELECT id FROM photos WHERE path LIKE ? ESCAPE '\\' ORDER BY date_taken DESC LIMIT 4",
+                "SELECT id FROM photos WHERE path LIKE ? ESCAPE '\\' " + hf + "ORDER BY date_taken DESC LIMIT 4",
                 (pat,)
             ).fetchall()]
             entries.append({
@@ -457,6 +482,8 @@ def list_photos(
     near_km: Optional[float] = None,
     geo: Optional[str] = None,
     is_360: Optional[str] = None,
+    show_hidden: bool = False,
+    hidden_only: bool = False,
 ):
     conn = get_connection()
     near_lat = near_lng = None
@@ -473,6 +500,10 @@ def list_photos(
 
     where_parts = []
     params: list = []
+
+    hc = _hidden_sql("p.", show_hidden, hidden_only)
+    if hc:
+        where_parts.append(hc)
 
     if folder_id:
         folder_row = conn.execute("SELECT path FROM folders WHERE id = ?", (folder_id,)).fetchone()
@@ -572,7 +603,7 @@ def list_photos(
 
     total = conn.execute(f"SELECT COUNT(*) FROM photos p {where}", params).fetchone()[0]
     rows = conn.execute(
-        f"SELECT p.id, p.filename, p.width, p.height, p.camera_model, p.date_taken, "
+        f"SELECT p.id, p.filename, p.width, p.height, p.camera_model, p.date_taken, p.is_hidden, "
         f"(SELECT COUNT(*) FROM photo_tags pt WHERE pt.photo_id = p.id) AS tag_count, "
         f"(SELECT COUNT(*) FROM photo_collections pc WHERE pc.photo_id = p.id) AS collection_count "
         f"FROM photos p {where} ORDER BY p.date_taken DESC, p.filename ASC "
@@ -593,6 +624,7 @@ def list_photos(
                 "height": r["height"],
                 "camera": r["camera_model"],
                 "date": r["date_taken"],
+                "hidden": bool(r["is_hidden"]),
                 "tag_count": r["tag_count"],
                 "collection_count": r["collection_count"],
                 "thumb": f"/api/photos/{r['id']}/thumb/medium",
@@ -603,25 +635,28 @@ def list_photos(
 
 
 @app.get("/api/filters")
-def get_filters():
+def get_filters(show_hidden: bool = False, hidden_only: bool = False):
     conn = get_connection()
+    cond = _hidden_sql("", show_hidden, hidden_only)
+    andf = ("AND " + cond + " ") if cond else ""
+    whf = ("WHERE " + cond + " ") if cond else ""
     cameras = [r[0] for r in conn.execute(
-        "SELECT DISTINCT camera_model FROM photos WHERE camera_model IS NOT NULL AND camera_model != '' ORDER BY camera_model"
+        "SELECT DISTINCT camera_model FROM photos WHERE camera_model IS NOT NULL AND camera_model != '' " + andf + "ORDER BY camera_model"
     ).fetchall()]
     lenses = [r[0] for r in conn.execute(
-        "SELECT DISTINCT lens FROM photos WHERE lens IS NOT NULL AND lens != '' ORDER BY lens"
+        "SELECT DISTINCT lens FROM photos WHERE lens IS NOT NULL AND lens != '' " + andf + "ORDER BY lens"
     ).fetchall()]
     extensions = [r[0] for r in conn.execute(
-        "SELECT DISTINCT extension FROM photos ORDER BY extension"
+        "SELECT DISTINCT extension FROM photos " + whf + "ORDER BY extension"
     ).fetchall()]
     date_range = conn.execute(
-        "SELECT MIN(date_taken), MAX(date_taken) FROM photos WHERE date_taken IS NOT NULL"
+        "SELECT MIN(date_taken), MAX(date_taken) FROM photos WHERE date_taken IS NOT NULL " + andf
     ).fetchone()
     countries = [r[0] for r in conn.execute(
-        "SELECT DISTINCT country FROM photos WHERE country IS NOT NULL ORDER BY country"
+        "SELECT DISTINCT country FROM photos WHERE country IS NOT NULL " + andf + "ORDER BY country"
     ).fetchall()]
     cities = [r[0] for r in conn.execute(
-        "SELECT DISTINCT city FROM photos WHERE city IS NOT NULL ORDER BY city"
+        "SELECT DISTINCT city FROM photos WHERE city IS NOT NULL " + andf + "ORDER BY city"
     ).fetchall()]
     conn.close()
     return {
@@ -648,10 +683,15 @@ def geo_bounds(
     rating: Optional[int] = None,
     collection_id: Optional[int] = None,
     q: Optional[str] = None,
+    show_hidden: bool = False,
+    hidden_only: bool = False,
 ):
     conn = get_connection()
     where = "WHERE latitude IS NOT NULL AND longitude IS NOT NULL"
     params: list = []
+    cond = _hidden_sql("", show_hidden, hidden_only)
+    if cond:
+        where += " AND " + cond
     if country:
         where += " AND country = ?"
         params.append(country)
@@ -726,10 +766,15 @@ def geo_photos(
     collection_id: Optional[int] = None,
     q: Optional[str] = None,
     is_360: Optional[str] = None,
+    show_hidden: bool = False,
+    hidden_only: bool = False,
 ):
     conn = get_connection()
     where = "WHERE latitude IS NOT NULL AND longitude IS NOT NULL"
     params: list = []
+    cond = _hidden_sql("", show_hidden, hidden_only)
+    if cond:
+        where += " AND " + cond
     if country:
         where += " AND country = ?"
         params.append(country)
@@ -799,7 +844,7 @@ def geo_photos(
 
     total = conn.execute(f"SELECT COUNT(*) FROM photos {where}", params).fetchone()[0]
     rows = conn.execute(
-        f"SELECT id, filename, latitude, longitude, camera_model, date_taken, width, height, "
+        f"SELECT id, filename, latitude, longitude, camera_model, date_taken, width, height, is_hidden, "
         f"(SELECT COUNT(*) FROM photo_tags pt WHERE pt.photo_id = photos.id) AS tag_count, "
         f"(SELECT COUNT(*) FROM photo_collections pc WHERE pc.photo_id = photos.id) AS collection_count "
         f"FROM photos {where}",
@@ -819,6 +864,7 @@ def geo_photos(
                 "date": r["date_taken"],
                 "width": r["width"],
                 "height": r["height"],
+                "hidden": bool(r["is_hidden"]),
                 "tag_count": r["tag_count"],
                 "collection_count": r["collection_count"],
                 "thumb": f"/api/photos/{r['id']}/thumb/small",
@@ -868,6 +914,24 @@ def bulk_add_to_collection(payload: dict):
     finally:
         conn.close()
     return {"ok": True, "added": added}
+
+
+@app.post("/api/photos/bulk-hide")
+def bulk_hide(payload: dict):
+    photo_ids = payload.get("photo_ids") or []
+    hidden = payload.get("hidden", True)
+    if not isinstance(photo_ids, list) or not photo_ids:
+        return {"error": "photo_ids (list) is required"}
+    conn = get_connection()
+    try:
+        conn.executemany(
+            "UPDATE photos SET is_hidden = ? WHERE id = ?",
+            [(1 if hidden else 0, pid) for pid in photo_ids],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return {"ok": True, "updated": len(photo_ids)}
 
 
 @app.get("/api/photos/{photo_id}")
@@ -1119,8 +1183,10 @@ def stream_video(photo_id: int):
 # ── Collections ──────────────────────────────────────────────────────────────
 
 @app.get("/api/collections")
-def list_collections():
+def list_collections(show_hidden: bool = False, hidden_only: bool = False):
     conn = get_connection()
+    cond = _hidden_sql("ph.", show_hidden, hidden_only)
+    hidden = (" AND " + cond) if cond else ""
     rows = conn.execute(
         "WITH RECURSIVE path_cte(id, name, parent_id, path_str) AS ("
         "  SELECT id, name, parent_id, name FROM collections WHERE parent_id IS NULL "
@@ -1128,16 +1194,18 @@ def list_collections():
         "  SELECT c.id, c.name, c.parent_id, p.path_str || ' › ' || c.name "
         "  FROM collections c JOIN path_cte p ON c.parent_id = p.id"
         ") "
-        "SELECT c.id, p.path_str as name, c.color, c.icon, c.parent_id, COUNT(pc.photo_id) as photo_count "
+        "SELECT c.id, p.path_str as name, c.color, c.icon, c.parent_id, "
+        "(SELECT COUNT(*) FROM photo_collections pc "
+        "  JOIN photos ph ON ph.id = pc.photo_id "
+        "  WHERE pc.collection_id = c.id" + hidden + ") as photo_count "
         "FROM collections c "
         "JOIN path_cte p ON c.id = p.id "
-        "LEFT JOIN photo_collections pc ON c.id = pc.collection_id "
         "GROUP BY c.id ORDER BY p.path_str"
     ).fetchall()
     conn.close()
     return [{"id": r["id"], "name": r["name"], "color": r["color"], "icon": r["icon"], "parent_id": r["parent_id"], "photo_count": r["photo_count"]} for r in rows]
 
-def _aggregate_collection_items(conn):
+def _aggregate_collection_items(conn, include_hidden=False, hidden_only=False):
     """Per-collection item counts + latest sample ids, aggregated over the whole subtree."""
     rows = conn.execute("SELECT id, parent_id FROM collections").fetchall()
     children = {}
@@ -1147,8 +1215,17 @@ def _aggregate_collection_items(conn):
         parent_key = r["parent_id"] if r["parent_id"] is not None else None
         children.setdefault(parent_key, []).append(r["id"])
 
+    if include_hidden:
+        excluded = set()
+    elif hidden_only:
+        excluded = set(r["id"] for r in conn.execute("SELECT id FROM photos WHERE is_hidden = 0"))
+    else:
+        excluded = set(r["id"] for r in conn.execute("SELECT id FROM photos WHERE is_hidden = 1"))
+
     direct = {}
     for r in conn.execute("SELECT collection_id, photo_id FROM photo_collections"):
+        if r["photo_id"] in excluded:
+            continue
         direct.setdefault(r["collection_id"], set()).add(r["photo_id"])
 
     memo = {}
@@ -1175,13 +1252,13 @@ def _aggregate_collection_items(conn):
 
 
 @app.get("/api/collections/tree")
-def list_collections_tree():
+def list_collections_tree(show_hidden: bool = False, hidden_only: bool = False):
     conn = get_connection()
     rows = conn.execute(
         "SELECT c.id, c.name, c.color, c.icon, c.parent_id "
         "FROM collections c ORDER BY c.name"
     ).fetchall()
-    agg_count, _ = _aggregate_collection_items(conn)
+    agg_count, _ = _aggregate_collection_items(conn, include_hidden=show_hidden, hidden_only=hidden_only)
     conn.close()
 
     entries = {r["id"]: {"id": r["id"], "name": r["name"], "color": r["color"], "icon": r["icon"], "parent_id": r["parent_id"], "photo_count": agg_count.get(r["id"], 0), "children": []} for r in rows}
@@ -1213,7 +1290,7 @@ def list_collections_tree():
     return _flatten(roots)
 
 @app.get("/api/collections/browse")
-def browse_collections(parent_id: Optional[int] = None):
+def browse_collections(parent_id: Optional[int] = None, show_hidden: bool = False, hidden_only: bool = False):
     conn = get_connection()
 
     if parent_id is not None:
@@ -1232,7 +1309,7 @@ def browse_collections(parent_id: Optional[int] = None):
             "ORDER BY c.name"
         ).fetchall()
 
-    agg_count, agg_samples = _aggregate_collection_items(conn)
+    agg_count, agg_samples = _aggregate_collection_items(conn, include_hidden=show_hidden, hidden_only=hidden_only)
     conn.close()
 
     result = []
@@ -1338,29 +1415,39 @@ def remove_collection_from_photo(photo_id: int, collection_id: int):
 # ── Tags ─────────────────────────────────────────────────────────────────────
 
 @app.get("/api/tags")
-def list_tags():
+def list_tags(show_hidden: bool = False, hidden_only: bool = False):
     conn = get_connection()
+    cond = _hidden_sql("ph.", show_hidden, hidden_only)
+    hf = ("AND " + cond + " ") if cond else ""
     rows = conn.execute(
-        "SELECT t.id, t.name, t.color, t.parent_id, COUNT(pt.photo_id) as photo_count "
-        "FROM tags t LEFT JOIN photo_tags pt ON t.id = pt.tag_id "
-        "GROUP BY t.id ORDER BY t.name"
+        "SELECT t.id, t.name, t.color, t.parent_id, "
+        "(SELECT COUNT(*) FROM photo_tags pt JOIN photos ph ON ph.id = pt.photo_id "
+        "  WHERE pt.tag_id = t.id " + hf + ") as photo_count "
+        "FROM tags t GROUP BY t.id ORDER BY t.name"
     ).fetchall()
     conn.close()
     return [{"id": r["id"], "name": r["name"], "color": r["color"], "parent_id": r["parent_id"], "photo_count": r["photo_count"]} for r in rows]
 
 
 @app.get("/api/tags/browse")
-def browse_tags():
+def browse_tags(show_hidden: bool = False, hidden_only: bool = False):
     conn = get_connection()
+    cond = _hidden_sql("ph.", show_hidden, hidden_only)
+    wh = ("WHERE " + cond + " ") if cond else ""
+    hf2 = ("AND " + cond + " ") if cond else ""
     rows = conn.execute(
         "SELECT t.id, t.name, t.color, COUNT(pt.photo_id) as photo_count "
-        "FROM tags t LEFT JOIN photo_tags pt ON t.id = pt.tag_id "
-        "GROUP BY t.id HAVING photo_count > 0 ORDER BY t.name"
+        "FROM tags t "
+        "LEFT JOIN photo_tags pt ON t.id = pt.tag_id "
+        "LEFT JOIN photos ph ON ph.id = pt.photo_id "
+        + wh +
+        "GROUP BY t.id HAVING COUNT(pt.photo_id) > 0 ORDER BY t.name"
     ).fetchall()
     result = []
     for r in rows:
         samples = [x["photo_id"] for x in conn.execute(
-            "SELECT photo_id FROM photo_tags WHERE tag_id = ? ORDER BY photo_id DESC LIMIT 4",
+            "SELECT pt.photo_id FROM photo_tags pt JOIN photos ph ON ph.id = pt.photo_id "
+            "WHERE pt.tag_id = ? " + hf2 + "ORDER BY pt.photo_id DESC LIMIT 4",
             (r["id"],)
         ).fetchall()]
         result.append({
@@ -1509,13 +1596,15 @@ COUNTRY_NAMES = {
 
 
 @app.get("/api/countries")
-def list_countries():
+def list_countries(show_hidden: bool = False, hidden_only: bool = False):
     conn = get_connection()
     conn.execute("PRAGMA group_concat_limit = 1000000")
+    cond = _hidden_sql("", show_hidden, hidden_only)
+    hf = ("AND " + cond + " ") if cond else ""
     rows = conn.execute(
         "SELECT country, COUNT(*) as photo_count, "
         "GROUP_CONCAT(id) as ids "
-        "FROM photos WHERE country IS NOT NULL "
+        "FROM photos WHERE country IS NOT NULL " + hf +
         "GROUP BY country ORDER BY country"
     ).fetchall()
     conn.close()
@@ -1532,12 +1621,14 @@ def list_countries():
 
 
 @app.get("/api/cameras/browse")
-def browse_cameras():
+def browse_cameras(show_hidden: bool = False, hidden_only: bool = False):
     conn = get_connection()
+    cond = _hidden_sql("", show_hidden, hidden_only)
+    hf = ("AND " + cond + " ") if cond else ""
     rows = conn.execute(
         "SELECT camera_model, COUNT(*) as photo_count, "
         "GROUP_CONCAT(id) as ids "
-        "FROM photos WHERE camera_model IS NOT NULL "
+        "FROM photos WHERE camera_model IS NOT NULL " + hf +
         "GROUP BY camera_model ORDER BY photo_count DESC"
     ).fetchall()
     conn.close()
@@ -1616,32 +1707,36 @@ def cleaning_delete(payload: dict):
 # ── Stats ─────────────────────────────────────────────────────────────────
 
 @app.get("/api/stats")
-def get_stats():
+def get_stats(show_hidden: bool = False, hidden_only: bool = False):
     conn = get_connection()
+    cond = _hidden_sql("", show_hidden, hidden_only)
+    hf = ("WHERE " + cond + " ") if cond else ""
+    hfa = ("AND " + cond + " ") if cond else ""
+    hid = (cond + " AND ") if cond else ""
 
-    total_photos = conn.execute("SELECT COUNT(*) FROM photos").fetchone()[0]
-    total_size = conn.execute("SELECT COALESCE(SUM(size), 0) FROM photos").fetchone()[0]
+    total_photos = conn.execute("SELECT COUNT(*) FROM photos " + hf).fetchone()[0]
+    total_size = conn.execute("SELECT COALESCE(SUM(size), 0) FROM photos " + hf).fetchone()[0]
 
     ext_rows = conn.execute(
         "SELECT extension, COUNT(*) as cnt, COALESCE(SUM(size), 0) as sz "
-        "FROM photos GROUP BY extension ORDER BY cnt DESC"
+        "FROM photos " + hf + "GROUP BY extension ORDER BY cnt DESC"
     ).fetchall()
     formats = [{"ext": r["extension"], "count": r["cnt"], "size": r["sz"]} for r in ext_rows]
 
     geo_count = conn.execute(
-        "SELECT COUNT(*) FROM photos WHERE latitude IS NOT NULL AND longitude IS NOT NULL"
+        "SELECT COUNT(*) FROM photos WHERE latitude IS NOT NULL AND longitude IS NOT NULL " + hfa
     ).fetchone()[0]
 
     timeline_rows = conn.execute(
         "SELECT SUBSTR(date_taken, 1, 7) as month, COUNT(*) as cnt "
-        "FROM photos WHERE date_taken IS NOT NULL "
+        "FROM photos WHERE date_taken IS NOT NULL " + hfa +
         "GROUP BY month ORDER BY month"
     ).fetchall()
     timeline = [{"month": r["month"], "count": r["cnt"]} for r in timeline_rows]
 
     country_rows = conn.execute(
         "SELECT country, COUNT(*) as cnt "
-        "FROM photos WHERE country IS NOT NULL "
+        "FROM photos WHERE country IS NOT NULL " + hfa +
         "GROUP BY country ORDER BY cnt DESC LIMIT 15"
     ).fetchall()
     countries = [
@@ -1649,16 +1744,18 @@ def get_stats():
         for r in country_rows
     ]
 
-    count_360 = conn.execute("""
-        SELECT COUNT(*) FROM photos 
-        WHERE 
-            camera_model LIKE '%THETA%' OR 
-            camera_make LIKE '%THETA%' OR 
-            camera_model LIKE '%INSTA360%' OR 
-            camera_make LIKE '%INSTA360%' OR 
-            (camera_model LIKE '%MAX%' AND camera_make LIKE '%GOPRO%') OR
-            (width IS NOT NULL AND height IS NOT NULL AND (width * 1.0 / height) BETWEEN 1.95 AND 2.05)
-    """).fetchone()[0]
+    hid = (cond + " AND ") if cond else ""
+    count_360 = conn.execute(
+        "SELECT COUNT(*) FROM photos WHERE " + hid +
+        "("
+        " camera_model LIKE '%THETA%' OR "
+        " camera_make LIKE '%THETA%' OR "
+        " camera_model LIKE '%INSTA360%' OR "
+        " camera_make LIKE '%INSTA360%' OR "
+        " (camera_model LIKE '%MAX%' AND camera_make LIKE '%GOPRO%') OR "
+        " (width IS NOT NULL AND height IS NOT NULL AND (width * 1.0 / height) BETWEEN 1.95 AND 2.05)"
+        ")"
+    ).fetchone()[0]
 
     conn.close()
 

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
-    <link rel="stylesheet" href="/css/style.css?v=1.0.1">
+    <link rel="stylesheet" href="/css/style.css?v=1.0.2">
 </head>
 <body>
 
@@ -17,7 +17,7 @@
     <div class="header-left">
         <div class="logo-icon"><i data-lucide="aperture"></i></div>
         <span class="logo">PHOTONIC</span>
-        <span class="version-badge-outer" id="version-badge" title="View changelog"><span class="version-badge-inner">v1.0.1</span></span>
+        <span class="version-badge-outer" id="version-badge" title="View changelog"><span class="version-badge-inner">v1.0.2</span></span>
         <a href="https://github.com/DarkAdrick/Photonic/releases" target="_blank" rel="noopener" id="update-pill" class="update-pill hidden" title="New version available — view release"><span class="update-pill-dot"></span><i data-lucide="arrow-up-circle"></i><span id="update-pill-text" data-i18n="header.update">Update</span></a>
     </div>
     <div id="titlebar-drag" class="pywebview-drag-region"></div>
@@ -96,6 +96,14 @@
                 <option value="" data-i18n="filter.all">All</option>
                 <option value="1" data-i18n="filter.yes">Yes</option>
                 <option value="0" data-i18n="filter.no">No</option>
+            </select>
+        </div>
+        <div class="filter-chip">
+            <label for="filter-hidden" data-i18n="filter.hidden">Hidden</label>
+            <select id="filter-hidden">
+                <option value="hide" data-i18n="filter.hidden_no">No</option>
+                <option value="all" data-i18n="filter.hidden_yes">Yes</option>
+                <option value="only" data-i18n="filter.hidden_only">Only hidden</option>
             </select>
         </div>
         <button id="btn-clear-filters" class="filter-clear-btn"><i data-lucide="x"></i> <span data-i18n="filter.clear">Clear</span></button>
@@ -346,6 +354,9 @@
     <div class="context-item" data-action="add-collection" data-i18n="context.add_collection">Add to Collection...</div>
     <div class="context-item" data-action="remove-collections" data-i18n="context.remove_collections">Remove Collections</div>
     <div class="context-separator"></div>
+    <div class="context-item" data-action="hide" id="context-hide-item" data-i18n="context.hide">Hide</div>
+    <div class="context-item" data-action="show" id="context-show-item" data-i18n="context.show">Show</div>
+    <div class="context-separator"></div>
     <div class="context-item context-danger" data-action="delete" data-i18n="context.delete_selected">Delete Selected</div>
 </div>
 
@@ -423,10 +434,10 @@
                     <h4><span>PHOTONIC</span></h4>
                     <div class="cl-hero-author">
                         <i data-lucide="user"></i>
-                        <span>Crafted by <b>Adrick</b> · <a href="https://thephoenixfactory.com/" target="_blank" rel="noopener">ThePhoenixFactory</a></span>
+                            <span><span data-i18n="changelog.crafted_by">Crafted by</span> <b>Adrick</b> · <a href="https://thephoenixfactory.com/" target="_blank" rel="noopener">ThePhoenixFactory</a></span>
                     </div>
-                    <p>Solo dev, night coder, tool maker. Currently building Photonic and other stuff at ThePhoenixFactory. I believe software should be simple, fast, and stay out of your way. When I'm not coding, I'm probably riding rollercoasters or creating new artwork.</p>
-                    <a href="https://github.com/sponsors/DarkAdrick" target="_blank" rel="noopener" class="cl-hero-donate"><i data-lucide="heart"></i> Sponsor this project</a>
+                    <p><span data-i18n="changelog.hero_desc">Solo dev, night coder, tool maker. Currently building Photonic and other stuff at ThePhoenixFactory. I believe software should be simple, fast, and stay out of your way. When I'm not coding, I'm probably riding rollercoasters or creating new artwork.</span></p>
+                    <a href="https://github.com/sponsors/DarkAdrick" target="_blank" rel="noopener" class="cl-hero-donate"><i data-lucide="heart"></i> <span data-i18n="changelog.sponsor">Sponsor this project</span></a>
                 </div>
             </div>
             <div class="changelog-content" id="changelog-body"></div>
@@ -464,33 +475,33 @@
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-<script src="/js/i18n.js?v=1.0.0"></script>
-<script src="/js/modules/core.js?v=1.0.0"></script>
-<script src="/js/modules/state.js?v=1.0.0"></script>
-<script src="/js/modules/utils.js?v=1.0.0"></script>
-<script src="/js/modules/view.js?v=1.0.0"></script>
-<script src="/js/modules/map.js?v=1.0.0"></script>
-<script src="/js/modules/sidebar.js?v=1.0.0"></script>
-<script src="/js/modules/browse.js?v=1.0.0"></script>
-<script src="/js/modules/cleaning.js?v=1.0.0"></script>
-<script src="/js/modules/stats.js?v=1.0.0"></script>
-<script src="/js/modules/filters.js?v=1.0.0"></script>
-<script src="/js/modules/grid.js?v=1.0.0"></script>
-<script src="/js/modules/detail.js?v=1.0.0"></script>
-<script src="/js/modules/modal_helpers.js?v=1.0.0"></script>
-<script src="/js/modules/tag_modal.js?v=1.0.0"></script>
-<script src="/js/modules/coll_modal.js?v=1.0.0"></script>
-<script src="/js/modules/dialog.js?v=1.0.0"></script>
-<script src="/js/modules/scan.js?v=1.0.0"></script>
-<script src="/js/modules/events.js?v=1.0.0"></script>
-<script src="/js/modules/layout.js?v=1.0.0"></script>
-<script src="/js/modules/settings.js?v=1.0.0"></script>
-<script src="/js/modules/settings_tags.js?v=1.0.0"></script>
-<script src="/js/modules/settings_collections.js?v=1.0.0"></script>
-<script src="/js/modules/settings_folders.js?v=1.0.0"></script>
-<script src="/js/modules/update.js?v=1.0.0"></script>
-<script src="/js/modules/window.js?v=1.0.0"></script>
-<script src="/js/modules/i18n.js?v=1.0.0"></script>
-<script src="/js/modules/app.js?v=1.0.0"></script>
+<script src="/js/i18n.js?v=1.0.2"></script>
+<script src="/js/modules/core.js?v=1.0.2"></script>
+<script src="/js/modules/state.js?v=1.0.2"></script>
+<script src="/js/modules/utils.js?v=1.0.2"></script>
+<script src="/js/modules/view.js?v=1.0.2"></script>
+<script src="/js/modules/map.js?v=1.0.2"></script>
+<script src="/js/modules/sidebar.js?v=1.0.2"></script>
+<script src="/js/modules/browse.js?v=1.0.2"></script>
+<script src="/js/modules/cleaning.js?v=1.0.2"></script>
+<script src="/js/modules/stats.js?v=1.0.2"></script>
+<script src="/js/modules/filters.js?v=1.0.2"></script>
+<script src="/js/modules/grid.js?v=1.0.2"></script>
+<script src="/js/modules/detail.js?v=1.0.2"></script>
+<script src="/js/modules/modal_helpers.js?v=1.0.2"></script>
+<script src="/js/modules/tag_modal.js?v=1.0.2"></script>
+<script src="/js/modules/coll_modal.js?v=1.0.2"></script>
+<script src="/js/modules/dialog.js?v=1.0.2"></script>
+<script src="/js/modules/scan.js?v=1.0.2"></script>
+<script src="/js/modules/events.js?v=1.0.2"></script>
+<script src="/js/modules/layout.js?v=1.0.2"></script>
+<script src="/js/modules/settings.js?v=1.0.2"></script>
+<script src="/js/modules/settings_tags.js?v=1.0.2"></script>
+<script src="/js/modules/settings_collections.js?v=1.0.2"></script>
+<script src="/js/modules/settings_folders.js?v=1.0.2"></script>
+<script src="/js/modules/update.js?v=1.0.2"></script>
+<script src="/js/modules/window.js?v=1.0.2"></script>
+<script src="/js/modules/i18n.js?v=1.0.2"></script>
+<script src="/js/modules/app.js?v=1.0.2"></script>
 </body>
 </html>

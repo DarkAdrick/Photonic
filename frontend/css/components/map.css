@@ -110,6 +110,11 @@
     display: none;
 }
 
+#map-photos .photo-card-hidden {
+    border: 5px solid var(--accent);
+    outline-offset: 0;
+}
+
 .map-strip-sentinel {
     grid-column: 1 / -1;
     height: 0;

@@ -172,7 +172,7 @@ def start_analysis():
 def find_duplicate_groups(conn):
     rows = conn.execute(
         "SELECT id, filename, path, hash, size, width, height, date_taken "
-        "FROM photos WHERE hash IS NOT NULL AND hash != '' "
+        "FROM photos WHERE hash IS NOT NULL AND hash != '' AND is_hidden = 0 "
         "ORDER BY hash, date_taken"
     ).fetchall()
     groups = {}
@@ -187,7 +187,7 @@ def find_duplicate_groups(conn):
 def find_blurry_photos(conn, threshold=50):
     rows = conn.execute(
         "SELECT id, filename, path, blur_score, width, height, date_taken "
-        "FROM photos WHERE blur_score IS NOT NULL AND blur_score < ? "
+        "FROM photos WHERE blur_score IS NOT NULL AND blur_score < ? AND is_hidden = 0 "
         "ORDER BY blur_score ASC",
         (threshold,),
     ).fetchall()
@@ -197,7 +197,7 @@ def find_blurry_photos(conn, threshold=50):
 def find_similar_groups(conn, threshold=10):
     rows = conn.execute(
         "SELECT id, filename, path, perceptual_hash, size, width, height, date_taken "
-        "FROM photos WHERE perceptual_hash IS NOT NULL AND perceptual_hash != '' "
+        "FROM photos WHERE perceptual_hash IS NOT NULL AND perceptual_hash != '' AND is_hidden = 0 "
         "ORDER BY perceptual_hash"
     ).fetchall()
     photos = [dict(r) for r in rows]
@@ -222,7 +222,7 @@ def find_similar_groups(conn, threshold=10):
 def find_bad_photos(conn):
     rows = conn.execute(
         "SELECT id, filename, path, quality_flags, width, height, date_taken "
-        "FROM photos WHERE quality_flags IS NOT NULL AND quality_flags != '' "
+        "FROM photos WHERE quality_flags IS NOT NULL AND quality_flags != '' AND is_hidden = 0 "
         "ORDER BY filename"
     ).fetchall()
     bad = []

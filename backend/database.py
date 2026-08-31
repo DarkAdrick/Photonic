@@ -29,6 +29,8 @@ def init_db():
         conn.execute("ALTER TABLE photos ADD COLUMN blur_score REAL")
     if "quality_flags" not in photo_cols:
         conn.execute("ALTER TABLE photos ADD COLUMN quality_flags TEXT")
+    if "is_hidden" not in photo_cols:
+        conn.execute("ALTER TABLE photos ADD COLUMN is_hidden INTEGER DEFAULT 0")
     conn.close()
 
 
@@ -61,6 +63,7 @@ CREATE TABLE IF NOT EXISTS photos (
     longitude      REAL,
     orientation    INTEGER,
     rating         INTEGER DEFAULT 0,
+    is_hidden      INTEGER DEFAULT 0,
     hash           TEXT,
     perceptual_hash TEXT
 );

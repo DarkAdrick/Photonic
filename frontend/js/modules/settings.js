@@ -24,14 +24,33 @@
             document.getElementById("filter-drawer").classList.add("hidden");
             P.settingsPage.classList.remove("hidden");
             btnSettings.classList.add("active");
-    
+
             P.settingsPageNav.querySelectorAll(".settings-nav-item").forEach(t => t.classList.remove("active"));
             P.settingsPageNav.querySelector('.settings-nav-item[data-section="settings-application"]').classList.add("active");
             settingsSections.forEach(s => s.classList.add("hidden"));
             document.getElementById("settings-application").classList.remove("hidden");
             renderApplicationSettings();
             lucide.createIcons();
+            P.settingsSection = "settings-application";
+            P.fn.saveRestoreState();
         }
+
+        P.fn.activateSettingsSection = function (section) {
+            if (!section || section === "settings-application") return;
+            const item = P.settingsPageNav.querySelector(`.settings-nav-item[data-section="${section}"]`);
+            if (!item) return;
+            P.settingsPageNav.querySelectorAll(".settings-nav-item").forEach(t => t.classList.remove("active"));
+            item.classList.add("active");
+            const target = item.dataset.section;
+            P.settingsSection = target;
+            settingsSections.forEach(s => s.classList.add("hidden"));
+            document.getElementById(target).classList.remove("hidden");
+            if (target === "settings-application") renderApplicationSettings();
+            else if (target === "settings-tags-p") P.fn.loadSettingsTags();
+            else if (target === "settings-collections-p") P.fn.loadSettingsCollections();
+            else if (target === "settings-folders-p") P.fn.loadSettingsFolders();
+            lucide.createIcons();
+        };
     
         function closeSettings() {
             P.settingsPage.classList.add("hidden");
@@ -52,6 +71,8 @@
                 P.settingsPageNav.querySelectorAll(".settings-nav-item").forEach(t => t.classList.remove("active"));
                 item.classList.add("active");
                 const target = item.dataset.section;
+                P.settingsSection = target;
+                P.fn.saveRestoreState();
                 settingsSections.forEach(s => s.classList.add("hidden"));
                 document.getElementById(target).classList.remove("hidden");
                 if (target === "settings-application") renderApplicationSettings();
@@ -79,6 +100,7 @@
             const el = document.getElementById("settings-application");
             const confirmDelete = localStorage.getItem("photonic.confirmDelete") !== "false";
             const showExts = localStorage.getItem("photonic.showExtensions") === "true";
+            const showHiddenDefault = localStorage.getItem("photonic.showHiddenDefault") === "true";
             const thumbSize = parseInt(localStorage.getItem("photonic.thumbnailSize") || "150");
             const defaultView = localStorage.getItem("photonic.defaultView") || "grid";
             const clusterThreshold = parseInt(localStorage.getItem("photonic.clusterThreshold") || "500");
@@ -176,6 +198,18 @@
                     <div class="settings-sub-header">
                         <span class="section-dot"></span>
                         <h4>${t("settings.display.general_sub")}</h4>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-label">${t("settings.general.show_hidden_default")}</div>
+                            <div class="setting-desc">${t("settings.general.show_hidden_default_desc")}</div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="setting-show-hidden-default" ${showHiddenDefault ? "checked" : ""}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
                     </div>
                     <div class="setting-row">
                         <div class="setting-info">
@@ -359,6 +393,9 @@
             });
             document.getElementById("setting-show-extensions").addEventListener("change", (e) => {
                 localStorage.setItem("photonic.showExtensions", e.target.checked);
+            });
+            document.getElementById("setting-show-hidden-default").addEventListener("change", (e) => {
+                localStorage.setItem("photonic.showHiddenDefault", e.target.checked);
             });
     
             const telemetryToggle = document.getElementById("setting-telemetry");
@@ -549,4 +586,5 @@
     
     // --- exports ---
         P.fn.renderApplicationSettings = renderApplicationSettings;
+        P.fn.openSettings = openSettings;
 })(window.PhotoApp = window.PhotoApp || {});
