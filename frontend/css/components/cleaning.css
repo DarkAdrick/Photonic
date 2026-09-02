@@ -78,7 +78,7 @@
     align-items: center;
     gap: 12px;
     padding: 6px 16px;
-    background: var(--bg-secondary);
+    background: color-mix(in srgb, var(--bg-primary) 75%, transparent);
     border-bottom: 1px solid var(--border);
     font-size: 13px;
     color: var(--text-secondary);
@@ -87,6 +87,8 @@
     z-index: 5;
     grid-column: 1 / -1;
     height: 3.1em;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 0 3px -1px var(--text-primary);
 }
 
 #breadcrumb-bar {
@@ -95,6 +97,21 @@
     gap: 6px;
     flex: 1;
     min-width: 0;
+}
+
+#view-title-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+#photo-count-header {
+    margin-left: auto;
+    flex-shrink: 0;
 }
 
 #selection-count { font-weight: 500; }

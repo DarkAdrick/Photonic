@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
-    <link rel="stylesheet" href="/css/style.css?v=1.0.2">
+    <link rel="stylesheet" href="/css/style.css?v=1.0.4">
 </head>
 <body>
 
@@ -17,7 +17,7 @@
     <div class="header-left">
         <div class="logo-icon"><i data-lucide="aperture"></i></div>
         <span class="logo">PHOTONIC</span>
-        <span class="version-badge-outer" id="version-badge" title="View changelog"><span class="version-badge-inner">v1.0.2</span></span>
+        <span class="version-badge-outer" id="version-badge" title="View changelog"><span class="version-badge-inner">v1.1.0</span></span>
         <a href="https://github.com/DarkAdrick/Photonic/releases" target="_blank" rel="noopener" id="update-pill" class="update-pill hidden" title="New version available — view release"><span class="update-pill-dot"></span><i data-lucide="arrow-up-circle"></i><span id="update-pill-text" data-i18n="header.update">Update</span></a>
     </div>
     <div id="titlebar-drag" class="pywebview-drag-region"></div>
@@ -43,17 +43,42 @@
 
 <div id="filter-drawer" class="drawer-closed">
     <div class="filter-row">
-        <div class="filter-chip">
-            <label for="filter-camera" data-i18n="filter.camera">Camera</label>
-            <select id="filter-camera"><option value="" data-i18n="filter.all">All</option></select>
+        <div class="filter-chip filter-chip-format">
+            <label data-i18n="filter.device">Camera + Lens</label>
+            <button type="button" id="filter-device-btn" class="filter-format-btn">
+                <span id="filter-device-label" data-i18n="filter.all">All</span>
+                <i data-lucide="chevron-down" class="filter-format-chevron"></i>
+            </button>
+            <div id="filter-device-popover" class="filter-popover hidden">
+                <div class="filter-popover-type">
+                    <span class="filter-type-label" data-i18n="filter.camera">Camera</span>
+                    <div id="filter-camera-list"></div>
+                </div>
+                <div class="filter-popover-divider"></div>
+                <div class="filter-popover-ext">
+                    <span class="filter-type-label" data-i18n="filter.lens">Lens</span>
+                    <div id="filter-lens-list"></div>
+                </div>
+            </div>
         </div>
-        <div class="filter-chip">
-            <label for="filter-lens" data-i18n="filter.lens">Lens</label>
-            <select id="filter-lens"><option value="" data-i18n="filter.all">All</option></select>
-        </div>
-        <div class="filter-chip">
-            <label for="filter-ext" data-i18n="filter.format">Format</label>
-            <select id="filter-ext"><option value="" data-i18n="filter.all">All</option></select>
+        <div class="filter-chip filter-chip-format">
+            <label data-i18n="filter.format">Format</label>
+            <button type="button" id="filter-format-btn" class="filter-format-btn">
+                <span id="filter-format-label" data-i18n="filter.all">All</span>
+                <i data-lucide="chevron-down" class="filter-format-chevron"></i>
+            </button>
+            <div id="filter-format-popover" class="filter-popover hidden">
+                <div class="filter-popover-type">
+                    <span class="filter-type-label" data-i18n="filter.type">Type</span>
+                    <label class="filter-check"><input type="checkbox" id="filter-type-image"><span data-i18n="filter.images">Images</span></label>
+                    <label class="filter-check"><input type="checkbox" id="filter-type-video"><span data-i18n="filter.videos">Videos</span></label>
+                </div>
+                <div class="filter-popover-divider"></div>
+                <div class="filter-popover-ext">
+                    <span class="filter-type-label" data-i18n="filter.format">Format</span>
+                    <div id="filter-ext-list"></div>
+                </div>
+            </div>
         </div>
         <div class="filter-chip">
             <label for="filter-360" data-i18n="filter.360">360°</label>
@@ -74,13 +99,23 @@
                 <option value="5">5</option>
             </select>
         </div>
-        <div class="filter-chip">
-            <label for="filter-country" data-i18n="filter.country">Country</label>
-            <select id="filter-country"><option value="" data-i18n="filter.all">All</option></select>
-        </div>
-        <div class="filter-chip">
-            <label for="filter-city" data-i18n="filter.city">City</label>
-            <select id="filter-city"><option value="" data-i18n="filter.all">All</option></select>
+        <div class="filter-chip filter-chip-format">
+            <label data-i18n="filter.place">Country + City</label>
+            <button type="button" id="filter-place-btn" class="filter-format-btn">
+                <span id="filter-place-label" data-i18n="filter.all">All</span>
+                <i data-lucide="chevron-down" class="filter-format-chevron"></i>
+            </button>
+            <div id="filter-place-popover" class="filter-popover hidden">
+                <div class="filter-popover-type">
+                    <span class="filter-type-label" data-i18n="filter.country">Country</span>
+                    <div id="filter-country-list"></div>
+                </div>
+                <div class="filter-popover-divider"></div>
+                <div class="filter-popover-ext">
+                    <span class="filter-type-label" data-i18n="filter.city">City</span>
+                    <div id="filter-city-list"></div>
+                </div>
+            </div>
         </div>
         <div class="filter-chip filter-chip-date">
             <label for="filter-date-from" data-i18n="filter.from">From</label>
@@ -111,6 +146,7 @@
 </div>
 
 <aside id="sidebar">
+    <div id="sidebar-scroll">
     <nav>
         <div class="sb-quick-title" data-i18n="sidebar.views">Views</div>
         <ul>
@@ -121,12 +157,13 @@
             <li data-view="tags"><i data-lucide="tag"></i><span data-i18n="sidebar.tags">Tags</span></li>
             <li data-view="cameras"><i data-lucide="camera"></i><span data-i18n="sidebar.cameras">Cameras</span></li>
             <li data-view="locations"><i data-lucide="map-pin"></i><span data-i18n="sidebar.locations">Locations</span></li>
-            <li data-view="cleaning"><i data-lucide="sparkles"></i><span data-i18n="sidebar.cleaning">Cleaning</span></li>
+            <li data-view="cleaning"><i data-lucide="sparkles"></i><span data-i18n="sidebar.cleaning">Cleaning</span><span class="sidebar-beta-tag">beta</span></li>
             <li data-view="stats"><i data-lucide="bar-chart-2"></i><span data-i18n="sidebar.stats">Stats</span></li>
         </ul>
     </nav>
     <div id="sidebar-filters"></div>
     <div id="sidebar-tags"></div>
+    </div>
     <div id="sidebar-actions">
         <button id="btn-add-folder-sidebar" class="sidebar-btn"><i data-lucide="folder-plus"></i> <span data-i18n="sidebar.add_folder">Add Folder</span></button>
         <button id="btn-rescan" class="sidebar-btn" disabled><i data-lucide="refresh-cw"></i> <span data-i18n="sidebar.rescan_all">Rescan All</span></button>
@@ -145,21 +182,33 @@
         <div id="cleaning-status" class="hidden"></div>
     </div>
     <div id="empty-state">
-        <div class="hero-glow"></div>
-        <div class="hero-icon">
-            <i data-lucide="aperture"></i>
+        <div id="empty-welcome">
+            <div class="hero-glow"></div>
+            <div class="hero-icon">
+                <i data-lucide="aperture"></i>
+            </div>
+            <h2>Welcome to <span class="hero-gradient-text">Photonic</span></h2>
+            <p>Your photos, beautifully organized. Add a folder to get started.</p>
+            <button id="btn-add-folder"><i data-lucide="folder-plus"></i><span data-i18n="empty.add_folder">Add Folder</span></button>
         </div>
-        <h2>Welcome to <span class="hero-gradient-text">Photonic</span></h2>
-        <p>Your photos, beautifully organized. Add a folder to get started.</p>
-        <button id="btn-add-folder"><i data-lucide="folder-plus"></i><span data-i18n="empty.add_folder">Add Folder</span></button>
+        <div id="empty-filtered" class="hidden">
+            <div class="hero-glow"></div>
+            <div class="hero-icon">
+                <i data-lucide="filter"></i>
+            </div>
+            <h2 data-i18n="empty.filtered_title">No photos match your filters</h2>
+            <p data-i18n="empty.filtered_subtitle">Try adjusting or resetting the current filters and search.</p>
+            <button id="btn-reset-filters"><i data-lucide="rotate-ccw"></i><span data-i18n="empty.reset_filters">Reset Filters</span></button>
+        </div>
     </div>
     <div id="photo-grid" class="hidden">
         <div id="header-photo-grid">
+            <span id="view-title-bar"></span>
             <div id="breadcrumb-bar"></div>
-            <span id="photo-count-header"></span>
             <span id="selection-count" class="hidden">0 selected</span>
             <button id="btn-deselect-all" class="cleaning-btn hidden">Deselect All</button>
             <button id="btn-selected-only" class="cleaning-btn hidden" title="Show only selected items"><span data-i18n="grid.only_selected">Only Selected</span></button>
+            <span id="photo-count-header"></span>
         </div>
     </div>
     <div id="stats-view" class="hidden"></div>
@@ -178,8 +227,8 @@
     <div class="settings-layout">
         <nav class="settings-nav">
             <div class="settings-nav-header">
-                <button id="settings-back" class="settings-back-btn"><i data-lucide="arrow-left"></i> <span data-i18n="settings.back">Back</span></button>
                 <h2 data-i18n="settings.title">Settings</h2>
+                <button id="settings-back" class="settings-back-btn"><i data-lucide="arrow-left"></i> <span data-i18n="settings.back">Back</span></button>
             </div>
             <div class="settings-nav-items">
                 <button class="settings-nav-item active" data-section="settings-application">
@@ -265,7 +314,7 @@
     </div>
     <div id="thumb-size-control">
         <button id="btn-zoom-out" class="thumb-zoom-btn" title="Smaller thumbnails" data-i18n-title="thumb.smaller"><i data-lucide="minus"></i></button>
-        <input type="range" id="thumb-size" min="30" max="450" value="150">
+        <input type="range" id="thumb-size" min="20" max="450" value="150">
         <button id="btn-zoom-in" class="thumb-zoom-btn" title="Larger thumbnails" data-i18n-title="thumb.larger"><i data-lucide="plus"></i></button>
     </div>
 </footer>
@@ -325,7 +374,10 @@
             <div id="detail-map-section" class="hidden">
                 <h4 data-i18n="detail.location">Location</h4>
                 <div id="detail-map"></div>
-                <div id="detail-coords"></div>
+                <div id="detail-coords-row">
+                    <div id="detail-coords"></div>
+                    <span id="detail-set-location" class="collection-pill tag-add" role="button" tabindex="0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="plus" aria-hidden="true" class="lucide lucide-plus"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg><span data-i18n="detail.set_location">Set Location</span></span>
+                </div>
             </div>
             <div id="detail-tags-section">
                 <h4 data-i18n="detail.tags">Tags</h4>
@@ -353,6 +405,8 @@
     <div class="context-item" data-action="remove-tags" data-i18n="context.remove_tags">Remove Tags</div>
     <div class="context-item" data-action="add-collection" data-i18n="context.add_collection">Add to Collection...</div>
     <div class="context-item" data-action="remove-collections" data-i18n="context.remove_collections">Remove Collections</div>
+    <div class="context-separator"></div>
+    <div class="context-item" data-action="set-location" data-i18n="context.set_location">Set Location...</div>
     <div class="context-separator"></div>
     <div class="context-item" data-action="hide" id="context-hide-item" data-i18n="context.hide">Hide</div>
     <div class="context-item" data-action="show" id="context-show-item" data-i18n="context.show">Show</div>
@@ -403,6 +457,39 @@
         <div class="dialog-actions">
             <button id="collection-dialog-cancel" data-i18n="dialog.cancel">Cancel</button>
             <button id="collection-dialog-ok" data-i18n="collection_dialog.add_btn">Add</button>
+        </div>
+    </div>
+</div>
+
+<div id="geotag-dialog" class="dialog-overlay hidden">
+    <div class="dialog geotag-dialog-box">
+        <div class="dialog-header">
+            <h3 data-i18n="geotag.title">Set Location</h3>
+            <span id="geotag-dialog-count" class="dialog-count"></span>
+            <button id="geotag-dialog-close" class="detail-close-btn"><i data-lucide="x"></i></button>
+        </div>
+        <div class="geotag-body">
+            <div class="geotag-search">
+                <i data-lucide="search" class="geotag-search-icon"></i>
+                <input type="text" id="geotag-search-input" autocomplete="off" placeholder="Search location..." data-i18n-placeholder="geotag.search_placeholder">
+                <div id="geotag-search-results" class="geotag-search-results hidden"></div>
+            </div>
+            <div id="geotag-map" style="min-height:300px"></div>
+            <div id="geotag-coords"></div>
+        </div>
+        <div class="dialog-actions geotag-actions">
+            <button id="geotag-remove" class="geotag-remove-btn" data-i18n="geotag.remove">Remove location</button>
+            <div class="geotag-actions-right">
+                <button id="geotag-dialog-cancel" data-i18n="dialog.cancel">Cancel</button>
+                <button id="geotag-dialog-ok" data-i18n="geotag.save">Save</button>
+            </div>
+        </div>
+        <div id="geotag-confirm" class="geotag-confirm hidden">
+            <span id="geotag-confirm-text" data-i18n="geotag.overwrite_msg">This photo already has a location. Replace it?</span>
+            <div class="geotag-confirm-btns">
+                <button id="geotag-confirm-back" data-i18n="confirm.cancel">Cancel</button>
+                <button id="geotag-confirm-ok" data-i18n="geotag.replace">Replace</button>
+            </div>
         </div>
     </div>
 </div>
@@ -475,33 +562,34 @@
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-<script src="/js/i18n.js?v=1.0.2"></script>
-<script src="/js/modules/core.js?v=1.0.2"></script>
-<script src="/js/modules/state.js?v=1.0.2"></script>
-<script src="/js/modules/utils.js?v=1.0.2"></script>
-<script src="/js/modules/view.js?v=1.0.2"></script>
-<script src="/js/modules/map.js?v=1.0.2"></script>
-<script src="/js/modules/sidebar.js?v=1.0.2"></script>
-<script src="/js/modules/browse.js?v=1.0.2"></script>
-<script src="/js/modules/cleaning.js?v=1.0.2"></script>
-<script src="/js/modules/stats.js?v=1.0.2"></script>
-<script src="/js/modules/filters.js?v=1.0.2"></script>
-<script src="/js/modules/grid.js?v=1.0.2"></script>
-<script src="/js/modules/detail.js?v=1.0.2"></script>
-<script src="/js/modules/modal_helpers.js?v=1.0.2"></script>
-<script src="/js/modules/tag_modal.js?v=1.0.2"></script>
-<script src="/js/modules/coll_modal.js?v=1.0.2"></script>
-<script src="/js/modules/dialog.js?v=1.0.2"></script>
-<script src="/js/modules/scan.js?v=1.0.2"></script>
-<script src="/js/modules/events.js?v=1.0.2"></script>
-<script src="/js/modules/layout.js?v=1.0.2"></script>
-<script src="/js/modules/settings.js?v=1.0.2"></script>
-<script src="/js/modules/settings_tags.js?v=1.0.2"></script>
-<script src="/js/modules/settings_collections.js?v=1.0.2"></script>
-<script src="/js/modules/settings_folders.js?v=1.0.2"></script>
-<script src="/js/modules/update.js?v=1.0.2"></script>
-<script src="/js/modules/window.js?v=1.0.2"></script>
-<script src="/js/modules/i18n.js?v=1.0.2"></script>
-<script src="/js/modules/app.js?v=1.0.2"></script>
+<script src="/js/i18n.js?v=1.0.4"></script>
+<script src="/js/modules/core.js?v=1.0.4"></script>
+<script src="/js/modules/state.js?v=1.0.4"></script>
+<script src="/js/modules/utils.js?v=1.0.4"></script>
+<script src="/js/modules/view.js?v=1.0.4"></script>
+<script src="/js/modules/map.js?v=1.0.4"></script>
+<script src="/js/modules/sidebar.js?v=1.0.7"></script>
+<script src="/js/modules/browse.js?v=1.0.4"></script>
+<script src="/js/modules/cleaning.js?v=1.0.4"></script>
+<script src="/js/modules/stats.js?v=1.0.4"></script>
+<script src="/js/modules/filters.js?v=1.0.4"></script>
+<script src="/js/modules/grid.js?v=1.0.4"></script>
+<script src="/js/modules/detail.js?v=1.0.4"></script>
+<script src="/js/modules/modal_helpers.js?v=1.0.4"></script>
+<script src="/js/modules/tag_modal.js?v=1.0.4"></script>
+<script src="/js/modules/coll_modal.js?v=1.0.4"></script>
+<script src="/js/modules/geotag_modal.js?v=1.0.4"></script>
+<script src="/js/modules/dialog.js?v=1.0.4"></script>
+<script src="/js/modules/scan.js?v=1.0.4"></script>
+<script src="/js/modules/events.js?v=1.0.4"></script>
+<script src="/js/modules/layout.js?v=1.0.4"></script>
+<script src="/js/modules/settings.js?v=1.0.4"></script>
+<script src="/js/modules/settings_tags.js?v=1.0.4"></script>
+<script src="/js/modules/settings_collections.js?v=1.0.4"></script>
+<script src="/js/modules/settings_folders.js?v=1.0.4"></script>
+<script src="/js/modules/update.js?v=1.0.4"></script>
+<script src="/js/modules/window.js?v=1.0.4"></script>
+<script src="/js/modules/i18n.js?v=1.0.4"></script>
+<script src="/js/modules/app.js?v=1.0.4"></script>
 </body>
 </html>

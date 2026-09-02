@@ -57,7 +57,7 @@
                         : '<span class="folder-toggle-spacer"></span>'}
                     <i data-lucide="${hasChildren ? "folder-open" : "folder"}" style="width:16px;height:16px;color:var(--accent);flex-shrink:0"></i>
                     <span class="settings-folder-path" title="${node.path}">${node.path}</span>
-                    <span class="settings-folder-count" title="${t("common.items", { count: (node.photo_count || 0).toLocaleString() })}">${(node.photo_count || 0).toLocaleString()}</span>
+                    <span class="settings-folder-count" title="${t("common.items", { count: (node.photo_count || 0).toLocaleString(P.locale()) })}">${(node.photo_count || 0).toLocaleString(P.locale())}</span>
                     <div class="settings-row-actions">
                         <button class="settings-row-btn scan" title="${t("settings.folders.scan")}" data-folder-path="${node.path}"><i data-lucide="refresh-cw"></i></button>
                         <button class="settings-row-btn delete" title="${t("settings.folders.remove")}" data-folder-id="${node.id}"><i data-lucide="trash-2"></i></button>

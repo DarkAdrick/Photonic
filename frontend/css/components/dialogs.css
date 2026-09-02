@@ -53,6 +53,16 @@
 
 .dialog-header h3 { margin-bottom: 0; }
 
+.dialog-count {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+}
+
+.geotag-dialog-box .dialog-header .detail-close-btn {
+    margin-left: auto;
+}
+
 .dialog-tabs {
     display: flex;
     gap: 4px;
@@ -844,4 +854,192 @@
 .cl-version li b {
     color: var(--text-primary);
     font-weight: 500;
+}
+
+/* ── Geotag Dialog ───────────────────────────────────────────────────────── */
+
+.geotag-dialog-box {
+    width: 620px;
+    max-width: 92vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.geotag-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.geotag-search {
+    position: relative;
+}
+
+.geotag-search-icon {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    bottom: 0;
+    margin: 0;
+    width: 18px;
+    height: 18px;
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+#geotag-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 12px 8px 32px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+#geotag-search-input:focus {
+    border-color: var(--accent);
+}
+
+.geotag-search-results {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 1200;
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.geotag-search-result {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.geotag-search-result:hover {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.geotag-search-result.empty {
+    color: var(--text-secondary);
+    cursor: default;
+}
+
+#geotag-map {
+    height: 300px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    z-index: 0;
+}
+
+#geotag-coords {
+    font-size: 12px;
+    color: var(--text-secondary);
+    min-height: 16px;
+}
+
+#geotag-coords .geo-place {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.geotag-actions {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.geotag-actions-right {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.geotag-remove-btn {
+    padding: 6px 12px;
+    border: 1px solid color-mix(in srgb, #f2545b 50%, var(--border));
+    border-radius: 6px;
+    background: color-mix(in srgb, #f2545b 12%, transparent);
+    color: #f2545b;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.geotag-remove-btn:hover {
+    background: #f2545b;
+    color: #fff;
+}
+
+.geotag-confirm {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: color-mix(in srgb, #f2a33c 10%, var(--bg-primary));
+    border: 1px solid color-mix(in srgb, #f2a33c 50%, var(--border));
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.geotag-confirm-btns {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.geotag-confirm-btns button {
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.geotag-confirm-btns button:hover {
+    background: color-mix(in srgb, var(--accent) 20%, var(--bg-tertiary));
+}
+
+#geotag-confirm-ok {
+    border-color: color-mix(in srgb, #f2a33c 60%, var(--border)) !important;
+    color: #f2a33c !important;
+    font-weight: 600;
+}
+
+#geotag-confirm-ok:hover {
+    background: #f2a33c !important;
+    color: #fff !important;
+}
+
+/* Map drop highlight (drag & drop over the locations map) */
+#map-view .leaflet-container.dragover {
+    outline: 3px dashed var(--accent);
+    outline-offset: -3px;
+}
+
+.leaflet-container.dragover {
+    outline: 3px dashed var(--accent);
+    outline-offset: -3px;
 }

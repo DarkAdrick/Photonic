@@ -8,6 +8,9 @@
             P.fn.saveRestoreState();
             P.isDragging = false;
             P.dragHighlightIds.clear();
+            P.activeTagBrowseId = null;
+            P.activeCameraBrowseId = null;
+            P.activeCollectionId = null;
             P.fn.hideContextMenu();
             P.navItems.forEach(li => {
                 li.classList.toggle("active", li.dataset.view === view);
@@ -144,7 +147,27 @@
                 P.activeCameraBrowseId = null;
                 if (o.load !== false) P.fn.loadPhotos();
             }
+            P.fn.updateViewTitle();
         }
+    
+        function updateViewTitle() {
+            if (!P.viewTitleBar) return;
+            const labels = {
+                library: "sidebar.library",
+                cleaning: "sidebar.cleaning",
+                locations: "sidebar.locations",
+                stats: "sidebar.stats"
+            };
+            const key = labels[P.activeView];
+            if (!key) {
+                P.viewTitleBar.classList.add("hidden");
+                return;
+            }
+            P.viewTitleBar.textContent = P.t(key);
+            P.viewTitleBar.classList.remove("hidden");
+        }
+    
+        P.fn.updateViewTitle = updateViewTitle;
     
         P.fn.saveRestoreState = function () {
             try {

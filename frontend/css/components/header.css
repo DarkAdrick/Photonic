@@ -75,23 +75,30 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-primary);
     border: 1px solid var(--border);
-    box-shadow:
-        0 0 0 3px color-mix(in srgb, var(--accent) 6%, transparent),
-        0 4px 12px rgba(0,0,0,0.35);
-    flex-shrink: 0;
+    color:black!important;
+    --conic-1: #ff70ff;
+    --conic-2: #ffac88;
+    --conic-3: #ffee80;
+    --conic-4: #72ff9f;
+    --conic-5: #55daff;
+    background: conic-gradient(from var(--badge-angle) at 50% 50%, var(--conic-5) 0deg, var(--conic-1) 72deg, var(--conic-2) 144deg, var(--conic-3) 216deg, var(--conic-4) 288deg, var(--conic-5) 360deg);
+    animation: badgeSpin 4s linear infinite;
 }
 
 .logo-icon svg {
     width: 20px;
     height: 20px;
-    color: var(--photonic-2);
-    animation: logoHue 8s linear infinite;
+    animation: logoIconSpin 60s linear infinite reverse;
 }
 
 @keyframes logoHue {
     to { filter: hue-rotate(360deg)}
+}
+
+@keyframes logoIconSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
 }
 
 .logo {
@@ -291,7 +298,7 @@
 /* ── Version Badge (conic-gradient border + glow) ──────────────────────── */
 
 .version-badge-outer {
-    --conic-1: #ff4dff;
+    --conic-1: #ff56ff;
     --conic-2: #ff6b2b;
     --conic-3: #ffe02a;
     --conic-4: #2bff6e;
@@ -318,7 +325,7 @@
 .version-badge-outer::before {
     content: '';
     position: absolute;
-    inset: -3px;
+    inset: 2px;
     border-radius: 16px;
     background: conic-gradient(
         from var(--badge-angle) at 50% 50%,
@@ -349,7 +356,7 @@
     position: relative;
     z-index: 1;
     color: var(--text-primary);
-    opacity: 0.75;
+    opacity: 0.95;
 }
 
 @keyframes badgeSpin {

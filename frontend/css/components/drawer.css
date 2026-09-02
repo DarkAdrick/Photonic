@@ -36,7 +36,7 @@
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    color: var(--text-secondary);
+    color: var(--text-primary);
 }
 
 .filter-chip select,
@@ -59,6 +59,229 @@
 
 .filter-chip-distance {
     min-width: 220px;
+}
+
+.filter-type-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.filter-check {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text-primary);
+    cursor: pointer;
+    height: 27px;
+    padding: 0 8px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    white-space: nowrap;
+    transition: border-color 0.15s, color 0.15s;
+    user-select: none;
+}
+
+.filter-check:hover {
+    border-color: var(--accent);
+}
+
+.filter-check input[type="checkbox"] {
+    accent-color: var(--accent);
+    cursor: pointer;
+    margin: 0;
+}
+
+.filter-check:has(input:checked) {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.filter-chip-format {
+    position: relative;
+    min-width: 110px;
+}
+
+#filter-format-btn,
+#filter-device-btn,
+#filter-place-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    width: 100%;
+    height: 27px;
+    padding: 5px 8px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 12px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+#filter-format-btn:hover,
+#filter-device-btn:hover,
+#filter-place-btn:hover {
+    border-color: var(--accent);
+}
+
+#filter-format-btn.active,
+#filter-device-btn.active,
+#filter-place-btn.active {
+    border-color: var(--accent);
+}
+
+#filter-format-label,
+#filter-device-label,
+#filter-place-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#filter-format-label.active,
+#filter-device-label.active,
+#filter-place-label.active {
+    color: var(--accent);
+}
+
+#filter-format-btn .lucide,
+#filter-format-btn svg,
+#filter-device-btn .lucide,
+#filter-device-btn svg,
+#filter-place-btn .lucide,
+#filter-place-btn svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    opacity: 0.6;
+    transition: transform 0.15s;
+}
+
+#filter-format-btn.active .lucide,
+#filter-format-btn.active svg,
+#filter-device-btn.active .lucide,
+#filter-device-btn.active svg,
+#filter-place-btn.active .lucide,
+#filter-place-btn.active svg {
+    transform: rotate(180deg);
+    opacity: 1;
+}
+
+#filter-format-popover,
+#filter-device-popover,
+#filter-place-popover {
+    position: fixed;
+    min-width: 220px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+    padding: 10px;
+    z-index: 1200;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.filter-format-ext {
+    width: 100%;
+    height: 27px;
+    padding: 5px 8px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 12px;
+    outline: none;
+}
+
+.filter-format-ext:focus {
+    border-color: var(--accent);
+}
+
+.filter-popover-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 10px 0;
+}
+
+.filter-popover-type {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-popover-ext {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-popover-ext .filter-type-label {
+    margin-bottom: 0;
+}
+
+#filter-ext-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+#filter-ext-list .filter-check {
+    height: 26px;
+    padding: 0 6px;
+    font-size: 11px;
+}
+
+#filter-ext-list .filter-check-ext span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#filter-camera-list,
+#filter-lens-list,
+#filter-country-list,
+#filter-city-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+#filter-camera-list .filter-check,
+#filter-lens-list .filter-check,
+#filter-country-list .filter-check,
+#filter-city-list .filter-check {
+    height: 26px;
+    padding: 0 6px;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#filter-country-list .filter-check-country {
+    justify-content: flex-start;
+}
+
+#filter-country-list .filter-check-country .country-flag-img {
+    height: 14px;
+    flex-shrink: 0;
+}
+
+#filter-country-list .filter-check-country span {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .distance-inputs {

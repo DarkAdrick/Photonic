@@ -22,8 +22,8 @@
                 P.scanProgress.classList.remove("hidden");
                 P.scanFill.style.width = pct + "%";
                 P.scanStatus.textContent = data.cancel
-                    ? t("scan.cancelling", { done: data.done.toLocaleString(), total: data.total.toLocaleString() })
-                    : t("scan.progress", { done: data.done.toLocaleString(), total: data.total.toLocaleString(), pct: pct });
+                    ? t("scan.cancelling", { done: data.done.toLocaleString(P.locale()), total: data.total.toLocaleString(P.locale()) })
+                    : t("scan.progress", { done: data.done.toLocaleString(P.locale()), total: data.total.toLocaleString(P.locale()), pct: pct });
                 P.btnRescan.disabled = true;
                 if (P.btnScanCancel) P.btnScanCancel.classList.toggle("hidden", !!data.cancel);
                 P.scanPollCount++;

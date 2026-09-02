@@ -107,10 +107,21 @@ def _index_file(conn: sqlite3.Connection, fpath: str) -> str:
         except Exception:
             width = 1280
             height = 720
-            
+
         import datetime
         dt = datetime.datetime.fromtimestamp(stat.st_mtime)
         date_taken = dt.strftime("%Y:%m:%d %H:%M:%S")
+
+        latitude, longitude = _video_gps(fpath)
+        if latitude is not None and longitude is not None:
+            try:
+                from backend.geo import search as geo_search
+                result = geo_search((latitude, longitude))
+                if result:
+                    country = result[0].get("cc")
+                    city = result[0].get("name")
+            except Exception:
+                pass
     else:
         try:
             img = Image.open(fpath)
@@ -222,3 +233,99 @@ def _gps_to_decimal(coords, ref):
         return decimal
     except Exception:
         return None
+
+
+import re as _re
+
+_ISO6709_RE = _re.compile(
+    r"([+-]\d{1,3}(?:\.\d+)?)([+-]\d{1,3}(?:\.\d+)?)(?:([+-]\d{1,3}(?:\.\d+)?))?/"
+)
+
+_VIDEO_CONTAINERS = {
+    b"moov", b"udta", b"meta", b"ilst", b"keys", b"trak",
+    b"mdia", b"minf", b"stbl", b"dinf", b"edts", b"udta",
+}
+_VIDEO_GPS_BOXES = (b"\xa9xyz", b"@xyz", b".xyz")  # ©xyz, @xyz
+
+
+def _iter_boxes(buf, start, end):
+    i = start
+    while i + 8 <= end:
+        size = int.from_bytes(buf[i:i + 4], "big")
+        name = buf[i + 4:i + 8]
+        hdr = 8
+        if size == 1:
+            if i + 16 > end:
+                break
+            size = int.from_bytes(buf[i + 8:i + 16], "big")
+            hdr = 16
+        elif size == 0:
+            size = end - i
+        if size < hdr or i + size > end:
+            break
+        yield i, size, name, hdr
+        i += size
+
+
+def _iso6709_latlon(s):
+    s = s.strip()
+    m = _ISO6709_RE.search(s)
+    if not m:
+        return None, None
+    lat = float(m.group(1))
+    lng = float(m.group(2))
+    if -90 <= lat <= 90 and -180 <= lng <= 180:
+        return lat, lng
+    return None, None
+
+
+def _walk_meta_boxes(buf, start, end, found):
+    for off, size, name, hdr in _iter_boxes(buf, start, end):
+        body_start = off + hdr
+        body_end = off + size
+        if name in _VIDEO_GPS_BOXES:
+            txt = buf[body_start:body_end].decode("latin-1", "ignore")
+            found.append(txt)
+        elif name == b"data":
+            payload = buf[body_start + 8:body_end].decode("latin-1", "ignore")
+            if payload.startswith(("+", "-")):
+                found.append(payload)
+        if name in _VIDEO_CONTAINERS and (size - hdr) >= 12:
+            _walk_meta_boxes(buf, body_start, body_end, found)
+
+
+def _search_video_gps(buf):
+    found = []
+    _walk_meta_boxes(buf, 0, len(buf), found)
+    for s in found:
+        lat, lng = _iso6709_latlon(s)
+        if lat is not None:
+            return lat, lng
+    return None, None
+
+
+def _read_range(fpath, start, end):
+    with open(fpath, "rb") as f:
+        f.seek(start)
+        return f.read(end - start)
+
+
+def _video_gps(fpath):
+    """Read GPS coordinates embedded in MP4/MOV metadata.
+
+    Supports QuickTime ©xyz / @xyz atoms (Google Pixel, many phones) and
+    Apple-style ISO6709 metadata. Returns (lat, lon) or (None, None)."""
+    try:
+        size = os.path.getsize(fpath)
+        if size <= 32 * 1024 * 1024:
+            with open(fpath, "rb") as f:
+                buf = f.read(size)
+            return _search_video_gps(buf)
+        first = _read_range(fpath, 0, 1 * 1024 * 1024)
+        res = _search_video_gps(first)
+        if res[0] is not None:
+            return res
+        last = _read_range(fpath, max(0, size - 8 * 1024 * 1024), size)
+        return _search_video_gps(last)
+    except Exception:
+        return None, None

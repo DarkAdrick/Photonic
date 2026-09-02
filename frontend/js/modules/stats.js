@@ -30,7 +30,7 @@
             P.statsView.innerHTML = `
                 <div class="stats-summary">
                     <div class="stat-card">
-                        <div class="stat-value">${d.total_photos.toLocaleString()}</div>
+                        <div class="stat-value">${d.total_photos.toLocaleString(P.locale())}</div>
                         <div class="stat-label">${t("stats.photos")}</div>
                     </div>
                     <div class="stat-card">
@@ -38,7 +38,7 @@
                         <div class="stat-label">${t("stats.total_size")}</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">${d.geo_count.toLocaleString()} / ${d.geo_total.toLocaleString()}</div>
+                        <div class="stat-value">${d.geo_count.toLocaleString(P.locale())} / ${d.geo_total.toLocaleString(P.locale())}</div>
                         <div class="stat-label">${t("stats.geolocalized", { pct: geoPct })}</div>
                     </div>
                     <div class="stat-card">
@@ -89,7 +89,7 @@
                                 callbacks: {
                                     label: function(ctx) {
                                         const f = d.formats[ctx.dataIndex];
-                                        return ` ${t("stats.files_with_size", { count: f.count.toLocaleString(), size: formatSizeShort(f.size) })}`;
+                                        return ` ${t("stats.files_with_size", { count: f.count.toLocaleString(P.locale()), size: formatSizeShort(f.size) })}`;
                                     }
                                 }
                             }

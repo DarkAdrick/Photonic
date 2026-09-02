@@ -1,5 +1,74 @@
 # Changelog
 
+## v1.1.0 — 02 September 2026
+
+### Geolocation — Set Location 🗺️
+- [ADD] **Set Location** dialog: a full searchable Leaflet map (OpenStreetMap) with a draggable marker to assign GPS coordinates to one or several photos. Enter a place to search and pan, or click anywhere on the map to drop the marker; coordinates update live. Geographic data is written back into the image **EXIF** (JPEG, WebP, PNG, TIFF) via `piexif` so it survives outside Photonic
+- [ADD] Four entry points:
+  - **Photo detail** — a "Set Location" pill next to the coordinates
+  - **Context menu** — "Set Location…" on one or several selected photos
+  - **Map view** — drag & drop photos from the grid/strip directly onto the map; the dialog opens pre-filled with the coordinates under the cursor
+  - **"Remove location"** button to clear GPS from the photo(s) (file + database)
+- [ADD] When coordinates are saved, reverse geocoding fills the **country and city** fields (matching Photos' own offline GeoNames lookup) so those photos appear in the Countries/Cities browse views and filters
+- [ADD] Overwrite confirmation when one of the selected photos already has a location ("Replace?"), controllable in **Settings > Application > General** ("Confirm location overwrite")
+- [ADD] New endpoints `GET /api/photos/location-status` and `POST /api/photos/set-location`
+
+### Videos
+- [ADD] **Video support is now first-class**: the new **Type** filter splits the library into **Images** and **Videos** (multi-select), and the Format filter lists only image formats when "Images" is on, video formats when "Videos" is on
+- [ADD] GPS extraction from MP4/MOV metadata (QuickTime `©xyz`/`@xyz` atoms and Apple ISO-6709 strings) so scanned videos are geotagged and appear on the map — with low-memory streaming reads for very large files
+- [ADD] Video GPS is reverse-geocoded to country/city and stored in the database (video files themselves do not get EXIF written)
+
+### Filter rework
+- [EDIT] Camera + Lens and Country + City are now **grouped popovers** with scrollable check lists instead of two large dropdowns; the Format filter becomes a popover combining the Type toggles and the extension list
+- [ADD] **Chained filtering**: choosing a **Camera** filters the Lens list to the lenses used by that camera (camera → lenses), and choosing a **Country** filters the City list to that country's cities (country → city); the reverse direction intentionally does not filter the other list
+- [ADD] Country filter rows show the **flag image + English country name** (checkbox keeps the ISO country code), and the active filter label uses the country name
+- [ADD] Format and Device/Place chips show a concise label of the active selection
+- [EDIT] Camera filter now matches the camera model **exactly** (was a fuzzy substring match), and accept comma-separated extension lists in `_ext_clause`
+
+### Map / Locations
+- [ADD] New **"not geolocalized"** mode (`geotag_only=0`): a toggle lets you show untagged photos on the map, not just geotagged ones
+- [ADD] Photos placed on the map strip no longer stop at an empty footer — an explicit **"Nothing here"** empty state with an icon and hint
+- [ADD] Map photo strip follows the global locale formatting for counters
+
+### Clustering defaults
+- [EDIT] Sane defaults so clustering behaves intuitively on first run: **Cluster group size** default 500 → **1**, and **Disable clustering below** default 5000 → **500** (existing users keep their saved values; only fresh installs and resets pick up the new defaults)
+
+### Empty states
+- [ADD] The welcome screen is now distinct from the **"No photos match your filters"** empty state: when a filter/search is active and nothing matches, you get a clear message and a **Reset Filters** button (which clears all filter chips, search and type toggles)
+
+### Context menu & selection
+- [ADD] **Select All** / **Deselect All** entries in the context menu (deselect only shows when something is selected; select only hides when everything visible is already selected)
+- [ADD] **Set Location…** entry in the context menu
+- [FIX] "Select"/"Deselect" single row now toggles based on whether the clicked photo is inside the current selection
+
+### Grid & zoom
+- [ADD] **Minimum thumbnail size lowered to 20px** and the grid **gap now adapts to zoom**: 2px at ≤ 20px thumbnails, 3px between 21–100px, and 6px above 100px
+- [EDIT] Browse cards (folders, collections, tags, cameras, countries) use a **count badge** plus **color-tinted card accents** with auto-contrast text instead of the old plain count row
+
+### Detail view
+- [ADD] "View title" bar shows the current view name above the photo grid
+- [ADD] "Set Location" pill in the location section of the photo detail panel
+- [FIX] Detail map/coordinates sections now render consistently whether or not the photo has GPS
+
+### Sidebar
+- [EDIT] Sidebar actions (Add Folder / Rescan All) are **pinned to the bottom** with an independent scroll area above them — they no longer scroll out of view on long tag/collection lists
+- [ADD] **Drag & drop on a collapsed sidebar section** (Folders / Collections / Tags) auto-expands it (and remembers it as open) so you can drop onto the revealed items
+
+### Settings & misc
+- [EDIT] Settings language menu is repositioned to the body so it is no longer clipped by the settings card's stacking context; stale menus are cleaned up when re-rendering
+- [ADD] "Confirm location overwrite" toggle in Settings > Application > General (stored in `localStorage`)
+- [CHORE] `piexif` added to dependencies for in-file GPS writing
+
+## v1.0.3 — 31 August 2026
+
+### Photo detail view
+- [FIX] The photo detail metadata is now translated: the labels (**File, Path, Size, Dimensions, Format, Camera, Lens, Focal Length, Aperture, Shutter Speed, Date Taken, Created, Modified**) previously hard-coded in English now go through the translation layer across all languages
+- [FIX] The "Click to remove" tooltip on collection pills is translated too, and the rotation handlers that refresh the "Dimensions" row now match the translated label instead of the English one
+
+### Localisation (dates & numbers)
+- [FIX] Dates and times now follow the **selected language** instead of the browser/system locale: previously, whatever language the app was set to, dates still rendered in the system language (e.g. French "16 août 2026, 17:16:16") even when the UI was in English, German, Spanish or Japanese. They now use the active language's format (e.g. "Aug 16, 2026, 5:16:16 PM", "2026年8月16日 …"). This covers the photo detail metadata (Date Taken / Created / Modified) and the update-notice timestamps
+- [FIX] Numbers (counters, statistics, scan progress and folder/country/tag/collection counts) are now formatted with the active language's grouping separators via the same locale, instead of the browser default
+
 ## v1.0.2 — 31 August 2026
 
 ### Hidden photos

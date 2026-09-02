@@ -750,14 +750,14 @@
         // matches the cluster radius (in screen px). Cells with >= the group-size
         // threshold become clusters; smaller cells render as individual markers.
         // A group-size threshold of 1 therefore groups from 2 photos at a spot.
-        const clusterGlobalThreshold = parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "5000") || 5000;
+        const clusterGlobalThreshold = parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "500") || 500;
         const clusteringDisabled = data.total < clusterGlobalThreshold;
 
         let densePhotos = [];
         let sparsePhotos = [];
 
         if (!clusteringDisabled) {
-            const clusterThreshold = parseInt(localStorage.getItem("photonic.clusterThreshold") || "500") || 500;
+            const clusterThreshold = parseInt(localStorage.getItem("photonic.clusterThreshold") || "1") || 1;
             const minClusterSize = Math.max(2, clusterThreshold);
             const zoom = map.getZoom();
             const center = map.getCenter();
@@ -2629,7 +2629,7 @@
 
     function formatDateTime(date) {
         if (!date || isNaN(date.getTime())) return null;
-        return date.toLocaleString(undefined, {
+        return date.toLocaleString(window.I18n && I18n.getCurrent ? I18n.getCurrent() : undefined, {
             day: "numeric",
             month: "short",
             year: "numeric",
@@ -3651,8 +3651,8 @@
         const showExts = localStorage.getItem("photonic.showExtensions") === "true";
         const thumbSize = parseInt(localStorage.getItem("photonic.thumbnailSize") || "150");
         const defaultView = localStorage.getItem("photonic.defaultView") || "grid";
-        const clusterThreshold = parseInt(localStorage.getItem("photonic.clusterThreshold") || "500");
-        const clusterGlobalThreshold = parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "5000");
+        const clusterThreshold = parseInt(localStorage.getItem("photonic.clusterThreshold") || "1");
+        const clusterGlobalThreshold = parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "500");
         const savedPalette = localStorage.getItem("photonic.palette");
 
         el.innerHTML = `

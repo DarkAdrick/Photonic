@@ -23,14 +23,14 @@
                 P.loadingMore = false;
     
                 if (data.total === 0 && P.currentPage === 1) {
-                    P.emptyState.classList.remove("hidden");
+                    showEmptyState();
                     P.photoGrid.classList.add("hidden");
                     P.photoCountH.textContent = "";
                     return;
                 }
                 P.emptyState.classList.add("hidden");
                 P.photoGrid.classList.remove("hidden");
-                P.photoCountH.textContent = t("common.items", { count: data.total.toLocaleString() });
+                P.photoCountH.textContent = t("common.items", { count: data.total.toLocaleString(P.locale()) });
     
                 for (const p of data.photos) {
                     const card = document.createElement("div");
@@ -269,6 +269,11 @@
     
         const DND_MIME = "application/x-photonic-ids";
     
+        function setDropReady(on) {
+            const targets = P.sidebarFilters ? P.sidebarFilters.querySelectorAll(".collection-item, .tag-item") : [];
+            targets.forEach(el => el.classList.toggle("drop-ready", on));
+        }
+
         function gridDragStart(e) {
             const card = e.target.closest(".photo-card[data-photo-id]");
             if (!card || !card.draggable) return;
@@ -282,6 +287,7 @@
                 : [id];
             card.classList.add("dragging");
             e.stopPropagation();
+            setDropReady(true);
             P.fn.setDnDGhost(e, card, P.dndPhotoIds.length);
             try {
                 e.dataTransfer.setData(DND_MIME, JSON.stringify(P.dndPhotoIds));
@@ -293,6 +299,7 @@
         function gridDragEnd(e) {
             const card = e.target.closest(".photo-card");
             if (card) card.classList.remove("dragging");
+            setDropReady(false);
             P.dndPhotoIds = [];
             P.fn.clearDnDGhost();
         }
@@ -371,14 +378,22 @@
     
             const isCleaning = P.activeView === "cleaning";
             const isMulti = count > 1;
+            const clickedId = P.contextMenuPhotoId;
+            const hasSelection = P.selectedIds.size > 0;
+            const clickedInSelection = clickedId != null && P.selectedIds.has(clickedId);
+            const totalVisible = P.currentPhotoIds ? P.currentPhotoIds.length : 0;
+            const allSelected = totalVisible > 0 && P.selectedIds.size >= totalVisible;
 
             P.contextMenu.querySelector('[data-action="open"]').classList.toggle("disabled", isMulti);
-            P.contextMenu.querySelector('[data-action="select"]').classList.toggle("hidden", isMulti);
-            P.contextMenu.querySelector('[data-action="deselect"]').classList.toggle("hidden", isMulti);
+            P.contextMenu.querySelector('[data-action="select"]').classList.toggle("hidden", clickedInSelection);
+            P.contextMenu.querySelector('[data-action="deselect"]').classList.toggle("hidden", !clickedInSelection);
+            P.contextMenu.querySelector('[data-action="select-all"]').classList.toggle("hidden", allSelected);
+            P.contextMenu.querySelector('[data-action="deselect-all"]').classList.toggle("hidden", !hasSelection);
             P.contextMenu.querySelector('[data-action="add-tag"]').classList.toggle("hidden", isCleaning);
             P.contextMenu.querySelector('[data-action="remove-tags"]').classList.toggle("hidden", isCleaning);
             P.contextMenu.querySelector('[data-action="add-collection"]').classList.toggle("hidden", isCleaning);
             P.contextMenu.querySelector('[data-action="remove-collections"]').classList.toggle("hidden", isCleaning);
+            P.contextMenu.querySelector('[data-action="set-location"]').classList.toggle("hidden", isCleaning);
             P.contextMenu.querySelector('[data-action="hide"]').classList.toggle("hidden", isCleaning);
             P.contextMenu.querySelector('[data-action="show"]').classList.toggle("hidden", isCleaning);
 
@@ -435,6 +450,12 @@
                 }
             } else if (action === "remove-collections") {
                 P.fn.removeCollectionsFromTargets(targets);
+            } else if (action === "set-location") {
+                if (typeof P.fn.openGeotagModal === "function") {
+                    P.fn.openGeotagModal(targets);
+                } else {
+                    P.fn.showToast(t("geotag.unavailable"), { icon: "x" });
+                }
             } else if (action === "hide") {
                 const ids = targets.length > 0 ? targets : Array.from(P.selectedIds);
                 P.fn.hidePhotos(ids, true);
@@ -543,8 +564,38 @@
             }, 300);
         }
     
-        function clearFilters() {
-            P.searchInput.value = "";
+        function hasActiveFilters() {
+            if (P.searchInput.value.trim()) return true;
+            if (P.filterCamera.value) return true;
+            if (P.filterLens.value) return true;
+            if (P.filterExt.value) return true;
+            if (P.filterDateFrom.value) return true;
+            if (P.filterDateTo.value) return true;
+            if (P.filterRating.value) return true;
+            if (P.filterCountry.value) return true;
+            if (P.filterCity.value) return true;
+            if (P.filterGeo.value) return true;
+            if (P.filter360.value) return true;
+            if (P.filterTypeImage.checked || P.filterTypeVideo.checked) return true;
+            if (P.hiddenFilter === "all" || P.hiddenFilter === "only") return true;
+            if (P.activeTagId != null) return true;
+            if (P.activeFolderId != null) return true;
+            if (P.activeCollectionId != null) return true;
+            if (P.activeCameraBrowseId != null) return true;
+            return false;
+        }
+
+        function showEmptyState() {
+            const filtered = hasActiveFilters();
+            const welcome = document.getElementById("empty-welcome");
+            const noResults = document.getElementById("empty-filtered");
+            if (welcome) welcome.classList.toggle("hidden", filtered);
+            if (noResults) noResults.classList.toggle("hidden", !filtered);
+            P.emptyState.classList.remove("hidden");
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        function clearFilters() {            P.searchInput.value = "";
             P.filterCamera.value = "";
             P.filterLens.value = "";
             P.filterExt.value = "";
@@ -555,11 +606,14 @@
             P.filterCity.value = "";
             P.filterGeo.value = "";
             P.filter360.value = "";
+            P.filterTypeImage.checked = false;
+            P.filterTypeVideo.checked = false;
             P.filterHidden.value = "hide";
             P.hiddenFilter = "hide";
             P.activeTagId = null;
             P.activeCountryCode = null;
             if (P.activeView === "locations") P.lastMapQueryUrl = null;
+            if (P.fn.updateFormatLabel) P.fn.updateFormatLabel();
             onFilterChange();
         }
     
@@ -576,4 +630,8 @@
         P.fn.onFilterChange = onFilterChange;
         P.fn.onSearch = onSearch;
         P.fn.clearFilters = clearFilters;
+        P.fn.hasActiveFilters = hasActiveFilters;
+        P.fn.showEmptyState = showEmptyState;
+        const resetBtn = document.getElementById("btn-reset-filters");
+        if (resetBtn) resetBtn.addEventListener("click", () => P.fn.clearFilters());
 })(window.PhotoApp = window.PhotoApp || {});

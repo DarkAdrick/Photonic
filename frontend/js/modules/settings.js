@@ -97,14 +97,17 @@
         ];
     
         function renderApplicationSettings() {
+            const staleMenu = document.getElementById("setting-lang-menu");
+            if (staleMenu && staleMenu.parentNode === document.body) staleMenu.remove();
             const el = document.getElementById("settings-application");
             const confirmDelete = localStorage.getItem("photonic.confirmDelete") !== "false";
+            const confirmGeotagOverwrite = localStorage.getItem("photonic.confirmGeotagOverwrite") !== "false";
             const showExts = localStorage.getItem("photonic.showExtensions") === "true";
             const showHiddenDefault = localStorage.getItem("photonic.showHiddenDefault") === "true";
             const thumbSize = parseInt(localStorage.getItem("photonic.thumbnailSize") || "150");
             const defaultView = localStorage.getItem("photonic.defaultView") || "grid";
-            const clusterThreshold = parseInt(localStorage.getItem("photonic.clusterThreshold") || "500");
-            const clusterGlobalThreshold = parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "5000");
+            const clusterThreshold = parseInt(localStorage.getItem("photonic.clusterThreshold") || "1");
+            const clusterGlobalThreshold = parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "500");
             const savedPalette = localStorage.getItem("photonic.palette");
     
             el.innerHTML = `
@@ -148,6 +151,18 @@
                         <div class="setting-control">
                             <label class="toggle-switch">
                                 <input type="checkbox" id="setting-confirm-delete" ${confirmDelete ? "checked" : ""}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-label">${t("settings.general.confirm_geotag_overwrite")}</div>
+                            <div class="setting-desc">${t("settings.general.confirm_geotag_overwrite_desc")}</div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="setting-confirm-geotag" ${confirmGeotagOverwrite ? "checked" : ""}>
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>
@@ -218,8 +233,8 @@
                         </div>
                         <div class="setting-control">
                             <div class="settings-range-wrap">
-                                <input type="range" class="settings-range" id="setting-thumb-size" min="60" max="450" value="${thumbSize}">
-                                <input type="number" class="settings-range-label settings-range-input" id="setting-thumb-size-label" value="${thumbSize}" min="60" max="450" step="1" aria-label="${t("settings.display.thumb_label")}">
+                                <input type="range" class="settings-range" id="setting-thumb-size" min="20" max="450" value="${thumbSize}">
+                                <input type="number" class="settings-range-label settings-range-input" id="setting-thumb-size-label" value="${thumbSize}" min="20" max="450" step="1" aria-label="${t("settings.display.thumb_label")}">
                                 <span class="settings-range-unit">px</span>
                             </div>
                         </div>
@@ -391,6 +406,9 @@
             document.getElementById("setting-confirm-delete").addEventListener("change", (e) => {
                 localStorage.setItem("photonic.confirmDelete", e.target.checked);
             });
+            document.getElementById("setting-confirm-geotag").addEventListener("change", (e) => {
+                localStorage.setItem("photonic.confirmGeotagOverwrite", e.target.checked);
+            });
             document.getElementById("setting-show-extensions").addEventListener("change", (e) => {
                 localStorage.setItem("photonic.showExtensions", e.target.checked);
             });
@@ -412,9 +430,23 @@
             const settingsMenu = document.getElementById("setting-lang-menu");
             if (langSelect && settingsMenu) {
                 P.fn.refreshLangHeader();
+                function openSettingsLangMenu() {
+                    if (settingsMenu.parentNode !== document.body) {
+                        document.body.appendChild(settingsMenu);
+                    }
+                    const r = langSelect.getBoundingClientRect();
+                    settingsMenu.style.position = "fixed";
+                    settingsMenu.style.left = Math.min(r.left, window.innerWidth - settingsMenu.offsetWidth - 8) + "px";
+                    settingsMenu.style.top = (r.bottom + 6) + "px";
+                    settingsMenu.classList.remove("hidden");
+                }
                 langSelect.addEventListener("click", (e) => {
                     e.stopPropagation();
-                    settingsMenu.classList.toggle("hidden");
+                    if (settingsMenu.classList.contains("hidden")) {
+                        openSettingsLangMenu();
+                    } else {
+                        settingsMenu.classList.add("hidden");
+                    }
                     const headerMenu = document.getElementById("lang-menu");
                     if (headerMenu) headerMenu.classList.add("hidden");
                 });
@@ -436,11 +468,12 @@
             const thumbLabel = document.getElementById("setting-thumb-size-label");
             const mainThumb = document.getElementById("thumb-size");
             function applyThumbSize(v) {
-                v = Math.max(60, Math.min(450, +v || 60));
+                v = Math.max(20, Math.min(450, +v || 20));
                 thumbSlider.value = v;
                 thumbLabel.value = v;
                 localStorage.setItem("photonic.thumbnailSize", v);
                 document.documentElement.style.setProperty("--thumb-size", v + "px");
+                document.documentElement.style.setProperty("--thumb-gap", (v <= 20 ? 2 : v <= 100 ? 3 : 6) + "px");
                 document.documentElement.classList.toggle("thumbs-tiny", +v <= 90);
                 if (mainThumb) mainThumb.value = v;
             }

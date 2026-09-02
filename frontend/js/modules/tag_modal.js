@@ -83,7 +83,7 @@
                             await P.fn.api("POST", `/api/photos/${pid}/tags`, { tag_id: t.id });
                         }
                     } else {
-                        await P.fn.api("POST", `/api/photos/${tagModalPhotoId}/tags`, { tag_id: t.id });
+                        await P.fn.api("POST", `/api/photos/${P.tagModalPhotoId}/tags`, { tag_id: t.id });
                         await P.fn.loadDetail(P.tagModalPhotoId);
                     }
                     P.tagDialog.classList.add("hidden");

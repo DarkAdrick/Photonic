@@ -104,20 +104,20 @@
             lucide.createIcons();
     
             const rows = [
-                ["File", data.filename],
-                ["Path", data.path],
-                ["Size", formatSize(data.size)],
-                ["Dimensions", data.width && data.height ? `${data.width} × ${data.height}` : null],
-                ["Format", data.extension ? data.extension.toUpperCase() : null],
-                ["Camera", [data.camera_make, data.camera_model].filter(Boolean).join(" ")],
-                ["Lens", data.lens],
-                ["Focal Length", data.focal_length],
-                ["Aperture", data.aperture ? `f/${data.aperture}` : null],
-                ["Shutter Speed", data.shutter_speed],
+                [t("detail.file"), data.filename],
+                [t("detail.path"), data.path],
+                [t("detail.size"), formatSize(data.size)],
+                [t("detail.dimensions"), data.width && data.height ? `${data.width} × ${data.height}` : null],
+                [t("detail.format"), data.extension ? data.extension.toUpperCase() : null],
+                [t("detail.camera"), [data.camera_make, data.camera_model].filter(Boolean).join(" ")],
+                [t("detail.lens"), data.lens],
+                [t("detail.focal_length"), data.focal_length],
+                [t("detail.aperture"), data.aperture ? `f/${data.aperture}` : null],
+                [t("detail.shutter_speed"), data.shutter_speed],
                 ["ISO", data.iso],
-                ["Date Taken", formatExifDateStr(data.date_taken)],
-                ["Created", formatEpochStr(data.created_date)],
-                ["Modified", formatEpochStr(data.modified_date)],
+                [t("detail.date_taken"), formatExifDateStr(data.date_taken)],
+                [t("detail.created"), formatEpochStr(data.created_date)],
+                [t("detail.modified"), formatEpochStr(data.modified_date)],
             ];
     
             P.detailMeta.innerHTML = "";
@@ -126,8 +126,10 @@
                 P.detailMeta.innerHTML += `<div class="meta-row"><span class="meta-label">${label}</span><span class="meta-value" title="${value}">${value}</span></div>`;
             }
     
+            P.detailMapSec.classList.remove("hidden");
             if (data.latitude != null && data.longitude != null) {
-                P.detailMapSec.classList.remove("hidden");
+                P.detailMapEl.classList.remove("hidden");
+                P.detailCoords.classList.remove("hidden");
                 P.detailCoords.textContent = `${data.latitude.toFixed(6)}, ${data.longitude.toFixed(6)}`;
                 setTimeout(() => {
                     if (P.detailMap) P.detailMap.remove();
@@ -137,7 +139,8 @@
                     setTimeout(() => P.detailMap.invalidateSize(), 100);
                 }, 50);
             } else {
-                P.detailMapSec.classList.add("hidden");
+                P.detailMapEl.classList.add("hidden");
+                P.detailCoords.classList.add("hidden");
             }
     
             const collectionData = await P.fn.api("GET", `/api/photos/${photoId}/collections`);
@@ -148,7 +151,7 @@
                 const pill = document.createElement("span");
                 pill.className = "collection-pill";
                 pill.style.setProperty("--collection-color", color);
-                pill.title = "Click to remove";
+                pill.title = t("detail.click_to_remove");
                 
                 const icon = c.icon ? `<i data-lucide="${c.icon}"></i>` : `<i data-lucide="library"></i>`;
                 pill.innerHTML = `${icon}${c.name}`;
@@ -234,7 +237,7 @@
     
         function formatDateTime(date) {
             if (!date || isNaN(date.getTime())) return null;
-            return date.toLocaleString(undefined, {
+            return date.toLocaleString(P.locale(), {
                 day: "numeric",
                 month: "short",
                 year: "numeric",
@@ -264,4 +267,15 @@
         P.fn.navigateDetail = navigateDetail;
         P.fn.loadDetail = loadDetail;
         P.fn.formatDateTime = formatDateTime;
-})(window.PhotoApp = window.PhotoApp || {});
+
+        function initDetailLocationBtn() {
+            const btn = document.getElementById("detail-set-location");
+            if (!btn) return;
+            btn.addEventListener("click", () => {
+                const id = P.detailCurrentPhotoId;
+                if (id == null) return;
+                if (P.fn.openGeotagModal) P.fn.openGeotagModal([id]);
+            });
+        }
+        initDetailLocationBtn();
+    })(window.PhotoApp = window.PhotoApp || {});

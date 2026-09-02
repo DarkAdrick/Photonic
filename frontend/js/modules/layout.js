@@ -3,7 +3,7 @@
         // ── Thumb size slider + Ctrl+Scroll ────────────────────────────────────
     
          P.thumbSlider  = document.getElementById("thumb-size");
-        const thumbMin = 30;
+        const thumbMin = 20;
         const thumbMax = 450;
         const thumbDefault = 150;
     
@@ -17,6 +17,7 @@
                 setTimeout(() => P.photoGrid.classList.remove("zoom-pulse"), 300);
             }
             document.documentElement.style.setProperty("--thumb-size", px + "px");
+            document.documentElement.style.setProperty("--thumb-gap", (px <= 20 ? 2 : px <= 100 ? 3 : 6) + "px");
             document.documentElement.classList.toggle("thumbs-tiny", px <= 90);
             P.thumbSlider.value = px;
             localStorage.setItem("photonic.thumbnailSize", px);
@@ -77,6 +78,9 @@
     
             for (const card of cards) {
                 card.style.width = colWidth + "px";
+                if (card.classList.contains("country-card")) {
+                    card.style.height = colWidth + "px";
+                }
                 let shortest = 0;
                 for (let c = 1; c < cols; c++) {
                     if (colHeights[c] < colHeights[shortest]) shortest = c;
@@ -114,6 +118,7 @@
                     card.style.left = "";
                     card.style.top = "";
                     card.style.width = "";
+                    card.style.height = "";
                 }
             }
         }

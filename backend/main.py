@@ -1,6 +1,7 @@
 import platform
 import re
 import shutil
+import subprocess
 import sqlite3
 import threading
 import time
@@ -23,6 +24,37 @@ from backend.version import APP_VERSION
 app = FastAPI(title="Photonic", version=APP_VERSION)
 
 THUMB_DIR = APP_DIR / "cache" / "thumbnails"
+
+VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v", ".3gp"}
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff", ".bmp", ".gif"}
+
+
+def _type_exts(type: Optional[str]):
+    """Return (sql_fragment, params) for a media-type filter, or (None, []).
+
+    Extensions are stored with a leading dot (e.g. '.jpg'), so the params here
+    keep the dot to match the `extension` column directly."""
+    if type == "video":
+        exts = sorted(VIDEO_EXTENSIONS)
+    elif type == "image":
+        exts = sorted(IMAGE_EXTENSIONS)
+    else:
+        return None, []
+    clause = "LOWER(extension) = ?" if len(exts) == 1 else ("LOWER(extension) IN ({})".format(",".join("?" * len(exts))))
+    return clause, list(exts)
+
+
+def _ext_clause(ext: Optional[str], prefix: str = "p."):
+    """Return (sql_fragment, params) for an extension filter, or (None, []).
+
+    Accepts a comma-separated list (e.g. '.jpg,.png')."""
+    if not ext:
+        return None, []
+    exts = [e.strip().lower() for e in ext.split(",") if e.strip()]
+    if not exts:
+        return None, []
+    clause = f"{prefix}extension = ?" if len(exts) == 1 else ("{}extension IN ({})".format(prefix, ",".join("?" * len(exts))))
+    return clause, list(exts)
 
 
 def _like_escape(s: str) -> str:
@@ -48,6 +80,71 @@ def _hidden_sql(alias: str, show_hidden: bool = False, hidden_only: bool = False
     if show_hidden:
         return ""
     return f"{col} = 0"
+
+
+# ── Geotagging helpers ────────────────────────────────────────────────────────
+
+def _decimal_to_dms_exif(decimal: float):
+    """Decimal degrees → EXIF DMS rational format ((deg,1),(min,1),(sec,denom))."""
+    if decimal is None:
+        return None
+    decimal = abs(decimal)
+    deg = int(decimal)
+    minutes_float = (decimal - deg) * 60
+    minutes = int(minutes_float)
+    seconds = (minutes_float - minutes) * 60
+    seconds = round(seconds, 6)
+    return ((deg, 1), (minutes, 1), (int(seconds * 1000000), 1000000))
+
+
+def _write_location_to_file(fpath: str, latitude, longitude) -> bool:
+    """Write GPS coordinates into an image's EXIF (or remove them when None).
+
+    JPEG / WebP are handled by piexif directly. PNG / TIFF reuse Pillow's eXIf
+    support with a piexif-dumped payload. Videos and other unsupported formats
+    are skipped (the location is still recorded in the Photonic database).
+    Returns True when the file itself was updated.
+    """
+    ext = Path(fpath).suffix.lower()
+    video_exts = (".mp4", ".mov", ".m4v", ".avi", ".mkv", ".webm", ".3gp")
+    if ext in video_exts:
+        return False
+    if ext not in (".jpg", ".jpeg", ".webp", ".png", ".tif", ".tiff"):
+        return False
+    try:
+        import piexif
+        gps = {}
+        if latitude is not None and longitude is not None:
+            gps[piexif.GPSIFD.GPSVersionID] = (2, 3, 0, 0)
+            gps[piexif.GPSIFD.GPSLatitudeRef] = "N" if latitude >= 0 else "S"
+            gps[piexif.GPSIFD.GPSLatitude] = _decimal_to_dms_exif(latitude)
+            gps[piexif.GPSIFD.GPSLongitudeRef] = "E" if longitude >= 0 else "W"
+            gps[piexif.GPSIFD.GPSLongitude] = _decimal_to_dms_exif(longitude)
+
+        if ext in (".jpg", ".jpeg", ".webp"):
+            exif_dict = piexif.load(fpath)
+            exif_dict["GPS"] = gps
+            piexif.insert(piexif.dump(exif_dict), fpath)
+            return True
+
+        from PIL import Image
+        exif_dict = None
+        with Image.open(fpath) as img:
+            exif_bytes = img.getexif().tobytes()
+        if exif_bytes:
+            try:
+                exif_dict = piexif.load(exif_bytes)
+            except Exception:
+                exif_dict = None
+        if exif_dict is None:
+            exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "Interop": {}, "1st": {}, "thumbnail": None}
+        exif_dict["GPS"] = gps
+        with Image.open(fpath) as img:
+            img.save(fpath, exif=piexif.dump(exif_dict))
+        return True
+    except Exception:
+        return False
+
 
 # ── Scan state (shared across threads) ───────────────────────────────────────
 
@@ -473,6 +570,7 @@ def list_photos(
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     ext: Optional[str] = None,
+    type: Optional[str] = None,
     rating: Optional[int] = None,
     tag_id: Optional[int] = None,
     collection_id: Optional[int] = None,
@@ -530,8 +628,8 @@ def list_photos(
         params += [like, like, like, like]
 
     if camera:
-        where_parts.append("p.camera_model LIKE ?")
-        params.append(f"%{camera}%")
+        where_parts.append("p.camera_model = ?")
+        params.append(camera)
 
     if lens:
         where_parts.append("p.lens LIKE ?")
@@ -545,9 +643,15 @@ def list_photos(
         where_parts.append("REPLACE(p.date_taken, ':', '-') <= ?")
         params.append(date_to + " 23:59:59")
 
-    if ext:
-        where_parts.append("p.extension = ?")
-        params.append(ext.lower())
+    ext_clause, ext_params = _ext_clause(ext, "p.")
+    if ext_clause:
+        where_parts.append(ext_clause)
+        params += ext_params
+
+    type_clause, type_params = _type_exts(type)
+    if type_clause:
+        where_parts.append(type_clause.replace("extension", "p.extension"))
+        params += type_params
 
     if rating is not None:
         where_parts.append("p.rating >= ?")
@@ -635,20 +739,29 @@ def list_photos(
 
 
 @app.get("/api/filters")
-def get_filters(show_hidden: bool = False, hidden_only: bool = False):
+def get_filters(show_hidden: bool = False, hidden_only: bool = False, camera: Optional[str] = None, lens: Optional[str] = None, country: Optional[str] = None):
     conn = get_connection()
     cond = _hidden_sql("", show_hidden, hidden_only)
     andf = ("AND " + cond + " ") if cond else ""
     whf = ("WHERE " + cond + " ") if cond else ""
+    lens_filter = " AND camera_model = ?" if camera else ""
+    cam_filter = " AND lens = ?" if lens else ""
+    city_filter = " AND country = ?" if country else ""
+    lens_params = [camera] if camera else []
+    cam_params = [lens] if lens else []
+    city_params = [country] if country else []
     cameras = [r[0] for r in conn.execute(
-        "SELECT DISTINCT camera_model FROM photos WHERE camera_model IS NOT NULL AND camera_model != '' " + andf + "ORDER BY camera_model"
+        "SELECT DISTINCT camera_model FROM photos WHERE camera_model IS NOT NULL AND camera_model != '' " + andf + cam_filter + " ORDER BY camera_model", cam_params
     ).fetchall()]
     lenses = [r[0] for r in conn.execute(
-        "SELECT DISTINCT lens FROM photos WHERE lens IS NOT NULL AND lens != '' " + andf + "ORDER BY lens"
+        "SELECT DISTINCT lens FROM photos WHERE lens IS NOT NULL AND lens != '' " + andf + lens_filter + " ORDER BY lens", lens_params
     ).fetchall()]
     extensions = [r[0] for r in conn.execute(
         "SELECT DISTINCT extension FROM photos " + whf + "ORDER BY extension"
     ).fetchall()]
+    extensions_lc = {e.lower() for e in extensions}
+    extensions_image = sorted(e for e in extensions if e.lower() in IMAGE_EXTENSIONS)
+    extensions_video = sorted(e for e in extensions if e.lower() in VIDEO_EXTENSIONS)
     date_range = conn.execute(
         "SELECT MIN(date_taken), MAX(date_taken) FROM photos WHERE date_taken IS NOT NULL " + andf
     ).fetchone()
@@ -656,13 +769,15 @@ def get_filters(show_hidden: bool = False, hidden_only: bool = False):
         "SELECT DISTINCT country FROM photos WHERE country IS NOT NULL " + andf + "ORDER BY country"
     ).fetchall()]
     cities = [r[0] for r in conn.execute(
-        "SELECT DISTINCT city FROM photos WHERE city IS NOT NULL " + andf + "ORDER BY city"
+        "SELECT DISTINCT city FROM photos WHERE city IS NOT NULL " + andf + city_filter + " ORDER BY city", city_params
     ).fetchall()]
     conn.close()
     return {
         "cameras": cameras,
         "lenses": lenses,
         "extensions": extensions,
+        "extensions_image": extensions_image,
+        "extensions_video": extensions_video,
         "date_min": date_range[0] if date_range else None,
         "date_max": date_range[1] if date_range else None,
         "countries": countries,
@@ -678,16 +793,18 @@ def geo_bounds(
     camera: Optional[str] = None,
     lens: Optional[str] = None,
     ext: Optional[str] = None,
+    type: Optional[str] = None,
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     rating: Optional[int] = None,
     collection_id: Optional[int] = None,
     q: Optional[str] = None,
+    geotag_only: Optional[str] = None,
     show_hidden: bool = False,
     hidden_only: bool = False,
 ):
     conn = get_connection()
-    where = "WHERE latitude IS NOT NULL AND longitude IS NOT NULL"
+    where = "WHERE latitude IS NOT NULL AND longitude IS NOT NULL" if geotag_only != "0" else "WHERE 1=1"
     params: list = []
     cond = _hidden_sql("", show_hidden, hidden_only)
     if cond:
@@ -699,14 +816,19 @@ def geo_bounds(
         where += " AND city = ?"
         params.append(city)
     if camera:
-        where += " AND camera_model LIKE ?"
-        params.append(f"%{camera}%")
+        where += " AND camera_model = ?"
+        params.append(camera)
     if lens:
         where += " AND lens LIKE ?"
         params.append(f"%{lens}%")
-    if ext:
-        where += " AND extension = ?"
-        params.append(ext.lower())
+    ext_clause, ext_params = _ext_clause(ext)
+    if ext_clause:
+        where += " AND " + ext_clause
+        params += ext_params
+    type_clause, type_params = _type_exts(type)
+    if type_clause:
+        where += " AND " + type_clause
+        params += type_params
     if date_from:
         where += " AND REPLACE(date_taken, ':', '-') >= ?"
         params.append(date_from)
@@ -760,17 +882,19 @@ def geo_photos(
     camera: Optional[str] = None,
     lens: Optional[str] = None,
     ext: Optional[str] = None,
+    type: Optional[str] = None,
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     rating: Optional[int] = None,
     collection_id: Optional[int] = None,
     q: Optional[str] = None,
     is_360: Optional[str] = None,
+    geotag_only: Optional[str] = None,
     show_hidden: bool = False,
     hidden_only: bool = False,
 ):
     conn = get_connection()
-    where = "WHERE latitude IS NOT NULL AND longitude IS NOT NULL"
+    where = "WHERE latitude IS NOT NULL AND longitude IS NOT NULL" if geotag_only != "0" else "WHERE 1=1"
     params: list = []
     cond = _hidden_sql("", show_hidden, hidden_only)
     if cond:
@@ -782,14 +906,15 @@ def geo_photos(
         where += " AND city = ?"
         params.append(city)
     if camera:
-        where += " AND camera_model LIKE ?"
-        params.append(f"%{camera}%")
+        where += " AND camera_model = ?"
+        params.append(camera)
     if lens:
         where += " AND lens LIKE ?"
         params.append(f"%{lens}%")
-    if ext:
-        where += " AND extension = ?"
-        params.append(ext.lower())
+    ext_clause, ext_params = _ext_clause(ext)
+    if ext_clause:
+        where += " AND " + ext_clause
+        params += ext_params
     if date_from:
         where += " AND REPLACE(date_taken, ':', '-') >= ?"
         params.append(date_from)
@@ -799,6 +924,10 @@ def geo_photos(
     if rating is not None:
         where += " AND rating >= ?"
         params.append(rating)
+    type_clause, type_params = _type_exts(type)
+    if type_clause:
+        where += " AND " + type_clause
+        params += type_params
     if q:
         where += " AND (filename LIKE ? OR camera_model LIKE ? OR camera_make LIKE ? OR lens LIKE ?)"
         like = f"%{q}%"
@@ -932,6 +1061,80 @@ def bulk_hide(payload: dict):
     finally:
         conn.close()
     return {"ok": True, "updated": len(photo_ids)}
+
+
+@app.get("/api/photos/location-status")
+def location_status(ids: str = Query("", description="Comma-separated photo ids")):
+    id_list = [int(x) for x in ids.split(",") if x.strip().isdigit()]
+    if not id_list:
+        return {"with_location": [], "without_location": [], "has_location": False}
+    conn = get_connection()
+    placeholders = ",".join("?" * len(id_list))
+    rows = conn.execute(
+        f"SELECT id, latitude, longitude FROM photos WHERE id IN ({placeholders})",
+        id_list,
+    ).fetchall()
+    conn.close()
+    with_location = [r["id"] for r in rows if r["latitude"] is not None and r["longitude"] is not None]
+    return {
+        "with_location": with_location,
+        "without_location": [r["id"] for r in rows if r["latitude"] is None or r["longitude"] is None],
+        "has_location": len(with_location) > 0,
+    }
+
+
+@app.post("/api/photos/set-location")
+def set_location(payload: dict):
+    photo_ids = payload.get("photo_ids") or []
+    latitude = payload.get("latitude")
+    longitude = payload.get("longitude")
+    if not isinstance(photo_ids, list) or not photo_ids:
+        return {"error": "photo_ids (list) is required"}
+
+    lat = float(latitude) if latitude is not None else None
+    lng = float(longitude) if longitude is not None else None
+
+    conn = get_connection()
+    placeholders = ",".join("?" * len(photo_ids))
+    rows = conn.execute(
+        f"SELECT id, path FROM photos WHERE id IN ({placeholders})",
+        photo_ids,
+    ).fetchall()
+    conn.close()
+
+    file_written = 0
+    for r in rows:
+        if _write_location_to_file(r["path"], lat, lng):
+            file_written += 1
+
+    coords = [(r["id"], lat, lng) for r in rows if lat is not None]
+    geo_results = []
+    if coords:
+        try:
+            from backend.geo import search as geo_search
+            geo_results = geo_search([(c[1], c[2]) for c in coords])
+        except Exception:
+            geo_results = []
+
+    conn = get_connection()
+    for idx, (rid, clat, clng) in enumerate(coords):
+        res = geo_results[idx] if idx < len(geo_results) else None
+        country = res.get("cc") if res else None
+        city = res.get("name") if res else None
+        conn.execute(
+            "UPDATE photos SET latitude = ?, longitude = ?, country = ?, city = ? WHERE id = ?",
+            (clat, clng, country, city, rid),
+        )
+    no_coords = [r["id"] for r in rows if lat is None]
+    for rid in no_coords:
+        conn.execute(
+            "UPDATE photos SET latitude = NULL, longitude = NULL, country = NULL, city = NULL WHERE id = ?",
+            (rid,),
+        )
+    conn.commit()
+    conn.close()
+
+    return {"ok": True, "updated": len(rows), "file_written": file_written}
 
 
 @app.get("/api/photos/{photo_id}")

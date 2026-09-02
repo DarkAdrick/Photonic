@@ -1,6 +1,22 @@
 // Photonic module: browse
 (function (P) {
     const t = P.t;
+        function contrastText(hex) {
+            if (!hex) return "#ffffff";
+            let h = hex.replace("#", "");
+            if (h.length === 3) h = h.split("").map(c => c + c).join("");
+            const r = parseInt(h.substring(0, 2), 16) / 255;
+            const g = parseInt(h.substring(2, 4), 16) / 255;
+            const b = parseInt(h.substring(4, 6), 16) / 255;
+            const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            return lum > 0.6 ? "#1a1a1a" : "#ffffff";
+        }
+        function applyCardColor(card, color) {
+            if (!color) return;
+            card.style.setProperty("--card-accent", color);
+            card.style.setProperty("--card-accent-fg", contrastText(color));
+        }
+        P.fn.contrastText = contrastText;
         // ── Folder Browse (main area) ─────────────────────────────────────────
     
         function renderFolderBreadcrumb() {
@@ -8,7 +24,7 @@
                 P.breadcrumbBar.classList.add("hidden");
                 return;
             }
-            P.breadcrumbBar.classList.remove("hidden");
+            P.breadcrumbBar.classList.remove("hidden"); if (P.viewTitleBar) P.viewTitleBar.classList.add("hidden");
             let html = `<span class="bc-item bc-link" data-bc="folders-root">${t("sidebar.folders")}</span>`;
             for (let i = 0; i < P.folderBrowsePath.length; i++) {
                 html += '<span class="bc-sep">›</span>';
@@ -64,10 +80,10 @@
                 ).join("");
                 card.innerHTML =
                     `<div class="country-card-grid">${thumbs}</div>` +
+                    `<span class="country-card-count-badge">${(f.photo_count || 0).toLocaleString(P.locale())}</span>` +
                     `<div class="country-card-info">` +
                     `<span class="folder-icon">&#128193;</span> ` +
                     `<span class="country-card-name">${f.name}</span>` +
-                    `<span class="country-card-count">${(f.photo_count || 0).toLocaleString()}</span>` +
                     `</div>`;
                 card.addEventListener("click", () => {
                     P.folderBrowsePath.push({ path: f.path, name: f.name });
@@ -78,10 +94,11 @@
     
             if (photos.length > 0) {
                 const count = photos.length;
-                P.photoCountH.textContent += (totalFolders > 0 ? " + " : "") + t("common.direct_items", { count: count.toLocaleString() });
+                P.photoCountH.textContent += (totalFolders > 0 ? " + " : "") + t("common.direct_items", { count: count.toLocaleString(P.locale()) });
                 for (const p of photos) {
                     const card = document.createElement("div");
                     card.className = "photo-card" + (P.fn.isPhotoHidden(p) ? " photo-card-hidden" : "");
+                    card.dataset.photoId = p.id;
                     card.title = p.filename;
                     let badge = "";
                     if (P.fn.is360Photo(p)) {
@@ -96,7 +113,6 @@
                         ${P.fn.renderMetaBadges(p)}
                         <div class="photo-label">${p.filename}</div>
                     `;
-                    card.addEventListener("click", () => P.fn.openDetail(p.id));
                     P.photoGrid.appendChild(card);
                 }
                 lucide.createIcons();
@@ -111,7 +127,7 @@
                 P.breadcrumbBar.classList.add("hidden");
                 return;
             }
-            P.breadcrumbBar.classList.remove("hidden");
+            P.breadcrumbBar.classList.remove("hidden"); if (P.viewTitleBar) P.viewTitleBar.classList.add("hidden");
             let html = `<span class="bc-item bc-link" data-bc="collections-root"><i data-lucide="library" style="width: 14px; height: 14px; margin-right: 4px;"></i>${t("sidebar.collections")}</span>`;
             for (let i = 0; i < P.collectionBrowsePath.length; i++) {
                 html += '<span class="bc-sep">›</span>';
@@ -174,14 +190,14 @@
                     `<img src="/api/photos/${id}/thumb/medium" alt="" loading="lazy">`
                 ).join("");
                 const icon = c.icon ? `<i data-lucide="${c.icon}"></i>` : "";
-                const colorDot = c.color ? `<span class="tag-dot" style="background:${c.color}"></span>` : "";
                 card.innerHTML =
                     `<div class="country-card-grid">${thumbs}</div>` +
+                    `<span class="country-card-count-badge">${(c.photo_count || 0).toLocaleString(P.locale())}</span>` +
                     `<div class="country-card-info">` +
-                    `${colorDot}${icon}` +
+                    `${icon}` +
                     `<span class="country-card-name">${c.name}</span>` +
-                    `<span class="country-card-count">${(c.photo_count || 0).toLocaleString()}</span>` +
                     `</div>`;
+                if (c.color) applyCardColor(card, c.color);
                 card.addEventListener("click", () => {
                     P.collectionBrowsePath.push({ id: c.id, name: c.name, icon: c.icon });
                     loadCollectionsBrowse();
@@ -191,10 +207,11 @@
     
             if (photos.length > 0) {
                 const count = photos.length;
-                P.photoCountH.textContent += (totalCollections > 0 ? " + " : "") + t("common.direct_items", { count: count.toLocaleString() });
+                P.photoCountH.textContent += (totalCollections > 0 ? " + " : "") + t("common.direct_items", { count: count.toLocaleString(P.locale()) });
                 for (const p of photos) {
                     const card = document.createElement("div");
                     card.className = "photo-card" + (P.fn.isPhotoHidden(p) ? " photo-card-hidden" : "");
+                    card.dataset.photoId = p.id;
                     card.title = p.filename;
                     let badge = "";
                     if (P.fn.is360Photo(p)) {
@@ -209,7 +226,6 @@
                         ${P.fn.renderMetaBadges(p)}
                         <div class="photo-label">${p.filename}</div>
                     `;
-                    card.addEventListener("click", () => P.fn.openDetail(p.id));
                     P.photoGrid.appendChild(card);
                 }
             }
@@ -226,7 +242,7 @@
                 P.breadcrumbBar.classList.add("hidden");
                 return;
             }
-            P.breadcrumbBar.classList.remove("hidden");
+            P.breadcrumbBar.classList.remove("hidden"); if (P.viewTitleBar) P.viewTitleBar.classList.add("hidden");
             if (!P.activeTagBrowseId) {
                 P.breadcrumbBar.innerHTML = `<span class="bc-item bc-current">${t("sidebar.tags")}</span>`;
             } else {
@@ -268,12 +284,12 @@
                         `<img src="/api/photos/${id}/thumb/medium" alt="" loading="lazy">`
                     ).join("");
                     card.innerHTML =
-                        `<div class="country-card-grid">${thumbs}</div>` +
-                        `<div class="country-card-info">` +
-                        `<span class="tag-dot" style="background:${color}"></span> ` +
-                        `<span class="country-card-name">${tag.name}</span>` +
-                        `<span class="country-card-count">${tag.photo_count.toLocaleString()}</span>` +
-                        `</div>`;
+                    `<div class="country-card-grid">${thumbs}</div>` +
+                    `<span class="country-card-count-badge">${tag.photo_count.toLocaleString(P.locale())}</span>` +
+                    `<div class="country-card-info">` +
+                    `<span class="country-card-name">${tag.name}</span>` +
+                    `</div>`;
+                    if (color) applyCardColor(card, color);
                     card.addEventListener("click", () => {
                         P.activeTagBrowseId = tag.id;
                         loadTagsBrowse();
@@ -284,7 +300,7 @@
                 const tag = tagsData.find(x => x.id === P.activeTagBrowseId);
                 if (tag) {
                     const color = tag.color || P.TAG_COLORS[Math.abs(P.fn.hashStr(tag.name)) % P.TAG_COLORS.length];
-                    P.photoCountH.innerHTML = `<span class="tag-dot" style="background:${color}"></span> ${tag.name} — ${t("common.items", { count: tag.photo_count.toLocaleString() })}`;
+                    P.photoCountH.innerHTML = `<span class="tag-dot" style="background:${color}"></span> ${tag.name} — ${t("common.items", { count: tag.photo_count.toLocaleString(P.locale()) })}`;
                 }
                 P.fn.loadPhotos();
             }
@@ -299,7 +315,7 @@
                 P.breadcrumbBar.classList.add("hidden");
                 return;
             }
-            P.breadcrumbBar.classList.remove("hidden");
+            P.breadcrumbBar.classList.remove("hidden"); if (P.viewTitleBar) P.viewTitleBar.classList.add("hidden");
             if (!P.activeCameraBrowseId) {
                 P.breadcrumbBar.innerHTML = `<span class="bc-item bc-current">${t("sidebar.cameras")}</span>`;
             } else {
@@ -338,9 +354,9 @@
                     ).join("");
                     card.innerHTML =
                         `<div class="country-card-grid">${thumbs}</div>` +
+                        `<span class="country-card-count-badge">${c.photo_count.toLocaleString(P.locale())}</span>` +
                         `<div class="country-card-info">` +
                         `<span class="country-card-name">&#128247; ${c.name}</span>` +
-                        `<span class="country-card-count">${c.photo_count.toLocaleString()}</span>` +
                         `</div>`;
                     card.addEventListener("click", () => {
                         P.activeCameraBrowseId = c.name;
@@ -381,7 +397,7 @@
                 P.breadcrumbBar.classList.add("hidden");
                 return;
             }
-            P.breadcrumbBar.classList.remove("hidden");
+            P.breadcrumbBar.classList.remove("hidden"); if (P.viewTitleBar) P.viewTitleBar.classList.add("hidden");
             if (!P.activeCountryCode) {
                 P.breadcrumbBar.innerHTML = `<span class="bc-item bc-current">${t("sidebar.countries")}</span>`;
             } else {
@@ -423,10 +439,10 @@
                     ).join("");
                     card.innerHTML =
                         `<div class="country-card-grid">${thumbs}</div>` +
+                        `<span class="country-card-count-badge">${c.photo_count.toLocaleString(P.locale())}</span>` +
                         `<div class="country-card-info">` +
                         `<span class="country-card-flag">${countryFlag(c.code)}</span> ` +
                         `<span class="country-card-name">${c.name}</span>` +
-                        `<span class="country-card-count">${c.photo_count.toLocaleString()}</span>` +
                         `</div>`;
                     card.addEventListener("click", () => {
                         P.activeCountryCode = c.code;
@@ -436,7 +452,7 @@
                 }
             } else {
                 const c = countriesData.find(x => x.code === P.activeCountryCode);
-                if (c) P.photoCountH.innerHTML = `${countryFlag(c.code)} ${c.name} — ${t("common.items", { count: c.photo_count.toLocaleString() })}`;
+                if (c) P.photoCountH.innerHTML = `${countryFlag(c.code)} ${c.name} — ${t("common.items", { count: c.photo_count.toLocaleString(P.locale()) })}`;
                 P.fn.loadPhotos();
             }
         }

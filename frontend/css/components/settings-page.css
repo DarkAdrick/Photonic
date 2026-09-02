@@ -29,12 +29,15 @@
 .settings-nav-header {
     padding: 24px 20px 20px;
     border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .settings-nav-header h2 {
     font-size: 18px;
     font-weight: 700;
-    margin-top: 12px;
+    margin-top: 0;
     background: var(--photonic-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -991,7 +994,7 @@
 
     .settings-nav-header h2 {
         font-size: 15px;
-        margin-top: 8px;
+        margin-top: 0;
     }
 
     .settings-content {

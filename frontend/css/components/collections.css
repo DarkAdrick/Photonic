@@ -176,20 +176,6 @@
 }
 
 /* Collection pills in detail view */
-.collection-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-    cursor: default;
-    margin: 2px;
-}
-
 .collection-pill svg {
     width: 12px;
     height: 12px;

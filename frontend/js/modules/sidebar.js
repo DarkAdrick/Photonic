@@ -25,7 +25,7 @@
                  html += '<div class="folder-item' + (P.activeFolderId === null ? " active" : "") + '" data-folder-id="all">' + t("sidebar.all_items") + '</div>';
                 for (const f of folders) {
                     const active = P.activeFolderId === f.id ? " active" : "";
-                    const indent = f.depth > 0 ? ` style="padding-left:${24 + f.depth * 16}px"` : "";
+                    const indent = f.depth > 0 ? ` style="padding-left:${8 + f.depth * 16}px"` : "";
                     html += `<div class="folder-item${active}" data-folder-id="${f.id}" title="${f.path}"${indent}>${f.name}</div>`;
                 }
                 html += '</div>';
@@ -37,7 +37,7 @@
                 html += '<div class="sb-section-content' + (cCollapsed ? " collapsed" : "") + '">';
                 for (const c of collections) {
                     const active = P.activeCollectionId === c.id ? " active" : "";
-                    const indent = c.depth > 0 ? ` style="padding-left:${24 + c.depth * 16}px"` : "";
+                    const indent = c.depth > 0 ? ` style="padding-left:${8 + c.depth * 16}px"` : "";
                     const color = c.color || P.TAG_COLORS[Math.abs(P.fn.hashStr(c.name)) % P.TAG_COLORS.length];
                     const iconName = c.icon || "library";
                     html += `<div class="collection-item${active}" data-collection-id="${c.id}"${indent}><span class="tag-dot collection-dot" style="background:${color}"><i data-lucide="${iconName}"></i></span>${c.name} <span class="tag-count">${c.photo_count}</span></div>`;
@@ -60,13 +60,35 @@
             P.sidebarFilters.innerHTML = html;
             lucide.createIcons({ root: P.sidebarFilters });
     
+            const expandSection = (h) => {
+                if (!h.classList.contains("collapsed")) return;
+                const key = h.dataset.section;
+                const content = h.nextElementSibling;
+                h.classList.remove("collapsed");
+                if (content) content.classList.remove("collapsed");
+                localStorage.setItem(key, "0");
+            };
+
             P.sidebarFilters.querySelectorAll(".sb-section-header").forEach(h => {
                 h.addEventListener("click", () => {
                     const key = h.dataset.section;
                     const content = h.nextElementSibling;
                     const collapsed = h.classList.toggle("collapsed");
-                    content.classList.toggle("collapsed", collapsed);
+                    if (content) content.classList.toggle("collapsed", collapsed);
                     localStorage.setItem(key, collapsed ? "1" : "0");
+                });
+                const region = [h, h.nextElementSibling].filter(Boolean);
+                region.forEach(r => {
+                    r.addEventListener("dragenter", (e) => {
+                        if (!P.fn.isPhotoDnd(e)) return;
+                        e.preventDefault();
+                        expandSection(h);
+                    });
+                    r.addEventListener("dragover", (e) => {
+                        if (!P.fn.isPhotoDnd(e)) return;
+                        e.preventDefault();
+                        expandSection(h);
+                    });
                 });
             });
     

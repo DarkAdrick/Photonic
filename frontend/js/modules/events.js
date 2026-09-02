@@ -11,16 +11,69 @@
             P.btnToggleFilters.classList.toggle("active");
         });
         P.searchInput.addEventListener("input", P.fn.onSearch);
-        P.filterCamera.addEventListener("change", P.fn.onFilterChange);
-        P.filterLens.addEventListener("change", P.fn.onFilterChange);
-        P.filterExt.addEventListener("change", P.fn.onFilterChange);
         P.filterDateFrom.addEventListener("change", P.fn.onFilterChange);
         P.filterDateTo.addEventListener("change", P.fn.onFilterChange);
         P.filterRating.addEventListener("change", P.fn.onFilterChange);
-        P.filterCountry.addEventListener("change", P.fn.onFilterChange);
-        P.filterCity.addEventListener("change", P.fn.onFilterChange);
         P.filterGeo.addEventListener("change", P.fn.onFilterChange);
         P.filter360.addEventListener("change", P.fn.onFilterChange);
+        [
+            ["filter-camera-list", "updateDeviceLabel", "refreshLenses"],
+            ["filter-lens-list", "updateDeviceLabel", null],
+            ["filter-country-list", "updatePlaceLabel", "refreshCities"],
+            ["filter-city-list", "updatePlaceLabel", null]
+        ].forEach(([id, updaterName, refreshName]) => {
+            const listEl = document.getElementById(id);
+            if (!listEl) return;
+            listEl.addEventListener("change", async (e) => {
+                const list = e.target.closest("div");
+                list.querySelectorAll("input[type=checkbox]").forEach(cb => {
+                    if (cb !== e.target) cb.checked = false;
+                });
+                if (P.fn[updaterName]) P.fn[updaterName]();
+                if (refreshName && P.fn[refreshName]) {
+                    await P.fn[refreshName]();
+                }
+                P.fn.onFilterChange();
+            });
+        });
+        [P.filterTypeImage, P.filterTypeVideo].forEach(cb => {
+            cb.addEventListener("change", () => {
+                if (P.fn.populateFormatExt) P.fn.populateFormatExt();
+                P.fn.updateFormatLabel();
+                P.fn.onFilterChange();
+            });
+        });
+        function togglePopover(btn, pop) {
+            const open = pop.classList.toggle("hidden");
+            btn.classList.toggle("active", !open);
+            if (!open) {
+                document.querySelectorAll(".filter-format-btn.active").forEach(b => {
+                    if (b !== btn) b.classList.remove("active");
+                });
+                document.querySelectorAll(".filter-popover:not(.hidden)").forEach(p => {
+                    if (p !== pop) p.classList.add("hidden");
+                });
+                const r = btn.getBoundingClientRect();
+                pop.style.left = Math.min(r.left, window.innerWidth - pop.offsetWidth - 8) + "px";
+                pop.style.top = (r.bottom + 6) + "px";
+            }
+        }
+        P.filterFormatBtn.addEventListener("click", (e) => { e.stopPropagation(); togglePopover(P.filterFormatBtn, P.filterFormatPopover); });
+        P.filterDeviceBtn.addEventListener("click", (e) => { e.stopPropagation(); togglePopover(P.filterDeviceBtn, P.filterDevicePopover); });
+        P.filterPlaceBtn.addEventListener("click", (e) => { e.stopPropagation(); togglePopover(P.filterPlaceBtn, P.filterPlacePopover); });
+        document.addEventListener("click", (e) => {
+            document.querySelectorAll(".filter-chip-format").forEach(chip => {
+                if (!chip.contains(e.target)) {
+                    const btn = chip.querySelector(".filter-format-btn");
+                    const pop = chip.querySelector(".filter-popover");
+                    if (btn && pop) {
+                        pop.classList.add("hidden");
+                        btn.classList.remove("active");
+                    }
+                }
+            });
+        });
+        if (P.filterExtList) P.filterExtList.addEventListener("change", () => { P.fn.updateFormatLabel(); P.fn.onFilterChange(); });
         P.filterHidden.addEventListener("change", () => {
             P.hiddenFilter = P.filterHidden.value || "hide";
             if (P.activeView === "locations") P.lastMapQueryUrl = null;
@@ -126,9 +179,9 @@
             const action = item.dataset.action;
             hideDetailMenu();
             if (action === "open") {
-                P.fn.api("POST", `/api/photos/${detailCurrentPhotoId}/open`);
+                P.fn.api("POST", `/api/photos/${P.detailCurrentPhotoId}/open`);
             } else if (action === "reveal") {
-                P.fn.api("POST", `/api/photos/${detailCurrentPhotoId}/reveal`);
+                P.fn.api("POST", `/api/photos/${P.detailCurrentPhotoId}/reveal`);
             } else if (action === "copy-path") {
                 if (P.detailCurrentPhotoData?.path) await navigator.clipboard.writeText(P.detailCurrentPhotoData.path);
             } else if (action === "delete") {
@@ -143,13 +196,13 @@
             if (!P.detailCurrentPhotoId) return;
             P.detailRotateCW.disabled = true;
             P.detailRotateCCW.disabled = true;
-            const res = await P.fn.api("POST", `/api/photos/${detailCurrentPhotoId}/rotate`, { degrees: 90 });
+            const res = await P.fn.api("POST", `/api/photos/${P.detailCurrentPhotoId}/rotate`, { degrees: 90 });
             if (res.ok) {
                 P.detailThumbVersion++;
                 P.detailRotation = 0;
                 P.fn.loadDetail(P.detailCurrentPhotoId);
                 P.detailMeta.querySelectorAll(".meta-row").forEach(row => {
-                    if (row.querySelector(".meta-label")?.textContent === "Dimensions") {
+                    if (row.querySelector(".meta-label")?.textContent === t("detail.dimensions")) {
                         row.querySelector(".meta-value").textContent = `${res.width} × ${res.height}`;
                     }
                 });
@@ -161,13 +214,13 @@
             if (!P.detailCurrentPhotoId) return;
             P.detailRotateCW.disabled = true;
             P.detailRotateCCW.disabled = true;
-            const res = await P.fn.api("POST", `/api/photos/${detailCurrentPhotoId}/rotate`, { degrees: -90 });
+            const res = await P.fn.api("POST", `/api/photos/${P.detailCurrentPhotoId}/rotate`, { degrees: -90 });
             if (res.ok) {
                 P.detailThumbVersion++;
                 P.detailRotation = 0;
                 P.fn.loadDetail(P.detailCurrentPhotoId);
                 P.detailMeta.querySelectorAll(".meta-row").forEach(row => {
-                    if (row.querySelector(".meta-label")?.textContent === "Dimensions") {
+                    if (row.querySelector(".meta-label")?.textContent === t("detail.dimensions")) {
                         row.querySelector(".meta-value").textContent = `${res.width} × ${res.height}`;
                     }
                 });
@@ -225,30 +278,45 @@
         document.addEventListener("mouseup", () => { P.detailDragging = false; });
     
         P.detailOverlay.addEventListener("click", (e) => { if (e.target === P.detailOverlay) P.fn.closeDetail(); });
+        function isEditable(el) {
+            if (!el) return false;
+            if (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT") return true;
+            return el.isContentEditable;
+        }
+        const scrollKeys = ["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "];
         document.addEventListener("keydown", (e) => {
+            const typing = isEditable(e.target);
+            if (typing) return;
+
+            const dialogOpen = !P.detailOverlay.classList.contains("hidden")
+                || !!document.querySelector(".dialog-overlay:not(.hidden)");
+
             if (!P.detailOverlay.classList.contains("hidden")) {
+                if (scrollKeys.indexOf(e.key) !== -1) e.preventDefault();
                 if (e.key === "Escape") P.fn.closeDetail();
                 if (e.key === "ArrowLeft") P.fn.navigateDetail(-1);
                 if (e.key === "ArrowRight") P.fn.navigateDetail(1);
-                if ((e.key === "h" || e.key === "H") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                if ((e.key === "h" || e.key === "H") && !e.metaKey && !e.altKey) {
                     e.preventDefault();
                     if (P.detailCurrentPhotoId != null) {
                         P.fn.hidePhotos([P.detailCurrentPhotoId], !P.fn.isPhotoHidden(P.detailCurrentPhotoData));
                         P.fn.closeDetail();
                     }
                 }
+            } else if (dialogOpen && scrollKeys.indexOf(e.key) !== -1) {
+                e.preventDefault();
             } else if (e.key === "Escape") {
                 if (P.selectedIds.size > 0) P.fn.deselectAll();
                 P.fn.hideContextMenu();
             } else if (e.ctrlKey && e.key === "a") {
-                const usesGrid = P.activeView === "library" || P.activeView === "cleaning" || (P.activeView === "countries" && P.activeCountryCode) || (P.activeView === "tags" && P.activeTagBrowseId) || (P.activeView === "cameras" && P.activeCameraBrowseId);
+                const usesGrid = P.activeView === "library" || P.activeView === "cleaning" || P.activeView === "folders" || P.activeView === "collections" || (P.activeView === "countries" && P.activeCountryCode) || (P.activeView === "tags" && P.activeTagBrowseId) || (P.activeView === "cameras" && P.activeCameraBrowseId);
                 const usesMap = P.activeView === "locations";
                 if ((usesGrid && !P.photoGrid.classList.contains("hidden")) || usesMap) {
                     e.preventDefault();
                     for (const c of P.fn.getVisiblePhotoCards()) P.selectedIds.add(parseInt(c.dataset.photoId));
                     P.fn.renderSelection();
                 }
-            } else if ((e.key === "h" || e.key === "H") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            } else if ((e.key === "h" || e.key === "H") && !e.metaKey && !e.altKey) {
                 e.preventDefault();
                 if (P.selectedIds.size > 0) {
                     const ids = Array.from(P.selectedIds);
@@ -258,8 +326,52 @@
         });
     
     
+    function updateFormatLabel() {
+        const img = P.filterTypeImage.checked;
+        const vid = P.filterTypeVideo.checked;
+        if (img && vid) { P.filterFormatLabel.textContent = t("filter.images") + " + " + t("filter.videos"); P.filterFormatLabel.classList.add("active"); return; }
+        if (img) { P.filterFormatLabel.textContent = t("filter.images"); P.filterFormatLabel.classList.add("active"); return; }
+        if (vid) { P.filterFormatLabel.textContent = t("filter.videos"); P.filterFormatLabel.classList.add("active"); return; }
+        const extVal = P.filterExt.value;
+        if (extVal) {
+            const exts = extVal.split(",");
+            P.filterFormatLabel.textContent = exts.length > 1 ? `${exts[0]} +${exts.length - 1}` : exts[0];
+            P.filterFormatLabel.classList.add("active");
+            return;
+        }
+        P.filterFormatLabel.textContent = t("filter.all");
+        P.filterFormatLabel.classList.remove("active");
+    }
+
+    function updateDeviceLabel() {
+        const cam = P.filterCamera.value;
+        const lens = P.filterLens.value;
+        if (cam || lens) {
+            P.filterDeviceLabel.textContent = cam ? cam : lens;
+            P.filterDeviceLabel.classList.add("active");
+        } else {
+            P.filterDeviceLabel.textContent = t("filter.all");
+            P.filterDeviceLabel.classList.remove("active");
+        }
+    }
+
+    function updatePlaceLabel() {
+        const country = P.filterCountry.value;
+        const city = P.filterCity.value;
+        if (country || city) {
+            P.filterPlaceLabel.textContent = country ? P.fn.getCountryName(country) : city;
+            P.filterPlaceLabel.classList.add("active");
+        } else {
+            P.filterPlaceLabel.textContent = t("filter.all");
+            P.filterPlaceLabel.classList.remove("active");
+        }
+    }
+
     // --- exports ---
         P.fn.hideDetailMenu = hideDetailMenu;
         P.fn.applyDetailZoom = applyDetailZoom;
         P.fn.resetDetailZoom = resetDetailZoom;
+        P.fn.updateFormatLabel = updateFormatLabel;
+        P.fn.updateDeviceLabel = updateDeviceLabel;
+        P.fn.updatePlaceLabel = updatePlaceLabel;
 })(window.PhotoApp = window.PhotoApp || {});

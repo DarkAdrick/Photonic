@@ -2,6 +2,25 @@
 (function (P) {
     P.fn = P.fn || {};
          P.t = window.I18n ? I18n.t.bind(I18n) : (k, p) => String(k);
+         P.locale = function () { return window.I18n && I18n.getCurrent ? I18n.getCurrent() : undefined; };
+         P.singleSelectProxy = function (listEl, kind) {
+             return {
+                 get value() {
+                     if (!listEl) return "";
+                     const cb = listEl.querySelector("input[type=checkbox]:checked");
+                     return cb ? cb.value : "";
+                 },
+                 set value(v) {
+                     if (!listEl) return;
+                     const want = v ? String(v) : "";
+                     listEl.querySelectorAll("input[type=checkbox]").forEach(cb => {
+                         cb.checked = cb.value === want;
+                     });
+                     if (kind === "device" && P.fn.updateDeviceLabel) P.fn.updateDeviceLabel();
+                     if (kind === "place" && P.fn.updatePlaceLabel) P.fn.updatePlaceLabel();
+                 }
+             };
+         };
          P.statusText      = document.getElementById("status-text");
          P.scanProgress    = document.getElementById("scan-progress");
          P.scanFill        = document.getElementById("scan-fill");
@@ -11,6 +30,7 @@
          P.photoGrid       = document.getElementById("photo-grid");
         const selectionBarEl  = document.getElementById("header-photo-grid");
          P.breadcrumbBar   = document.getElementById("breadcrumb-bar");
+         P.viewTitleBar    = document.getElementById("view-title-bar");
          P.mapView         = document.getElementById("map-view");
          P.mapPhotosHeader = document.getElementById("map-photos-header");
          P.mapPhotoCount   = document.getElementById("map-photo-count");
@@ -30,14 +50,44 @@
          P.searchInput     = document.getElementById("search");
          P.filterDrawer    = document.getElementById("filter-drawer");
          P.btnToggleFilters= document.getElementById("btn-toggle-filters");
-         P.filterCamera    = document.getElementById("filter-camera");
-         P.filterLens      = document.getElementById("filter-lens");
-         P.filterExt       = document.getElementById("filter-ext");
+         P.filterCameraList  = document.getElementById("filter-camera-list");
+         P.filterLensList    = document.getElementById("filter-lens-list");
+         P.filterDeviceBtn   = document.getElementById("filter-device-btn");
+         P.filterDeviceLabel = document.getElementById("filter-device-label");
+         P.filterDevicePopover = document.getElementById("filter-device-popover");
+         P.filterCamera      = P.singleSelectProxy(P.filterCameraList, "device");
+         P.filterLens        = P.singleSelectProxy(P.filterLensList, "device");
+         P.filterExtList   = document.getElementById("filter-ext-list");
+         P.filterExt       = {
+             get value() {
+                 if (!P.filterExtList) return "";
+                 return Array.from(P.filterExtList.querySelectorAll("input[type=checkbox]:checked"))
+                     .map(cb => cb.value).join(",");
+             },
+             set value(v) {
+                 if (!P.filterExtList) return;
+                 const want = v ? String(v).split(",") : [];
+                 P.filterExtList.querySelectorAll("input[type=checkbox]").forEach(cb => {
+                     cb.checked = want.includes(cb.value);
+                 });
+                 if (P.fn.updateFormatLabel) P.fn.updateFormatLabel();
+             }
+         };
+         P.filterTypeImage = document.getElementById("filter-type-image");
+         P.filterTypeVideo = document.getElementById("filter-type-video");
+         P.filterFormatBtn = document.getElementById("filter-format-btn");
+         P.filterFormatLabel = document.getElementById("filter-format-label");
+         P.filterFormatPopover = document.getElementById("filter-format-popover");
          P.filterDateFrom  = document.getElementById("filter-date-from");
          P.filterDateTo    = document.getElementById("filter-date-to");
          P.filterRating    = document.getElementById("filter-rating");
-         P.filterCountry   = document.getElementById("filter-country");
-         P.filterCity      = document.getElementById("filter-city");
+         P.filterCountryList = document.getElementById("filter-country-list");
+         P.filterCityList    = document.getElementById("filter-city-list");
+         P.filterPlaceBtn    = document.getElementById("filter-place-btn");
+         P.filterPlaceLabel  = document.getElementById("filter-place-label");
+         P.filterPlacePopover = document.getElementById("filter-place-popover");
+         P.filterCountry     = P.singleSelectProxy(P.filterCountryList, "place");
+         P.filterCity        = P.singleSelectProxy(P.filterCityList, "place");
          P.filterGeo       = document.getElementById("filter-geo");
          P.filter360       = document.getElementById("filter-360");
          P.filterHidden    = document.getElementById("filter-hidden");
@@ -49,6 +99,7 @@
          P.detailFname   = document.getElementById("detail-filename");
          P.detailMeta    = document.getElementById("detail-meta");
          P.detailMapSec  = document.getElementById("detail-map-section");
+         P.detailMapEl   = document.getElementById("detail-map");
          P.detailCoords  = document.getElementById("detail-coords");
          P.detailCollections = document.getElementById("detail-collections");
          P.detailTags    = document.getElementById("detail-tags");
@@ -171,15 +222,15 @@
                 g.className = "dnd-ghost-img";
                 ghost.appendChild(g);
             }
-            if (count > 1) {
+            if (count >= 1) {
                 const badge = document.createElement("div");
                 badge.className = "dnd-ghost-badge";
-                badge.textContent = "+" + (count - 1);
+                badge.textContent = String(count);
                 ghost.appendChild(badge);
             }
             document.body.appendChild(ghost);
             try {
-                e.dataTransfer.setDragImage(ghost, 28, 28);
+                e.dataTransfer.setDragImage(ghost, 36, 38);
             } catch (_) {}
             P.dndGhost = ghost;
         };

@@ -130,6 +130,7 @@
             P.collectionDialog.classList.add("hidden");
             P.fn.loadSidebar();
             if (P.activeView === "collections") P.fn.loadCollectionsBrowse();
+            if (P.collectionModalPhotoId != null) await P.fn.loadDetail(P.collectionModalPhotoId);
             if (!P.settingsPage.classList.contains("hidden")) {
                 const activeSection = P.settingsPageNav.querySelector(".settings-nav-item.active");
                 if (activeSection) {
@@ -183,6 +184,7 @@
                     if (P.activeView === "collections") P.fn.loadCollectionsBrowse();
                     P.fn.loadSidebar();
                     P.fn.renderSelection();
+                    if (P.collectionModalPhotoId != null) await P.fn.loadDetail(P.collectionModalPhotoId);
                 });
                 P.collectionExistingList.appendChild(el);
             }

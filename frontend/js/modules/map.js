@@ -13,9 +13,12 @@
             if (P.filterCamera.value) params.set("camera", P.filterCamera.value);
             if (P.filterLens.value) params.set("lens", P.filterLens.value);
             if (P.filterExt.value) params.set("ext", P.filterExt.value);
+            if (P.filterTypeImage.checked && !P.filterTypeVideo.checked) params.set("type", "image");
+            else if (P.filterTypeVideo.checked && !P.filterTypeImage.checked) params.set("type", "video");
             if (P.filterDateFrom.value) params.set("date_from", P.filterDateFrom.value);
             if (P.filterDateTo.value) params.set("date_to", P.filterDateTo.value);
             if (P.filterRating.value) params.set("rating", P.filterRating.value);
+            if (P.filterGeo.value) params.set("geotag_only", P.filterGeo.value);
             const q = P.searchInput.value.trim();
             if (q) params.set("q", q);
             if (P.hiddenFilter === "all") params.set("show_hidden", "1");
@@ -24,7 +27,7 @@
             const qs = params.toString();
             if (qs) url += "?" + qs;
             const data = await P.fn.api("GET", url);
-            if (data.count > 0) {
+            if (data.count > 0 && isFinite(data.south) && isFinite(data.west) && isFinite(data.north) && isFinite(data.east)) {
                 P.map.fitBounds([[data.south, data.west], [data.north, data.east]], { padding: [30, 30], maxZoom: 12 });
             }
         }
@@ -52,6 +55,36 @@
             P.map.addLayer(P.clusterGroup);
             P.map.on("moveend", () => loadMapPhotos());
             setTimeout(() => P.map.invalidateSize(), 100);
+            bindMapDrop();
+        }
+
+        // Drag & drop photos from the grid / map strip onto the map to set
+        // their location. The drop opens the geotag dialog pre-filled with the
+        // coordinates under the pointer.
+        function bindMapDrop() {
+            const container = P.map.getContainer();
+            if (!container) return;
+            container.addEventListener("dragover", (e) => {
+                if (!P.fn.isPhotoDnd(e)) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "copy";
+                container.classList.add("dragover");
+            });
+            container.addEventListener("dragleave", (e) => {
+                if (!container.contains(e.relatedTarget)) container.classList.remove("dragover");
+            });
+            container.addEventListener("drop", (e) => {
+                container.classList.remove("dragover");
+                if (!P.fn.isPhotoDnd(e)) return;
+                e.preventDefault();
+                const ids = P.fn.parsePhotoDnd(e);
+                if (!ids || ids.length === 0) return;
+                const point = P.map.containerPointToLatLng(L.point(
+                    e.clientX - container.getBoundingClientRect().left,
+                    e.clientY - container.getBoundingClientRect().top
+                ));
+                P.fn.openGeotagModal(ids, { lat: point.lat, lng: point.lng });
+            });
         }
     
         let mapLoadTimer = null;
@@ -84,14 +117,17 @@
             let url = `/api/photos/geo?south=${b.getSouth()}&west=${b.getWest()}&north=${b.getNorth()}&east=${b.getEast()}`;
             if (P.activeFolderId) url += `&folder_id=${activeFolderId}`;
             if (P.activeCollectionId) url += `&collection_id=${activeCollectionId}`;
-            if (P.filterCountry.value) url += `&country=${encodeURIComponent(filterCountry.value)}`;
-            if (P.filterCity.value) url += `&city=${encodeURIComponent(filterCity.value)}`;
-            if (P.filterCamera.value) url += `&camera=${encodeURIComponent(filterCamera.value)}`;
-            if (P.filterLens.value) url += `&lens=${encodeURIComponent(filterLens.value)}`;
-            if (P.filterExt.value) url += `&ext=${encodeURIComponent(filterExt.value)}`;
-            if (P.filterDateFrom.value) url += `&date_from=${filterDateFrom.value}`;
-            if (P.filterDateTo.value) url += `&date_to=${filterDateTo.value}`;
-            if (P.filterRating.value) url += `&rating=${filterRating.value}`;
+            if (P.filterCountry.value) url += `&country=${encodeURIComponent(P.filterCountry.value)}`;
+            if (P.filterCity.value) url += `&city=${encodeURIComponent(P.filterCity.value)}`;
+            if (P.filterCamera.value) url += `&camera=${encodeURIComponent(P.filterCamera.value)}`;
+            if (P.filterLens.value) url += `&lens=${encodeURIComponent(P.filterLens.value)}`;
+            if (P.filterExt.value) url += `&ext=${encodeURIComponent(P.filterExt.value)}`;
+            if (P.filterTypeImage.checked && !P.filterTypeVideo.checked) url += "&type=image";
+            else if (P.filterTypeVideo.checked && !P.filterTypeImage.checked) url += "&type=video";
+            if (P.filterDateFrom.value) url += `&date_from=${P.filterDateFrom.value}`;
+            if (P.filterDateTo.value) url += `&date_to=${P.filterDateTo.value}`;
+            if (P.filterRating.value) url += `&rating=${P.filterRating.value}`;
+            if (P.filterGeo.value === "0") url += "&geotag_only=0";
             const q = P.searchInput.value.trim();
             if (q) url += `&q=${encodeURIComponent(q)}`;
             const hq = P.fn.hiddenQuery();
@@ -111,14 +147,16 @@
             // matches the cluster radius (in screen px). Cells with >= the group-size
             // threshold become clusters; smaller cells render as individual markers.
             // A group-size threshold of 1 therefore groups from 2 photos at a spot.
-            const clusterGlobalThreshold = parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "5000") || 5000;
+            const clusterGlobalThreshold = parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "500") || 500;
             const clusteringDisabled = data.total < clusterGlobalThreshold;
-    
+
+            const markerPhotos = data.photos.filter(ph => ph.lat != null && ph.lng != null);
+
             let densePhotos = [];
             let sparsePhotos = [];
-    
+
             if (!clusteringDisabled) {
-                const clusterThreshold = parseInt(localStorage.getItem("photonic.clusterThreshold") || "500") || 500;
+                const clusterThreshold = parseInt(localStorage.getItem("photonic.clusterThreshold") || "1") || 1;
                 const minClusterSize = Math.max(2, clusterThreshold);
                 const zoom = P.map.getZoom();
                 const center = P.map.getCenter();
@@ -127,7 +165,7 @@
                 const dLng = Math.max(1e-6, Math.abs(P.map.unproject(L.point(centerPx.x + radiusPx, centerPx.y), zoom).lng - center.lng));
                 const dLat = Math.max(1e-6, Math.abs(P.map.unproject(L.point(centerPx.x, centerPx.y + radiusPx), zoom).lat - center.lat));
                 const cells = new Map();
-                for (const ph of data.photos) {
+                for (const ph of markerPhotos) {
                     const key = Math.floor(ph.lat / dLat) + ":" + Math.floor(ph.lng / dLng);
                     let arr = cells.get(key);
                     if (!arr) { arr = []; cells.set(key, arr); }
@@ -141,7 +179,7 @@
                 densePhotos = dense;
                 sparsePhotos = sparse;
             } else {
-                sparsePhotos = data.photos;
+                sparsePhotos = markerPhotos;
             }
             P.map.addLayer(P.clusterGroup);
             P.map.addLayer(P.plainGroup);
@@ -153,7 +191,7 @@
             let done = 0;
             const total = data.photos.length;
             const updateProgress = () => {
-                if (loaderLabel) loaderLabel.textContent = `Placing ${done.toLocaleString()} / ${total.toLocaleString()}…`;
+                if (loaderLabel) loaderLabel.textContent = `Placing ${done.toLocaleString(P.locale())} / ${total.toLocaleString(P.locale())}…`;
             };
             const yieldForUi = () => new Promise(r => setTimeout(r, 0));
             const CHUNK = 400;
@@ -185,14 +223,20 @@
             mapStripQueue = data.photos.slice();
             if (mapStripObserver) mapStripObserver.disconnect();
             P.mapPhotos.innerHTML = "";
-            mapSentinel = document.createElement("div");
-            mapSentinel.className = "map-strip-sentinel";
-            P.mapPhotos.appendChild(mapSentinel);
-            if (mapStripObserver) mapStripObserver.observe(mapSentinel);
-            fillMapStripViewport();
+            if (data.total === 0) {
+                P.mapPhotos.innerHTML = `<div class="map-strip-empty"><div class="map-strip-empty-icon"><i data-lucide="map-pin-off"></i></div><div class="map-strip-empty-title">${t("map.nothing_here")}</div><div class="map-strip-empty-hint">${t("map.nothing_here_hint")}</div></div>`;
+            } else {
+                mapSentinel = document.createElement("div");
+                mapSentinel.className = "map-strip-sentinel";
+                P.mapPhotos.appendChild(mapSentinel);
+                if (mapStripObserver) mapStripObserver.observe(mapSentinel);
+                fillMapStripViewport();
+            }
+            if (window.lucide) window.lucide.createIcons();
             P.fn.renderSelection();
-            P.photoCountH.textContent = t("map.geo_tagged", { count: data.total.toLocaleString() });
-            if (P.mapPhotoCount) P.mapPhotoCount.textContent = t("common.items", { count: data.total.toLocaleString() });
+            const countLabel = P.filterGeo.value === "0" ? "map.not_geo_tagged" : "map.geo_tagged";
+            P.photoCountH.textContent = t(countLabel, { count: data.total.toLocaleString(P.locale()) });
+            if (P.mapPhotoCount) P.mapPhotoCount.textContent = t("common.items", { count: data.total.toLocaleString(P.locale()) });
         }
     
         let mapStripQueue = [];
