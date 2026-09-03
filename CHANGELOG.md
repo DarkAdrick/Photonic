@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.1.1 — Responsive Update 📱 — 03 September 2026
+## v1.1.1 Responsive Update 📱 — 03 September 2026
 
 ### Mobile & tablet support
 - [ADD] **Responsive layout** for tablets and phones: the sidebar becomes a **hamburger drawer** with a backdrop, centered at three breakpoints (≤1024px tablet landscape, ≤768px tablet portrait, ≤480px phone)
