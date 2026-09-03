@@ -9,24 +9,27 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
-    <link rel="stylesheet" href="/css/style.css?v=1.0.4">
+    <link rel="stylesheet" href="/css/style.css?v=1.1.1">
 </head>
 <body>
 
 <header id="header">
     <div class="header-left">
+        <button id="btn-menu" class="header-btn" title="Menu"><i data-lucide="menu"></i></button>
         <div class="logo-icon"><i data-lucide="aperture"></i></div>
         <span class="logo">PHOTONIC</span>
-        <span class="version-badge-outer" id="version-badge" title="View changelog"><span class="version-badge-inner">v1.1.0</span></span>
+        <span class="version-badge-outer" id="version-badge" title="View changelog"><span class="version-badge-inner">v1.1.1</span></span>
         <a href="https://github.com/DarkAdrick/Photonic/releases" target="_blank" rel="noopener" id="update-pill" class="update-pill hidden" title="New version available — view release"><span class="update-pill-dot"></span><i data-lucide="arrow-up-circle"></i><span id="update-pill-text" data-i18n="header.update">Update</span></a>
     </div>
     <div id="titlebar-drag" class="pywebview-drag-region"></div>
     <div class="header-right">
-        <div class="search-box">
-            <i data-lucide="search"></i>
-            <input type="text" id="search" placeholder="Search photos..." data-i18n-placeholder="header.search">
+        <div class="search-line">
+            <div class="search-box">
+                <i data-lucide="search"></i>
+                <input type="text" id="search" placeholder="Search photos..." data-i18n-placeholder="header.search">
+            </div>
+            <button id="btn-toggle-filters" class="header-btn"><i data-lucide="sliders-horizontal"></i><span data-i18n="header.filters">Filters</span></button>
         </div>
-        <button id="btn-toggle-filters" class="header-btn"><i data-lucide="sliders-horizontal"></i><span data-i18n="header.filters">Filters</span></button>
         <a href="https://github.com/sponsors/DarkAdrick" target="_blank" rel="noopener" class="donate-header-btn" title="Donate" data-i18n-title="header.donate"><i data-lucide="heart"></i></a>
         <div class="lang-dropdown" id="lang-dropdown">
             <button id="btn-lang" class="header-btn lang-btn" title="Language"><span class="lang-flag" id="lang-flag-current"><img src="/i18n/flags/us.svg" alt=""></span></button>
@@ -169,6 +172,8 @@
         <button id="btn-rescan" class="sidebar-btn" disabled><i data-lucide="refresh-cw"></i> <span data-i18n="sidebar.rescan_all">Rescan All</span></button>
     </div>
 </aside>
+
+<div id="sidebar-backdrop"></div>
 
 <main id="main">
     <div id="cleaning-toolbar" class="hidden">
@@ -562,34 +567,35 @@
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-<script src="/js/i18n.js?v=1.0.4"></script>
-<script src="/js/modules/core.js?v=1.0.4"></script>
-<script src="/js/modules/state.js?v=1.0.4"></script>
-<script src="/js/modules/utils.js?v=1.0.4"></script>
-<script src="/js/modules/view.js?v=1.0.4"></script>
-<script src="/js/modules/map.js?v=1.0.4"></script>
+<script src="/js/i18n.js?v=1.1.1"></script>
+<script src="/js/modules/core.js?v=1.1.1"></script>
+<script src="/js/modules/state.js?v=1.1.1"></script>
+<script src="/js/modules/utils.js?v=1.1.1"></script>
+<script src="/js/modules/view.js?v=1.1.1"></script>
+<script src="/js/modules/map.js?v=1.1.1"></script>
 <script src="/js/modules/sidebar.js?v=1.0.7"></script>
-<script src="/js/modules/browse.js?v=1.0.4"></script>
-<script src="/js/modules/cleaning.js?v=1.0.4"></script>
-<script src="/js/modules/stats.js?v=1.0.4"></script>
-<script src="/js/modules/filters.js?v=1.0.4"></script>
-<script src="/js/modules/grid.js?v=1.0.4"></script>
-<script src="/js/modules/detail.js?v=1.0.4"></script>
-<script src="/js/modules/modal_helpers.js?v=1.0.4"></script>
-<script src="/js/modules/tag_modal.js?v=1.0.4"></script>
-<script src="/js/modules/coll_modal.js?v=1.0.4"></script>
-<script src="/js/modules/geotag_modal.js?v=1.0.4"></script>
-<script src="/js/modules/dialog.js?v=1.0.4"></script>
-<script src="/js/modules/scan.js?v=1.0.4"></script>
-<script src="/js/modules/events.js?v=1.0.4"></script>
-<script src="/js/modules/layout.js?v=1.0.4"></script>
-<script src="/js/modules/settings.js?v=1.0.4"></script>
-<script src="/js/modules/settings_tags.js?v=1.0.4"></script>
-<script src="/js/modules/settings_collections.js?v=1.0.4"></script>
-<script src="/js/modules/settings_folders.js?v=1.0.4"></script>
-<script src="/js/modules/update.js?v=1.0.4"></script>
-<script src="/js/modules/window.js?v=1.0.4"></script>
-<script src="/js/modules/i18n.js?v=1.0.4"></script>
-<script src="/js/modules/app.js?v=1.0.4"></script>
+<script src="/js/modules/browse.js?v=1.1.1"></script>
+<script src="/js/modules/cleaning.js?v=1.1.1"></script>
+<script src="/js/modules/stats.js?v=1.1.1"></script>
+<script src="/js/modules/filters.js?v=1.1.1"></script>
+<script src="/js/modules/grid.js?v=1.1.1"></script>
+<script src="/js/modules/detail.js?v=1.1.1"></script>
+<script src="/js/modules/modal_helpers.js?v=1.1.1"></script>
+<script src="/js/modules/tag_modal.js?v=1.1.1"></script>
+<script src="/js/modules/coll_modal.js?v=1.1.1"></script>
+<script src="/js/modules/geotag_modal.js?v=1.1.1"></script>
+<script src="/js/modules/dialog.js?v=1.1.1"></script>
+<script src="/js/modules/scan.js?v=1.1.1"></script>
+<script src="/js/modules/events.js?v=1.1.1"></script>
+<script src="/js/modules/layout.js?v=1.1.1"></script>
+<script src="/js/modules/settings.js?v=1.1.1"></script>
+<script src="/js/modules/settings_tags.js?v=1.1.1"></script>
+<script src="/js/modules/settings_collections.js?v=1.1.1"></script>
+<script src="/js/modules/settings_folders.js?v=1.1.1"></script>
+<script src="/js/modules/update.js?v=1.1.1"></script>
+<script src="/js/modules/window.js?v=1.1.1"></script>
+<script src="/js/modules/i18n.js?v=1.1.1"></script>
+<script src="/js/modules/app.js?v=1.1.1"></script>
+<script src="/js/modules/mobile.js?v=1.1.1"></script>
 </body>
 </html>

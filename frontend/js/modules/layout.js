@@ -141,7 +141,8 @@
         setLayout(savedLayout);
     
         const savedThumbSize = localStorage.getItem("photonic.thumbnailSize");
-        setThumbSize(savedThumbSize ? +savedThumbSize : thumbDefault);
+        const mobileDefault = window.innerWidth <= 480 ? 110 : thumbDefault;
+        setThumbSize(savedThumbSize ? +savedThumbSize : mobileDefault);
     
     
     // --- exports ---

@@ -2,21 +2,22 @@
 /* This file imports all component stylesheets.                             */
 /* Order matters: base first, then layout, then components.                 */
 
-@import url("components/base.css?v=1.0.4");
-@import url("components/header.css?v=1.0.4");
-@import url("components/sidebar.css?v=1.0.4");
-@import url("components/drawer.css?v=1.0.4");
-@import url("components/tags.css?v=1.0.4");
-@import url("components/countries.css?v=1.0.4");
-@import url("components/breadcrumb.css?v=1.0.4");
-@import url("components/grid.css?v=1.0.4");
-@import url("components/cleaning.css?v=1.0.4");
-@import url("components/stats.css?v=1.0.4");
-@import url("components/detail.css?v=1.0.4");
-@import url("components/map.css?v=1.0.4");
-@import url("components/status.css?v=1.0.4");
-@import url("components/dialogs.css?v=1.0.4");
-@import url("components/context.css?v=1.0.4");
-@import url("components/settings-page.css?v=1.0.4");
-@import url("components/collections.css?v=1.0.4");
-@import url("components/loader.css?v=1.0.4");
+@import url("components/base.css?v=1.1.1");
+@import url("components/header.css?v=1.1.1");
+@import url("components/sidebar.css?v=1.1.1");
+@import url("components/drawer.css?v=1.1.1");
+@import url("components/tags.css?v=1.1.1");
+@import url("components/countries.css?v=1.1.1");
+@import url("components/breadcrumb.css?v=1.1.1");
+@import url("components/grid.css?v=1.1.1");
+@import url("components/cleaning.css?v=1.1.1");
+@import url("components/stats.css?v=1.1.1");
+@import url("components/detail.css?v=1.1.1");
+@import url("components/map.css?v=1.1.1");
+@import url("components/status.css?v=1.1.1");
+@import url("components/dialogs.css?v=1.1.1");
+@import url("components/context.css?v=1.1.1");
+@import url("components/settings-page.css?v=1.1.1");
+@import url("components/collections.css?v=1.1.1");
+@import url("components/loader.css?v=1.1.1");
+@import url("components/mobile.css?v=1.1.1");

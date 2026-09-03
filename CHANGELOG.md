@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.1.1 — Responsive Update 📱 — 03 September 2026
+
+### Mobile & tablet support
+- [ADD] **Responsive layout** for tablets and phones: the sidebar becomes a **hamburger drawer** with a backdrop, centered at three breakpoints (≤1024px tablet landscape, ≤768px tablet portrait, ≤480px phone)
+- [ADD] **Smart header on mobile**: the logo and action buttons stay on the first line (grouped on the right) while a full-width search bar sits below, with the **Filters** button right next to it
+- [ADD] The photo grid adapts to small screens and a **mobile default thumbnail size** (110px) is used when no size has been saved
+- [EDIT] The **Settings page opens full-screen** on mobile and hides the status bar instead of being squeezed into the bottom third
+- [EDIT] The **Changelog modal is full-screen** on mobile: the changelog takes the top two thirds and the scrolling **Credits / Contributors** section fills the bottom third
+- [FIX] Dialogs, context menus and toasts no longer overflow horizontally on narrow screens
+
+### General
+- [CHORE] Version bump to 1.1.1 and cache-busting bumped to match
+
 ## v1.1.0 — 02 September 2026
 
 ### Geolocation — Set Location 🗺️

@@ -1,0 +1,537 @@
+/* ── Mobile Responsive ──────────────────────────────────────────────────── */
+/* Loaded last — overrides desktop rules for narrow viewports.              */
+/* Breakpoints:                                                             */
+/*   <= 1024px  : tablet landscape                                          */
+/*   <= 768px   : tablet portrait                                            */
+/*   <= 480px   : phone                                                     */
+
+/* Hamburger menu button hidden on desktop */
+#btn-menu {
+    display: none;
+}
+
+/* Sidebar backdrop hidden on desktop */
+#sidebar-backdrop {
+    display: none;
+}
+
+/* Mobile-only: when a view menu is rendered (non-overlay) */
+@media (max-width: 768px) {
+    /* Ensure sidebar overlay backdrop is positioned correctly */
+    body.sidebar-open #main,
+    body.sidebar-open #status-bar {
+        pointer-events: none;
+    }
+}
+
+/* ── Tablet landscape ───────────────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+    body {
+        grid-template-columns: 180px 1fr;
+    }
+
+    #search { width: 160px; }
+
+    #photo-grid {
+        padding: 8px;
+        gap: calc(var(--thumb-gap, 6px) * 0.8);
+    }
+}
+
+/* ── Tablet portrait ────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    /* ── Layout: sidebar becomes hamburger drawer ───────────────────────── */
+    body {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(50px, auto) auto 1fr 24px;
+        grid-template-areas:
+            "header"
+            "drawer"
+            "main"
+            "status";
+    }
+
+    #sidebar {
+        position: fixed;
+        top: 50px;
+        bottom: 0;
+        left: 0;
+        width: 260px;
+        z-index: 900;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+    }
+
+    #sidebar.mobile-open {
+        transform: translateX(0);
+    }
+
+    /* Hamburger button (hidden on desktop) */
+    #btn-menu {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+
+    /* Sidebar backdrop overlay behind the drawer */
+    #sidebar-backdrop {
+        display: block;
+        position: fixed;
+        inset: 50px 0 0 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 890;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+    }
+
+    #sidebar-backdrop.mobile-open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    #btn-menu svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    #btn-menu.active {
+        color: var(--accent);
+        border-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────────── */
+    #header {
+        padding: 8px 6px;
+        gap: 6px 8px;
+        flex-wrap: wrap;
+        height: auto;
+    }
+
+    #titlebar-drag {
+        display: none;
+    }
+
+    .header-left {
+        order: 1;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    /* header-right keeps only the action buttons, grouped on the right */
+    .header-right {
+        order: 2;
+        margin-left: auto;
+        gap: 6px;
+    }
+
+    .logo {
+        font-size: 16px;
+    }
+
+    .logo-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+    }
+
+    .logo-icon svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .version-badge-inner {
+        font-size: 10px;
+        padding: 2.6px 10px;
+    }
+
+    /* On mobile the search-line is a direct header child on its own full-width row,
+       with the search growing and the filter button on its right. */
+    .search-line {
+        order: 3;
+        flex: 1 1 100%;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .search-box {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+        height: 30px;
+    }
+
+    #search {
+        width: 100%;
+        flex: 1;
+        font-size: 12px;
+    }
+
+    #btn-toggle-filters {
+        height: 30px;
+        padding: 0 10px;
+        font-size: 11px;
+        flex-shrink: 0;
+    }
+
+    #btn-toggle-filters span {
+        display: none;
+    }
+
+    /* ── Status bar ────────────────────────────────────────────────────── */
+    #status-bar {
+        padding: 0 8px;
+    }
+
+    /* Settings covers the main content area on mobile */
+    #settings-page {
+        grid-area: main;
+        z-index: 15;
+    }
+
+    /* Hide status bar when the settings page is open (covers it) */
+    #settings-page:not(.hidden) ~ #status-bar {
+        display: none;
+    }
+
+    #scan-bar {
+        width: 80px;
+    }
+
+    #thumb-size-control {
+        max-width: 120px;
+    }
+
+    #thumb-size {
+        width: 50px;
+    }
+
+    /* ── Photo grid ────────────────────────────────────────────────────── */
+    #photo-grid {
+        padding: 6px;
+        gap: calc(var(--thumb-gap, 6px) * 0.6);
+    }
+
+    /* Hover effects off on touch */
+    .photo-card:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .photo-card:active {
+        transform: scale(0.97);
+        transition: transform 0.1s ease;
+    }
+
+    /* ── Detail viewer ─────────────────────────────────────────────────── */
+    #detail-layout {
+        flex-direction: column;
+    }
+
+    #detail-image {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    #detail-sidebar {
+        flex: 0 0 auto;
+        max-height: 40vh;
+        min-width: 0 !important;
+        width: 100% !important;
+        border-left: none;
+        border-top: 1px solid var(--border);
+        overflow-y: auto;
+    }
+
+    /* ── Dialogs ───────────────────────────────────────────────────────── */
+    .dialog,
+    .collection-dialog-box,
+    .collection-picker-box {
+        min-width: 0;
+        width: 92vw;
+        max-width: 92vw;
+        max-height: 86vh;
+        overflow-y: auto;
+    }
+
+    /* Full-screen changelog modal, 2/3 changelog + 1/3 credits */
+    .changelog-box {
+        min-width: 0;
+        max-width: none;
+        width: 100%;
+        max-height: none;
+        height: 100%;
+        flex: 1 1 100%;
+        border: none;
+        border-radius: 0;
+        flex-direction: column;
+    }
+
+    .changelog-main {
+        flex: 2;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 12px 16px 16px;
+    }
+
+    .changelog-content {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+    }
+
+    .cl-credits-drawer {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        min-width: 100%;
+        max-height: none;
+        border-left: none;
+        border-top: 1px solid var(--border);
+    }
+
+    .cl-credits-section {
+        flex: 1 1 50%;
+        min-height: 0;
+    }
+
+    .cl-hero {
+        padding: 10px 12px;
+        margin-bottom: 10px;
+        gap: 10px;
+    }
+
+    .cl-hero-logo {
+        height: 34px;
+        width: 34px;
+    }
+
+    .cl-hero-text p {
+        margin-bottom: 6px;
+    }
+
+    /* ── Context menu ──────────────────────────────────────────────────── */
+    #context-menu {
+        max-width: 80vw;
+    }
+
+    /* ── Toast ─────────────────────────────────────────────────────────── */
+    .photon-toast {
+        max-width: 90vw;
+        width: 90vw;
+    }
+
+    /* ── Filter drawer chips ───────────────────────────────────────────── */
+    .filter-row {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .filter-chip,
+    .filter-chip-format,
+    .filter-chip-distance {
+        min-width: calc(50% - 6px);
+        flex: 1 1 calc(50% - 6px);
+    }
+
+    .filter-chip label {
+        font-size: 9px;
+    }
+
+    /* ── Stats / Countries grids ──────────────────────────────────────── */
+    .stats-grid,
+    #stats-view .stats-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+
+    /* ── Icon pickers (collections / dialogs) ─────────────────────────── */
+    .collection-icon-grid,
+    .icon-picker-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+/* ── Phone ──────────────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+    /* ── Header ─────────────────────────────────────────────────────────── */
+    #header {
+        gap: 4px;
+    }
+
+    .header-left {
+        gap: 4px;
+    }
+
+    .logo {
+        font-size: 14px;
+        letter-spacing: 0.5px;
+    }
+
+    .logo-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+    }
+
+    .version-badge-inner {
+        font-size: 9px;
+        padding: 2.2px 8px;
+    }
+
+    .header-right {
+        gap: 4px;
+    }
+
+    #search {
+        font-size: 12px;
+    }
+
+    #btn-lang,
+    #btn-settings,
+    .donate-header-btn {
+        width: 30px;
+        height: 30px;
+    }
+
+    #btn-settings span,
+    .donate-header-btn span {
+        display: none;
+    }
+
+    /* ── Status bar ────────────────────────────────────────────────────── */
+    #status-text {
+        font-size: 10px;
+        margin-right: 8px;
+    }
+
+    .layout-btn {
+        width: 24px;
+        height: 22px;
+    }
+
+    #layout-toggle {
+        margin-right: 4px;
+        padding-right: 4px;
+    }
+
+    #thumb-size-control {
+        max-width: 90px;
+    }
+
+    #thumb-size {
+        width: 40px;
+    }
+
+    .thumb-zoom-btn {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* ── Detail viewer ─────────────────────────────────────────────────── */
+    #detail-header {
+        padding: 8px 10px;
+    }
+
+    .detail-nav-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    #detail-nav-prev, #detail-prev {
+        left: 4px;
+    }
+
+    #detail-nav-next, #detail-next {
+        right: 4px;
+    }
+
+    #detail-footer {
+        padding: 6px 8px;
+    }
+
+    /* ── Photo grid ────────────────────────────────────────────────────── */
+    #photo-grid {
+        padding: 4px;
+        gap: 3px;
+    }
+
+    /* Default thumbnail size smaller on phones */
+    html {
+        --thumb-size: 110px;
+    }
+
+    /* ── Empty state ───────────────────────────────────────────────────── */
+    #empty-state {
+        padding: 20px;
+    }
+
+    #empty-state h2 {
+        font-size: 24px;
+    }
+
+    #empty-state p {
+        font-size: 13px;
+    }
+
+    .hero-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        margin-bottom: 20px;
+    }
+
+    .hero-icon svg {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* ── Filter drawer chips ───────────────────────────────────────────── */
+    .filter-chip,
+    .filter-chip-format,
+    .filter-chip-distance {
+        min-width: 100%;
+        flex: 1 1 100%;
+    }
+
+    /* ── Settings ──────────────────────────────────────────────────────── */
+    .settings-content {
+        padding: 12px;
+    }
+
+    /* ── Breadcrumb ────────────────────────────────────────────────────── */
+    #breadcrumb-bar {
+        max-width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* ── Map photos header ─────────────────────────────────────────────── */
+    #map-photos-header {
+        flex-wrap: wrap;
+        padding: 8px;
+    }
+
+    /* ── Detail sidebar sections ───────────────────────────────────────── */
+    #detail-sidebar {
+        max-height: 35vh;
+    }
+
+    #detail-meta .meta-row {
+        font-size: 11px;
+        padding: 3px 0;
+    }
+}

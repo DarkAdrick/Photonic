@@ -24,6 +24,13 @@
     gap: 10px;
 }
 
+/* Groups the search box + filters toggle together (used desktop & mobile) */
+.search-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 /* ── Titlebar drag region (frameless .exe window) ───────────────────────── */
 
 #titlebar-drag {
