@@ -13,7 +13,7 @@
 ### General
 - [CHORE] Version bump to 1.1.1 and cache-busting bumped to match
 
-## v1.1.0 — 02 September 2026
+## v1.1.0 Atlas — 02 September 2026
 
 ### Geolocation — Set Location 🗺️
 - [ADD] **Set Location** dialog: a full searchable Leaflet map (OpenStreetMap) with a draggable marker to assign GPS coordinates to one or several photos. Enter a place to search and pan, or click anywhere on the map to drop the marker; coordinates update live. Geographic data is written back into the image **EXIF** (JPEG, WebP, PNG, TIFF) via `piexif` so it survives outside Photonic
@@ -72,7 +72,7 @@
 - [ADD] "Confirm location overwrite" toggle in Settings > Application > General (stored in `localStorage`)
 - [CHORE] `piexif` added to dependencies for in-file GPS writing
 
-## v1.0.3 — 31 August 2026
+## v1.0.3 Locale — 31 August 2026
 
 ### Photo detail view
 - [FIX] The photo detail metadata is now translated: the labels (**File, Path, Size, Dimensions, Format, Camera, Lens, Focal Length, Aperture, Shutter Speed, Date Taken, Created, Modified**) previously hard-coded in English now go through the translation layer across all languages
@@ -82,7 +82,7 @@
 - [FIX] Dates and times now follow the **selected language** instead of the browser/system locale: previously, whatever language the app was set to, dates still rendered in the system language (e.g. French "16 août 2026, 17:16:16") even when the UI was in English, German, Spanish or Japanese. They now use the active language's format (e.g. "Aug 16, 2026, 5:16:16 PM", "2026年8月16日 …"). This covers the photo detail metadata (Date Taken / Created / Modified) and the update-notice timestamps
 - [FIX] Numbers (counters, statistics, scan progress and folder/country/tag/collection counts) are now formatted with the active language's grouping separators via the same locale, instead of the browser default
 
-## v1.0.2 — 31 August 2026
+## v1.0.2 Ghost — 31 August 2026
 
 ### Hidden photos
 - [ADD] The "Hidden" filter is now a **3-state selector** (Not hidden / Hidden / Only hidden) replacing the previous boolean checkbox — the first state (default) excludes hidden photos, the last shows only hidden ones
@@ -114,13 +114,13 @@
 ### Changelog & Credits
 - [ADD] The changelog **hero** (author line "Crafted by", the developer description and the "Sponsor this project" button) is now translated across all languages, alongside the existing title / credits / contributors headings
 
-## v1.0.1 — 29 August 2026
+## v1.0.1 Polyglot — 29 August 2026
 
 ### Internationalization (i18n)
 - [ADD] **German** (Deutsch), **Spanish** (Español) and **Japanese** (日本語) translations covering the whole UI — header, filters, sidebar, cleaning, stats, settings (Application/General/Display/Data, Tags/Collections/Folders pages), dialogs, detail panel, context menu, confirmations, changelog, scan/status messages and update notices
 - [ADD] Language switcher (header dropdown and Settings > Application > General) now lists the new languages with their flags (`de.svg`, `es.svg`, `jp.svg`)
 
-## v1.0.0 — 29 August 2026
+## v1.0.0 Modular — 29 August 2026
 
 ### Internationalization (i18n)
 - [ADD] The whole application UI is now translatable. A new `/i18n` static mount serves per-language dictionaries (`en-US.json`, `fr-FR.json`) and a global `window.I18n` engine loads them, resolves keys with `{placeholder}` substitution and falls back to the raw key (never a broken string) when a translation is missing
@@ -142,7 +142,7 @@
 - [FIX] Fixed several "is not defined" runtime errors introduced by the modular split, where module code referenced bare global names instead of the `P.` namespaced state: `renderMetaBadges`, `folderBrowsePath`, `collectionBrowsePath`, `activeCameraBrowseId`, `detailPanX/Y`, `detailRotation`, `detailThumbVersion`, `detailIndex`, `currentPhotoIds`, `describeUpdateState`, `lastUpdateState` and `RELEASES_PAGE` — these now correctly read/write `P.*` / `P.fn.*`
 - [FIX] Settings > Application > General "Language" selector was broken (a button filled with `<option>` elements and a `change` handler that could not fire): it now opens a proper flag dropdown mirroring the header one, shows the current language as flag + name, and picks among the available translations
 
-## v0.2.9 — 29 August 2026
+## v0.2.9 Kudos — 29 August 2026
 
 ### Locations (map)
 - [ADD] A selection header now sits under the map resize handle, above the photo strip: it shows the current item count, the number of selected items and a Deselect All button (mirrors the main grid header)
@@ -161,25 +161,25 @@
 - [ADD] Changelog now supports version group headers (`## v0.x`)
 - [EDIT] README updated with one-time sponsorship tiers and how in-app credits are assembled
 
-## v0.2.8 — 24 August 2026
+## v0.2.8 Release — 24 August 2026
 
 ### Packaged app (.exe)
 - [FIX] Drag & drop of a photo (or selection) onto a sidebar tag/collection was dead in the .exe: pywebview injects a script that cancels any HTML5 drag starting on an `<img>`/`<a>` element (`draggable=False` default), and photo cards are dragged from their thumbnail — the window is now created with `draggable=True` and the grid's `dragstart` no longer bubbles to host-level handlers
 - [EDIT] No change in the browser (dev) build: drag & drop was only broken inside the WebView2 window
 
-## v0.2.7 — 23 August 2026
+## v0.2.7 Refresh — 23 August 2026
 
 ### Updates
 - [FIX] Update check now survives GitHub API rate limits (HTTP 403 on shared IPs/VPN): it falls back to the public `releases.atom` feed, which has no rate limit
 - [EDIT] Startup check no longer surfaces a spurious error when the API is temporarily unavailable
 
-## v0.2.6 — 23 August 2026
+## v0.2.6 Bundle — 23 August 2026
 
 ### Packaged app (.exe)
 - [FIX] Changelog modal showed "No changelog available." in the packaged app: CHANGELOG.md was never bundled and its path only resolved in dev — it is now embedded (next to `backend/`) and looked up via the new `backend.paths.resource_path()`
 - [FIX] Same latent issue for `icon.png`, used as thumbnail fallback for broken videos: now bundled too
 
-## v0.2.5 — 23 August 2026
+## v0.2.5 CI — 23 August 2026
 
 ### CI / Releases
 - [ADD] Automatic builds & releases via GitHub Actions: pushing a `v*` tag now builds `Photonic.exe` on a Windows runner and publishes it as a GitHub Release with auto-generated notes
@@ -187,7 +187,7 @@
 - [EDIT] `Photonic.spec` is now tracked in git (removed from `.gitignore`) so CI builds use the exact same recipe as local builds
 - [EDIT] Workflow recreates the `venv_build` environment so the embedded GeoNames CSV resolves identically on the runner
 
-## v0.2.4 — 23 August 2026
+## v0.2.4 Framework — 23 August 2026
 
 ### Desktop window (.exe)
 - [FIX] Drag & drop inside the app no longer moves the whole window: the window is now moved only from the empty header area (double-click it to maximize/restore)
@@ -202,7 +202,7 @@
 - [EDIT] #Build.bat hardened: detects a broken/moved venv and rebuilds it, installs dependencies via `python -m pip`, embeds `rg_cities1000.csv`, explicit error handling at each step
 - [CLEANUP] Removed unused legacy `frontend/js/old.app.js`
 
-## v0.2.3 — 23 August 2026
+## v0.2.3 Signal — 23 August 2026
 
 ### Telemetry
 - [ADD] Anonymous launch ping sent once at startup to the Phoenix Factory stats endpoint (install ID, app version and OS only — never any photo, path or personal data)
@@ -210,7 +210,7 @@
 - [ADD] Anonymous install ID generated on first launch and stored in `.photonic/data/install_id`
 - [EDIT] PROJECT.MD §18 updated to document the ping; it remains non-intrusive and fully disableable
 
-## v0.2.2 — 23 August 2026
+## v0.2.2 Update — 23 August 2026
 
 ### Updates
 - [ADD] Update checker: Photonic now detects new releases published on GitHub (DarkAdrick/Photonic)
@@ -220,7 +220,7 @@
 - [ADD] New "Updates" card in Settings > Application with current status and direct link to the GitHub releases page
 - [ADD] Version is now centralized in `backend/version.py` and synced across backend, header badge and settings
 
-## v0.2.1 — 22 August 2026
+## v0.2.1 Grid — 22 August 2026
 
 ### Photo Grid
 - [ADD] Tag & collection count badges on photo cards (tiny pills, bottom-left above the filename, hidden when zero)
@@ -254,7 +254,7 @@
 - [FIX] 14 `<label>` elements were missing their `for` attribute (filters drawer, tag dialog, collection dialog)
 - [REMOVE] Herobrine
 
-## v0.2.0 — 21 August 2026
+## v0.2.0 Folders — 21 August 2026
 
 ### Folders
 - [FIX] Folder view no longer shows photos from sibling folders with a shared name prefix (e.g. photos from `PHOTEST2` appearing in `PHOTEST`)
@@ -283,7 +283,7 @@
 
 ## v0.1.x
 
-## v0.1.2 — 20 August 2026
+## v0.1.2 360 — 20 August 2026
 
 ### Photo Detail
 - [ADD] Interactive 360-degree equirectangular viewer using Pannellum (WebGL)
@@ -294,7 +294,7 @@
 ### Environment
 - [FIX] Launch script (`#Launch.bat`) now automatically detects and uses the `venv_build` virtual environment if it exists, or automatically initializes it and installs all dependencies, preventing `ModuleNotFoundError: No module named 'uvicorn'`.
 
-## v0.1.1 — 19 August 2026
+## v0.1.1 Masonry — 19 August 2026
 
 ### Photo Grid
 - [ADD] Masonry layout mode (Pinterest-style waterfall)
@@ -314,7 +314,7 @@
 - [EDIT] Filter drawer and photo grid use darker gradient
 - [REMOVE] Herobrine
 
-## v0.1.0 — 19 August 2026
+## v0.1.0 Genesis — 19 August 2026
 
 ### Photo Library
 - [ADD] Recursive folder scanning (background thread, async)
