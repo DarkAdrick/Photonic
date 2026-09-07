@@ -25,7 +25,7 @@
                         if (edge.indexOf("bottom") !== -1) h += dy;
                         else if (edge.indexOf("top") !== -1) h -= dy;
                         desktopApi.resize_window(
-                            Math.max(Math.round(w), 800),
+                            Math.max(Math.round(w), 450),
                             Math.max(Math.round(h), 600),
                             edge
                         );
