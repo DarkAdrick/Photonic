@@ -16,13 +16,13 @@
 }
 
 :root {
-    --bg-primary:    #0A0D3A;
-    --bg-secondary:  #0F1248;
-    --bg-tertiary:   #181C58;
-    --border:        #2A2E68;
-    --text-primary:  #E6E6F0;
-    --text-secondary:#8488A8;
-    --accent:        #28A8D8;
+    --bg-primary:    #F4F5FA;
+    --bg-secondary:  #FFFFFF;
+    --bg-tertiary:   #EAECF4;
+    --border:        #D8DBE8;
+    --text-primary:  #191D30;
+    --text-secondary:#686E8C;
+    --accent:        #2563EB;
     --accent-hover:  color-mix(in srgb, var(--accent) 60%, #000);
 
     /* Photonic palette */

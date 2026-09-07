@@ -333,7 +333,7 @@
   "settings.display.text_secondary": "Text secondary",
   "settings.display.text_secondary_desc": "Descriptions, labels and muted text.",
   "settings.display.reset_colors": "Reset colors",
-  "settings.display.reset_colors_desc": "Restore the default Photonic dark theme.",
+  "settings.display.reset_colors_desc": "Restore the default Photonic Daylight theme.",
   "settings.display.reset": "Reset",
 
   "settings.data.title": "Data",

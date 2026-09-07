@@ -332,7 +332,7 @@
   "settings.display.text_secondary": "Texto secundario",
   "settings.display.text_secondary_desc": "Descripciones, etiquetas y texto atenuado.",
   "settings.display.reset_colors": "Restablecer colores",
-  "settings.display.reset_colors_desc": "Restaurar el tema oscuro predeterminado de Photonic.",
+  "settings.display.reset_colors_desc": "Restaurar el tema claro predeterminado de Photonic.",
   "settings.display.reset": "Restablecer",
 
   "settings.data.title": "Datos",

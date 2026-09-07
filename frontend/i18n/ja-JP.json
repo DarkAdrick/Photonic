@@ -332,7 +332,7 @@
   "settings.display.text_secondary": "テキストセカンダリ",
   "settings.display.text_secondary_desc": "説明、ラベル、淡色テキスト。",
   "settings.display.reset_colors": "色をリセット",
-  "settings.display.reset_colors_desc": "Photonic の既定のダークテーマを復元します。",
+  "settings.display.reset_colors_desc": "Photonic の既定のライトテーマを復元します。",
   "settings.display.reset": "リセット",
 
   "settings.data.title": "データ",

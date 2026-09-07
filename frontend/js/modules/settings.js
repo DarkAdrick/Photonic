@@ -114,6 +114,8 @@
             { id: "forest-light",  name: "Forest Light",  mode: "light", colors: { "bg-primary": "#f4faf4", "bg-secondary": "#FFFFFF", "bg-tertiary": "#dff6d8", "accent": "#39df76", "border": "#cdebc9", "text-primary": "#162b10", "text-secondary": "#658c61" } }
         ];
     
+        const DEFAULT_PALETTE = "daylight";
+    
         function renderApplicationSettings() {
             const staleMenu = document.getElementById("setting-lang-menu");
             if (staleMenu && staleMenu.parentNode === document.body) staleMenu.remove();
@@ -426,7 +428,7 @@
                                     <span class="palette-group-label">${mode === "dark" ? t("settings.display.dark") : t("settings.display.light")}</span>
                                     <div class="palette-row">
                                         ${THEME_PALETTES.filter(p => p.mode === mode).map(p => `
-                                            <button class="palette-swatch${savedPalette === p.id ? " active" : ""}" data-palette="${p.id}" title="${p.name}">
+                                            <button class="palette-swatch${savedPalette === p.id || (!savedPalette && p.id === DEFAULT_PALETTE) ? " active" : ""}" data-palette="${p.id}" title="${p.name}">
                                                 <span class="palette-dots">
                                                     <i style="background:${p.colors["bg-secondary"]}"></i>
                                                     <i style="background:${p.colors["bg-tertiary"]}"></i>
@@ -453,7 +455,7 @@
                             <div class="setting-desc">${t("settings.display.bg_primary_desc")}</div>
                         </div>
                         <div class="setting-control">
-                            <input type="color" class="settings-color" id="setting-bg-primary" value="${localStorage.getItem("photonic.bg-primary") || "#0A0D3A"}">
+                            <input type="color" class="settings-color" id="setting-bg-primary" value="${localStorage.getItem("photonic.bg-primary") || "#F4F5FA"}">
                         </div>
                     </div>
                     <div class="setting-row">
@@ -462,7 +464,7 @@
                             <div class="setting-desc">${t("settings.display.bg_secondary_desc")}</div>
                         </div>
                         <div class="setting-control">
-                            <input type="color" class="settings-color" id="setting-bg-secondary" value="${localStorage.getItem("photonic.bg-secondary") || "#0F1248"}">
+                            <input type="color" class="settings-color" id="setting-bg-secondary" value="${localStorage.getItem("photonic.bg-secondary") || "#FFFFFF"}">
                         </div>
                     </div>
                     <div class="setting-row">
@@ -471,7 +473,7 @@
                             <div class="setting-desc">${t("settings.display.bg_tertiary_desc")}</div>
                         </div>
                         <div class="setting-control">
-                            <input type="color" class="settings-color" id="setting-bg-tertiary" value="${localStorage.getItem("photonic.bg-tertiary") || "#181C58"}">
+                            <input type="color" class="settings-color" id="setting-bg-tertiary" value="${localStorage.getItem("photonic.bg-tertiary") || "#EAECF4"}">
                         </div>
                     </div>
                     <div class="setting-row">
@@ -480,7 +482,7 @@
                             <div class="setting-desc">${t("settings.display.accent_desc")}</div>
                         </div>
                         <div class="setting-control">
-                            <input type="color" class="settings-color" id="setting-accent" value="${localStorage.getItem("photonic.accent") || "#28A8D8"}">
+                            <input type="color" class="settings-color" id="setting-accent" value="${localStorage.getItem("photonic.accent") || "#2563EB"}">
                         </div>
                     </div>
                     <div class="setting-row">
@@ -489,7 +491,7 @@
                             <div class="setting-desc">${t("settings.display.borders_desc")}</div>
                         </div>
                         <div class="setting-control">
-                            <input type="color" class="settings-color" id="setting-border" value="${localStorage.getItem("photonic.border") || "#2A2E68"}">
+                            <input type="color" class="settings-color" id="setting-border" value="${localStorage.getItem("photonic.border") || "#D8DBE8"}">
                         </div>
                     </div>
                     <div class="setting-row">
@@ -498,7 +500,7 @@
                             <div class="setting-desc">${t("settings.display.text_primary_desc")}</div>
                         </div>
                         <div class="setting-control">
-                            <input type="color" class="settings-color" id="setting-text-primary" value="${localStorage.getItem("photonic.text-primary") || "#E6E6F0"}">
+                            <input type="color" class="settings-color" id="setting-text-primary" value="${localStorage.getItem("photonic.text-primary") || "#191D30"}">
                         </div>
                     </div>
                     <div class="setting-row">
@@ -507,7 +509,7 @@
                             <div class="setting-desc">${t("settings.display.text_secondary_desc")}</div>
                         </div>
                         <div class="setting-control">
-                            <input type="color" class="settings-color" id="setting-text-secondary" value="${localStorage.getItem("photonic.text-secondary") || "#8488A8"}">
+                            <input type="color" class="settings-color" id="setting-text-secondary" value="${localStorage.getItem("photonic.text-secondary") || "#686E8C"}">
                         </div>
                     </div>
                     <div class="setting-row">
@@ -795,14 +797,14 @@
             }
     
             document.getElementById("setting-reset-colors").addEventListener("click", () => {
-                const midnight = THEME_PALETTES.find(p => p.id === "midnight");
-                for (const [name, value] of Object.entries(midnight.colors)) {
+                const palette = THEME_PALETTES.find(p => p.id === DEFAULT_PALETTE);
+                for (const [name, value] of Object.entries(palette.colors)) {
                     localStorage.removeItem(`photonic.${name}`);
                     document.getElementById(`setting-${name}`).value = value;
                     applyThemeColor(name, value);
                 }
-                localStorage.setItem("photonic.palette", "midnight");
-                document.querySelectorAll(".palette-swatch").forEach(s => s.classList.toggle("active", s.dataset.palette === "midnight"));
+                localStorage.setItem("photonic.palette", DEFAULT_PALETTE);
+                document.querySelectorAll(".palette-swatch").forEach(s => s.classList.toggle("active", s.dataset.palette === DEFAULT_PALETTE));
             });
 
             document.getElementById("setting-reset-all").addEventListener("click", async () => {
@@ -811,8 +813,8 @@
                 for (const key of Object.keys(localStorage)) {
                     if (key.startsWith("photonic.") || key === "layout-mode") localStorage.removeItem(key);
                 }
-                const midnight = THEME_PALETTES.find(p => p.id === "midnight");
-                for (const [name, value] of Object.entries(midnight.colors)) {
+                const palette = THEME_PALETTES.find(p => p.id === DEFAULT_PALETTE);
+                for (const [name, value] of Object.entries(palette.colors)) {
                     document.documentElement.style.setProperty(`--${name}`, value);
                 }
                 document.documentElement.style.setProperty("--thumb-size", "150px");

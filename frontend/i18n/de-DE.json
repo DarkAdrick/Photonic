@@ -333,7 +333,7 @@
   "settings.display.text_secondary": "Text sekundär",
   "settings.display.text_secondary_desc": "Beschreibungen, Beschriftungen und gedämpfter Text.",
   "settings.display.reset_colors": "Farben zurücksetzen",
-  "settings.display.reset_colors_desc": "Das Standard-Photonic-Dunkelthema wiederherstellen.",
+  "settings.display.reset_colors_desc": "Das Standard-Photonic-Hellthema wiederherstellen.",
   "settings.display.reset": "Zurücksetzen",
 
   "settings.data.title": "Daten",
