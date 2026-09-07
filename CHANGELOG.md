@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.1.4 — Pocket — 07 September 2026
+
+### Desktop
+- [FIX] The window can now be resized down to **450px wide** (it used to be locked at 800px min): the mobile/tablet layouts are usable in a narrow desktop window too
+
+### General
+- [CHORE] Version bump to 1.1.4 and cache-busting bumped to match
+
 ## v1.1.3 — Settings Tidy — 07 September 2026
 
 ### Locations (map)
