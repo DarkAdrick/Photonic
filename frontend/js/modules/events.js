@@ -113,21 +113,40 @@
         // ── Map resize handle ─────────────────────────────────────────────────
     
         (function() {
-            let dragging = false, startY = 0, startTopH = 0, startBotH = 0;
+            let dragging = false, startY = 0, startTopH = 0, startBotH = 0, startHeaderH = 0, containerH = 0, containerW = 0, horiz = false, startX = 0, startMapW = 0;
+            const mapContainer = document.getElementById("main");
             P.mapResize.addEventListener("mousedown", (e) => {
                 e.preventDefault();
                 dragging = true;
-                startY = e.clientY;
-                startTopH = P.mapView.offsetHeight;
-                startBotH = P.mapPhotos.offsetHeight;
-                document.body.style.cursor = "ns-resize";
+                horiz = P.locationsLayout.classList.contains("horizontal");
+                containerH = mapContainer.clientHeight;
+                containerW = mapContainer.clientWidth;
+                if (horiz) {
+                    startX = e.clientX;
+                    startMapW = P.mapView.offsetWidth;
+                } else {
+                    startY = e.clientY;
+                    startTopH = P.mapView.offsetHeight;
+                    startBotH = P.mapPhotos.offsetHeight;
+                    startHeaderH = P.mapPhotosHeader.offsetHeight;
+                }
+                document.body.style.cursor = horiz ? "col-resize" : "ns-resize";
                 document.body.style.userSelect = "none";
             });
             document.addEventListener("mousemove", (e) => {
                 if (!dragging) return;
+                if (horiz) {
+                    const delta = e.clientX - startX;
+                    const newMapW = Math.min(Math.max(200, startMapW + delta), Math.max(200, containerW - 5 - 130));
+                    const newPanelW = Math.max(130, containerW - newMapW - 5);
+                    P.locationsLayout.style.gridTemplateColumns = newMapW + "px 5px " + newPanelW + "px";
+                    if (P.map) P.map.invalidateSize();
+                    return;
+                }
                 const delta = e.clientY - startY;
-                const newTop = Math.max(100, startTopH + delta);
-                const newBot = Math.max(60, startBotH - delta);
+                const maxTop = containerH - 5 - startHeaderH - 130;
+                const newTop = Math.min(Math.max(100, startTopH + delta), Math.max(100, maxTop));
+                const newBot = containerH - newTop - 5 - startHeaderH;
                 P.mapView.style.flex = "none";
                 P.mapView.style.height = newTop + "px";
                 P.mapPhotos.style.height = newBot + "px";

@@ -486,16 +486,17 @@
     display: flex;
     flex-direction: column;
     padding: 20px;
+    padding: 0;
 }
 
 .changelog-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
     padding-bottom: 12px;
     background: color-mix(in srgb, var(--bg-primary) 40%, var(--bg-secondary));
     border-bottom: 1px solid var(--border);
+    padding: 0.6em;
 }
 
 .changelog-header h3 {
@@ -515,7 +516,6 @@
     align-items: center;
     gap: 14px;
     padding: 16px;
-    margin-bottom: 16px;
     background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent) 0%, color-mix(in srgb, var(--photonic-1) 8%, transparent) 100%);
     border-bottom: 1px solid var(--border);
 }

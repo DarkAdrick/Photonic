@@ -108,7 +108,12 @@
             const defaultView = localStorage.getItem("photonic.defaultView") || "grid";
             const clusterThreshold = parseInt(localStorage.getItem("photonic.clusterThreshold") || "1");
             const clusterGlobalThreshold = parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "500");
+            const heatMax = parseInt(localStorage.getItem("photonic.heatMax") || "5000");
+            const heatPalette = localStorage.getItem("photonic.heatPalette") || "heatmap";
+            const heatColorLight = localStorage.getItem("photonic.heatColorLight") || "#4caf50";
+            const heatColorFull = localStorage.getItem("photonic.heatColorFull") || "#ef4444";
             const savedPalette = localStorage.getItem("photonic.palette");
+            const advancedOpen = localStorage.getItem("photonic.advancedColorsOpen") === "true";
     
             el.innerHTML = `
                 <div class="settings-app-info">
@@ -145,44 +150,11 @@
                     </div>
                     <div class="setting-row">
                         <div class="setting-info">
-                            <div class="setting-label">${t("settings.general.confirm_delete")}</div>
-                            <div class="setting-desc">${t("settings.general.confirm_delete_desc")}</div>
-                        </div>
-                        <div class="setting-control">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="setting-confirm-delete" ${confirmDelete ? "checked" : ""}>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="setting-row">
-                        <div class="setting-info">
-                            <div class="setting-label">${t("settings.general.confirm_geotag_overwrite")}</div>
-                            <div class="setting-desc">${t("settings.general.confirm_geotag_overwrite_desc")}</div>
-                        </div>
-                        <div class="setting-control">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="setting-confirm-geotag" ${confirmGeotagOverwrite ? "checked" : ""}>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="setting-row">
-                        <div class="setting-info">
-                            <div class="setting-label">${t("settings.general.show_extensions")}</div>
-                            <div class="setting-desc">${t("settings.general.show_extensions_desc")}</div>
-                        </div>
-                        <div class="setting-control">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="setting-show-extensions" ${showExts ? "checked" : ""}>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="setting-row">
-                        <div class="setting-info">
-                            <div class="setting-label" data-i18n="settings.general.language">${t("settings.general.language")}</div>
-                            <div class="setting-desc" data-i18n="settings.general.language_desc">${t("settings.general.language_desc")}</div>
+                            <div class="setting-row-icon"><i data-lucide="languages"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label" data-i18n="settings.general.language">${t("settings.general.language")}</div>
+                                <div class="setting-desc" data-i18n="settings.general.language_desc">${t("settings.general.language_desc")}</div>
+                            </div>
                         </div>
                         <div class="setting-control">
                             <div class="lang-settings-wrap">
@@ -193,14 +165,78 @@
                     </div>
                     <div class="setting-row">
                         <div class="setting-info">
-                            <div class="setting-label">${t("settings.general.telemetry")}</div>
-                            <div class="setting-desc">${t("settings.general.telemetry_desc")}</div>
+                            <div class="setting-row-icon"><i data-lucide="trash-2"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.general.confirm_delete")}</div>
+                                <div class="setting-desc">${t("settings.general.confirm_delete_desc")}</div>
+                            </div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="setting-confirm-delete" ${confirmDelete ? "checked" : ""}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-row-icon"><i data-lucide="map-pin"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.general.confirm_geotag_overwrite")}</div>
+                                <div class="setting-desc">${t("settings.general.confirm_geotag_overwrite_desc")}</div>
+                            </div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="setting-confirm-geotag" ${confirmGeotagOverwrite ? "checked" : ""}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-row-icon"><i data-lucide="file-type"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.general.show_extensions")}</div>
+                                <div class="setting-desc">${t("settings.general.show_extensions_desc")}</div>
+                            </div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="setting-show-extensions" ${showExts ? "checked" : ""}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-row-icon"><i data-lucide="activity"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.general.telemetry")}</div>
+                                <div class="setting-desc">${t("settings.general.telemetry_desc")}</div>
+                            </div>
                         </div>
                         <div class="setting-control">
                             <label class="toggle-switch">
                                 <input type="checkbox" id="setting-telemetry" checked>
                                 <span class="toggle-slider"></span>
                             </label>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-row-icon"><i data-lucide="layers"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.general.tile_provider")}</div>
+                                <div class="setting-desc">${t("settings.general.tile_provider_desc")}</div>
+                            </div>
+                        </div>
+                        <div class="setting-control">
+                            <select class="settings-select" id="setting-tile-provider">
+                                ${Object.entries(P.TILE_PROVIDERS).map(([id, p]) => `
+                                    <option value="${id}" ${P.fn.getTileProviderId() === id ? "selected" : ""}>${p.name}</option>
+                                `).join("")}
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -216,8 +252,11 @@
                     </div>
                     <div class="setting-row">
                         <div class="setting-info">
-                            <div class="setting-label">${t("settings.general.show_hidden_default")}</div>
-                            <div class="setting-desc">${t("settings.general.show_hidden_default_desc")}</div>
+                            <div class="setting-row-icon"><i data-lucide="eye-off"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.general.show_hidden_default")}</div>
+                                <div class="setting-desc">${t("settings.general.show_hidden_default_desc")}</div>
+                            </div>
                         </div>
                         <div class="setting-control">
                             <label class="toggle-switch">
@@ -228,8 +267,11 @@
                     </div>
                     <div class="setting-row">
                         <div class="setting-info">
-                            <div class="setting-label">${t("settings.display.thumb_label")}</div>
-                            <div class="setting-desc">${t("settings.display.thumb_desc")}</div>
+                            <div class="setting-row-icon"><i data-lucide="image"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.display.thumb_label")}</div>
+                                <div class="setting-desc">${t("settings.display.thumb_desc")}</div>
+                            </div>
                         </div>
                         <div class="setting-control">
                             <div class="settings-range-wrap">
@@ -241,8 +283,11 @@
                     </div>
                     <div class="setting-row">
                         <div class="setting-info">
-                            <div class="setting-label">${t("settings.display.default_view")}</div>
-                            <div class="setting-desc" id="default-view-desc">${t("settings.display.default_view_desc")}${defaultView === "masonry" ? " " + t("settings.display.default_view_masonry") : ""}</div>
+                            <div class="setting-row-icon"><i data-lucide="layout-grid"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.display.default_view")}</div>
+                                <div class="setting-desc" id="default-view-desc">${t("settings.display.default_view_desc")}${defaultView === "masonry" ? " " + t("settings.display.default_view_masonry") : ""}</div>
+                            </div>
                         </div>
                         <div class="setting-control">
                             <div class="settings-layout-toggle" id="setting-default-view">
@@ -257,8 +302,11 @@
                     </div>
                     <div class="setting-row">
                         <div class="setting-info">
-                            <div class="setting-label">${t("settings.display.cluster_label")}</div>
-                            <div class="setting-desc" id="setting-cluster-threshold-desc">${t("settings.display.cluster_desc")}<br>${t("settings.display.cluster_1")}</div>
+                            <div class="setting-row-icon"><i data-lucide="map-pin"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.display.cluster_label")}</div>
+                                <div class="setting-desc" id="setting-cluster-threshold-desc">${t("settings.display.cluster_desc")}<br>${t("settings.display.cluster_1")}</div>
+                            </div>
                         </div>
                         <div class="setting-control">
                             <div class="settings-range-wrap">
@@ -269,8 +317,11 @@
                     </div>
                     <div class="setting-row">
                         <div class="setting-info">
-                            <div class="setting-label">${t("settings.display.cluster_global_label")}</div>
-                            <div class="setting-desc" id="setting-cluster-global-desc">${t("settings.display.cluster_global_desc")}<br>${t("settings.display.cluster_global_ex")}</div>
+                            <div class="setting-row-icon"><i data-lucide="layers"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.display.cluster_global_label")}</div>
+                                <div class="setting-desc" id="setting-cluster-global-desc">${t("settings.display.cluster_global_desc")}<br>${t("settings.display.cluster_global_ex")}</div>
+                            </div>
                         </div>
                         <div class="setting-control">
                             <div class="settings-range-wrap">
@@ -279,14 +330,72 @@
                             </div>
                         </div>
                     </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-row-icon"><i data-lucide="thermometer"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.display.heat_max_label")}</div>
+                                <div class="setting-desc">${t("settings.display.heat_max_desc")}</div>
+                            </div>
+                        </div>
+                        <div class="setting-control">
+                            <div class="settings-range-wrap">
+                                <input type="range" class="settings-range" id="setting-heat-max" min="1000" max="10000" step="100" value="${heatMax}">
+                                <input type="number" class="settings-range-label settings-range-input" id="setting-heat-max-label" value="${heatMax}" min="1000" max="10000" step="100" aria-label="${t("settings.display.heat_max_label")}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-row-icon"><i data-lucide="palette"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.display.heat_palette_label")}</div>
+                                <div class="setting-desc">${t("settings.display.heat_palette_desc")}</div>
+                            </div>
+                        </div>
+                        <div class="setting-control">
+                            <select class="settings-select" id="setting-heat-palette">
+                                <option value="heatmap"${heatPalette === "heatmap" ? " selected" : ""}>${t("settings.display.heat_palette_heatmap")}</option>
+                                <option value="dual"${heatPalette === "dual" ? " selected" : ""}>${t("settings.display.heat_palette_dual")}</option>
+                                <option value="single"${heatPalette === "single" ? " selected" : ""}>${t("settings.display.heat_palette_single")}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="setting-row${heatPalette === "heatmap" ? " hidden" : ""}" id="setting-heat-color-full-row">
+                        <div class="setting-info">
+                            <div class="setting-row-icon"><i data-lucide="droplet"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.display.heat_color_full")}</div>
+                                <div class="setting-desc">${t("settings.display.heat_color_full_desc")}</div>
+                            </div>
+                        </div>
+                        <div class="setting-control">
+                            <input type="color" class="settings-color" id="setting-heat-color-full" value="${heatColorFull}">
+                        </div>
+                    </div>
+                    <div class="setting-row${heatPalette === "dual" ? "" : " hidden"}" id="setting-heat-color-light-row">
+                        <div class="setting-info">
+                            <div class="setting-row-icon"><i data-lucide="droplets"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.display.heat_color_light")}</div>
+                                <div class="setting-desc">${t("settings.display.heat_color_light_desc")}</div>
+                            </div>
+                        </div>
+                        <div class="setting-control">
+                            <input type="color" class="settings-color" id="setting-heat-color-light" value="${heatColorLight}">
+                        </div>
+                    </div>
                     <div class="settings-sub-header">
                         <span class="section-dot"></span>
                         <h4>${t("settings.display.appearance_sub")}</h4>
                     </div>
                     <div class="setting-row">
                         <div class="setting-info">
-                            <div class="setting-label">${t("settings.display.palettes_label")}</div>
-                            <div class="setting-desc">${t("settings.display.palettes_desc")}</div>
+                            <div class="setting-row-icon"><i data-lucide="palette"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.display.palettes_label")}</div>
+                                <div class="setting-desc">${t("settings.display.palettes_desc")}</div>
+                            </div>
                         </div>
                         <div class="setting-control palette-groups">
                             ${["dark", "light"].map(mode => `
@@ -308,6 +417,13 @@
                             `).join("")}
                         </div>
                     </div>
+                    <details class="settings-advanced" id="settings-advanced-colors" ${advancedOpen ? "open" : ""}>
+                        <summary>
+                            <div class="setting-row-icon"><i data-lucide="swatch-book"></i></div>
+                            <span>${t("settings.display.advanced")}</span>
+                            <i data-lucide="chevron-down" class="settings-advanced-chevron"></i>
+                        </summary>
+                        <div class="settings-advanced-body">
                     <div class="setting-row">
                         <div class="setting-info">
                             <div class="setting-label">${t("settings.display.bg_primary")}</div>
@@ -380,6 +496,8 @@
                             <button class="settings-action-btn" id="setting-reset-colors"><i data-lucide="rotate-ccw"></i> ${t("settings.display.reset")}</button>
                         </div>
                     </div>
+                        </div>
+                    </details>
                 </div>
     
                 <div class="settings-card settings-card-gradient">
@@ -389,8 +507,11 @@
                     </div>
                     <div class="setting-row">
                         <div class="setting-info">
-                            <div class="setting-label">${t("settings.data.rescan_label")}</div>
-                            <div class="setting-desc">${t("settings.data.rescan_desc")}</div>
+                            <div class="setting-row-icon"><i data-lucide="refresh-cw"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.data.rescan_label")}</div>
+                                <div class="setting-desc">${t("settings.data.rescan_desc")}</div>
+                            </div>
                         </div>
                         <div class="setting-control">
                             <button class="settings-action-btn" id="setting-rescan"><i data-lucide="refresh-cw"></i> ${t("settings.data.rescan")}</button>
@@ -425,6 +546,16 @@
             P.fn.api("GET", "/api/settings/telemetry").then(d => {
                 if (!telemetryDirty && d && typeof d.enabled === "boolean") telemetryToggle.checked = d.enabled;
             }).catch(() => {});
+
+            const tileSelect = document.getElementById("setting-tile-provider");
+            if (tileSelect) {
+                tileSelect.addEventListener("change", (e) => {
+                    if (!P.fn.setTileProviderId(e.target.value)) return;
+                    if (P.map && P.fn.applyTileProvider) {
+                        P.tileLayer = P.fn.applyTileProvider({ map: P.map, layer: P.tileLayer });
+                    }
+                });
+            }
     
             const langSelect = document.getElementById("setting-language");
             const settingsMenu = document.getElementById("setting-lang-menu");
@@ -542,6 +673,44 @@
                 clusterGlobalLabel.addEventListener("change", (e) => applyClusterGlobal(e.target.value));
                 setClusterGlobalWarn(clusterGlobalSlider.value);
             }
+
+            const heatMaxSlider = document.getElementById("setting-heat-max");
+            const heatMaxLabel = document.getElementById("setting-heat-max-label");
+            if (heatMaxSlider && heatMaxLabel) {
+                const applyHeatMax = (v) => {
+                    v = Math.max(1000, Math.min(10000, +v || 5000));
+                    heatMaxSlider.value = v;
+                    heatMaxLabel.value = v;
+                    localStorage.setItem("photonic.heatMax", v);
+                    if (P.activeView === "locations") { P.lastMapQueryUrl = null; P.fn.loadMapPhotos(); }
+                };
+                heatMaxSlider.addEventListener("input", (e) => applyHeatMax(e.target.value));
+                heatMaxLabel.addEventListener("change", (e) => applyHeatMax(e.target.value));
+            }
+
+            const heatPaletteSelect = document.getElementById("setting-heat-palette");
+            const heatColorFullEl = document.getElementById("setting-heat-color-full");
+            const heatColorLightEl = document.getElementById("setting-heat-color-light");
+            if (heatPaletteSelect) {
+                const applyHeatPalette = () => {
+                    const mode = heatPaletteSelect.value;
+                    localStorage.setItem("photonic.heatPalette", mode);
+                    const fullRow = document.getElementById("setting-heat-color-full-row");
+                    const lightRow = document.getElementById("setting-heat-color-light-row");
+                    if (fullRow) fullRow.classList.toggle("hidden", mode === "heatmap");
+                    if (lightRow) lightRow.classList.toggle("hidden", mode !== "dual");
+                    if (P.activeView === "locations") { P.lastMapQueryUrl = null; P.fn.loadMapPhotos(); }
+                };
+                heatPaletteSelect.addEventListener("change", applyHeatPalette);
+
+                const applyHeatColor = () => {
+                    if (heatColorFullEl) localStorage.setItem("photonic.heatColorFull", heatColorFullEl.value);
+                    if (heatColorLightEl) localStorage.setItem("photonic.heatColorLight", heatColorLightEl.value);
+                    if (P.activeView === "locations") { P.lastMapQueryUrl = null; P.fn.loadMapPhotos(); }
+                };
+                if (heatColorFullEl) heatColorFullEl.addEventListener("input", applyHeatColor);
+                if (heatColorLightEl) heatColorLightEl.addEventListener("input", applyHeatColor);
+            }
     
             document.getElementById("setting-rescan").addEventListener("click", () => {
                 const btn = document.getElementById("btn-rescan");
@@ -609,6 +778,13 @@
             });
     
             document.getElementById("setting-open-changelog").addEventListener("click", P.fn.openChangelog);
+
+            const advancedEl = document.getElementById("settings-advanced-colors");
+            if (advancedEl) {
+                advancedEl.addEventListener("toggle", () => {
+                    localStorage.setItem("photonic.advancedColorsOpen", advancedEl.open ? "true" : "false");
+                });
+            }
         }
     
         function applyThemeColor(name, value) {

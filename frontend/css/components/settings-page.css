@@ -140,7 +140,7 @@
 
 .settings-content {
     overflow-y: auto;
-    padding: 32px 40px;
+    padding: 20px 20px;
     background: var(--bg-primary);
 }
 
@@ -272,6 +272,73 @@
 .setting-info {
     flex: 1;
     min-width: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.setting-row-icon {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+}
+
+.setting-row-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.setting-row-text {
+    min-width: 0;
+    flex: 1;
+}
+
+.settings-advanced {
+    margin-top: 10px;
+    border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.settings-advanced > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    user-select: none;
+}
+
+.settings-advanced > summary::-webkit-details-marker {
+    display: none;
+}
+
+.settings-advanced > summary .settings-advanced-chevron {
+    flex-shrink: 0;
+    margin-left: auto;
+    transition: transform 0.2s;
+    color: var(--text-secondary);
+}
+
+.settings-advanced[open] > summary .settings-advanced-chevron {
+    transform: rotate(180deg);
+}
+
+.settings-advanced > summary:hover {
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.settings-advanced-body {
+    padding: 4px 14px 8px;
+    border-top: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
 }
 
 .setting-label {
@@ -442,10 +509,13 @@
     position: relative;
 }
 
+#setting-default-view .layout-btn[data-view="masonry"] {
+    width: auto;
+    padding: 0 6px;
+    gap: 3px;
+}
+
 .btn-beta-tag {
-    position: absolute;
-    bottom: 1px;
-    right: 2px;
     font-size: 7px;
     font-weight: 700;
     letter-spacing: 0.5px;

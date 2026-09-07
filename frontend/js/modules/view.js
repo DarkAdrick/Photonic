@@ -25,6 +25,7 @@
                 P.mapResize.classList.remove("hidden");
                 P.mapPhotosHeader.classList.remove("hidden");
                 P.mapPhotos.classList.remove("hidden");
+                P.fn.ensureMapSize();
                 if (o.load !== false) {
                     P.fn.initMap();
                     P.fn.fitMapToFolder();
@@ -218,6 +219,60 @@
                 P.fn.activateSettingsSection(r.settingsSection);
             }
         };
+
+    
+    P.fn.ensureMapSize = function () {
+            if (!P.map) return;
+            P.map.invalidateSize();
+            requestAnimationFrame(() => { if (P.map) P.map.invalidateSize(); });
+            setTimeout(() => { if (P.map) P.map.invalidateSize(); }, 250);
+        };
+
+    let savedVert = {};
+    let savedHor  = {};
+
+    P.fn.setLocationsLayout = function (mode) {
+        if (!P.locationsLayout) return;
+        const el = P.locationsLayout;
+        const btn = document.getElementById("map-btn-layout");
+        const isHor = el.classList.contains("horizontal");
+        const next = mode || (isHor ? "vertical" : "horizontal");
+        if ((next === "horizontal") === isHor) { return; }
+        const mainH = document.getElementById("main").clientHeight;
+        const mainW = document.getElementById("main").clientWidth;
+        if (next === "horizontal") {
+            savedVert.map = P.mapView ? P.mapView.style.height : "";
+            savedVert.photos = P.mapPhotos ? P.mapPhotos.style.height : "";
+            if (P.mapView) P.mapView.style.height = "";
+            if (P.mapPhotos) P.mapPhotos.style.height = "";
+            el.classList.add("horizontal");
+            if (savedHor.map && savedHor.panel && (savedHor.map + savedHor.panel <= mainW - 5)) {
+                el.style.gridTemplateColumns = savedHor.map + "px 5px " + savedHor.panel + "px";
+            } else {
+                el.style.gridTemplateColumns = "";
+            }
+            if (btn) { btn.title = P.t("map.layout_vertical"); btn.innerHTML = '<i data-lucide="rows-2"></i>'; if (window.lucide) lucide.createIcons({ root: btn }); }
+        } else {
+            const cols = el.style.gridTemplateColumns;
+            const m = cols && cols.match(/^(-?\d+(?:\.\d+)?)px 5px (-?\d+(?:\.\d+)?)px$/);
+            if (m) { savedHor.map = parseFloat(m[1]); savedHor.panel = parseFloat(m[2]); }
+            el.classList.remove("horizontal");
+            el.style.gridTemplateColumns = "";
+            if (P.mapView && savedVert.map) P.mapView.style.height = savedVert.map;
+            if (P.mapPhotos && savedVert.photos) P.mapPhotos.style.height = savedVert.photos;
+            if (btn) { btn.title = P.t("map.layout_horizontal"); btn.innerHTML = '<i data-lucide="columns-2"></i>'; if (window.lucide) lucide.createIcons({ root: btn }); }
+        }
+        localStorage.setItem("photonic.locationsLayout", next);
+        setTimeout(() => P.fn.ensureMapSize(), 0);
+    };
+
+    P.fn.toggleLocationsLayout = function () {
+        P.fn.setLocationsLayout();
+    };
+
+    var btnLayout = document.getElementById("map-btn-layout");
+    if (btnLayout) btnLayout.addEventListener("click", () => P.fn.toggleLocationsLayout());
+    P.fn.setLocationsLayout(localStorage.getItem("photonic.locationsLayout") === "horizontal" ? "horizontal" : "vertical");
 
     
     // --- exports ---

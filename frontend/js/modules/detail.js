@@ -134,7 +134,8 @@
                 setTimeout(() => {
                     if (P.detailMap) P.detailMap.remove();
                     P.detailMap = L.map("detail-map", { zoomControl: false, attributionControl: false }).setView([data.latitude, data.longitude], 13);
-                    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 20 }).addTo(P.detailMap);
+                    P.fn.buildTileLayer({ attributionControl: false }).addTo(P.detailMap);
+                    P.fn.applyMapTileBackground(P.detailMap);
                     L.marker([data.latitude, data.longitude]).addTo(P.detailMap);
                     setTimeout(() => P.detailMap.invalidateSize(), 100);
                 }, 50);

@@ -173,7 +173,7 @@ body {
 /* ── Buttons (shared) ─────────────────────────────────────────────────── */
 
 .header-btn {
-    padding: 5px 14px;
+    padding: 5px 5px;
     background: var(--bg-tertiary);
     border: 1px solid var(--border);
     border-radius: 6px;

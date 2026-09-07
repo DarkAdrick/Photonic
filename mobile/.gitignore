@@ -1,0 +1,36 @@
+# --- Photonic mobile : on ne commite que la SOURCE, pas le résultat de génération ---
+# (même philosophie que venv/ , dist/ , build/ à la racine)
+
+# Dependencies installées (régénérées par `npm install`)
+node_modules/
+
+# www/ = sortie de build générée par `node scripts/sync-www.js`
+# depuis src-www/ + frontend/ (desktop) + vendor-src/.
+# -> ne pas commiter.
+www/
+
+# vendor-src/ = bibliothèques CDN téléchargées par sync-www.js
+# (on peut les régénérer en laissant sync-www.js retélécharger).
+# Commenter la ligne si tu préfères les garder versionnées.
+vendor-src/
+
+# --- Android : sorties de build / caches ---
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+*.iml
+android/.idea/
+
+# APK générés
+*.apk
+*.aab
+
+# Logs / os
+*.log
+Thumbs.db
+Desktop.ini
+.DS_Store

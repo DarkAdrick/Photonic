@@ -73,10 +73,8 @@
             maxBounds: [[-89, -180], [89, 180]],
             maxBoundsViscosity: 1.0,
         }).setView([46.6, 2.3], 5);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: "&copy; OpenStreetMap",
-            maxZoom: 20,
-        }).addTo(geotagMap);
+        P.fn.buildTileLayer().addTo(geotagMap);
+        P.fn.applyMapTileBackground(geotagMap);
         geotagMap.on("click", (e) => setMarker(e.latlng));
         setTimeout(() => geotagMap.invalidateSize(), 60);
     }

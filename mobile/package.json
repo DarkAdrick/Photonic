@@ -1,0 +1,21 @@
+{
+  "name": "photonic-mobile",
+  "version": "1.1.1",
+  "description": "Photonic - local-first photo manager for mobile (Android + iOS)",
+  "private": true,
+  "scripts": {
+    "sync:www": "node scripts/sync-www.js",
+    "build": "npm run sync:www",
+    "android:sync": "npm run sync:www && npx cap sync android",
+    "android:run": "npm run android:sync && npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/camera": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/ios": "^7.0.0",
+    "@capacitor/preferences": "^7.0.0"
+  },
+  "devDependencies": {}
+}

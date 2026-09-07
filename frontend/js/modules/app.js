@@ -18,9 +18,10 @@
             P.fn.checkStatus();
             P.fn.loadSidebar();
             if (P.filterHidden) P.filterHidden.value = P.hiddenFilter;
-            P.fn.restoreView();
             P.fn.loadFilters();
             P.fn.pollScan();
             P.fn.initUpdateChecker();
+            P.fn.restoreView();
+            P.fn.ensureMapSize();
         });
 })(window.PhotoApp = window.PhotoApp || {});

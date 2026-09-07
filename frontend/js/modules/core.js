@@ -32,6 +32,7 @@
          P.breadcrumbBar   = document.getElementById("breadcrumb-bar");
          P.viewTitleBar    = document.getElementById("view-title-bar");
          P.mapView         = document.getElementById("map-view");
+         P.locationsLayout = document.getElementById("locations-layout");
          P.mapPhotosHeader = document.getElementById("map-photos-header");
          P.mapPhotoCount   = document.getElementById("map-photo-count");
          P.mapSelectionCount = document.getElementById("map-selection-count");

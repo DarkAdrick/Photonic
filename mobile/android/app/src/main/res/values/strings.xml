@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Photonic</string>
+    <string name="title_activity_main">Photonic</string>
+    <string name="package_name">com.phoenixfactory.photonic</string>
+    <string name="custom_url_scheme">com.phoenixfactory.photonic</string>
+</resources>

@@ -1,6 +1,110 @@
 // Photonic module: map
 (function (P) {
     const t = P.t;
+
+    // ── Cluster heat gradient ────────────────────────────────────────────────
+    // Continuous color scale (blue → cyan → green → yellow → red → violet →
+    // dark violet → black) interpolated on a log scale of the photo count, so
+    // dense spots smoothly drift toward the hot end instead of jumping through
+    // a few fixed, unrelated tiers. The count mapped to the "hottest" (black)
+    // end is configurable (1000 → 10000, default 5000).
+    const HEAT_STOPS = [
+        [50, 90, 255],    // cold blue
+        [40, 200, 235],   // cyan
+        [90, 215, 70],    // green
+        [250, 220, 50],   // yellow
+        [250, 90, 45],    // red
+        [175, 75, 220],   // violet
+        [110, 35, 165],   // dark violet
+        [25, 22, 40],     // near black
+    ];
+
+    function getHeatMax() {
+        const v = parseInt(localStorage.getItem("photonic.heatMax") || "5000") || 5000;
+        return Math.min(10000, Math.max(1000, v));
+    }
+
+    function getHeatPalette() {
+        return {
+            mode: localStorage.getItem("photonic.heatPalette") || "heatmap",
+            colorLight: localStorage.getItem("photonic.heatColorLight") || "#4caf50",
+            colorFull: localStorage.getItem("photonic.heatColorFull") || "#ef4444",
+        };
+    }
+
+    function hexToRgb(hex) {
+        const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
+        if (!m) return null;
+        const n = parseInt(m[1], 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+
+    function mixRgb(a, b, t) {
+        return [
+            Math.round(a[0] + (b[0] - a[0]) * t),
+            Math.round(a[1] + (b[1] - a[1]) * t),
+            Math.round(a[2] + (b[2] - a[2]) * t),
+        ];
+    }
+
+    // Lighten a fully saturated color so it can act as the "cold" end of a
+    // single-color ramp: the cluster fades from a pale tint to the full color.
+    function lightenRgb(rgb, amt) {
+        return [
+            Math.round(rgb[0] + (255 - rgb[0]) * amt),
+            Math.round(rgb[1] + (255 - rgb[1]) * amt),
+            Math.round(rgb[2] + (255 - rgb[2]) * amt),
+        ];
+    }
+
+    function heatT(count) {
+        const heatMax = getHeatMax();
+        let tVal = Math.log10(Math.max(2, count)) / Math.log10(heatMax);
+        return Math.max(0, Math.min(1, tVal));
+    }
+
+    function heatRgb(count) {
+        const tVal = heatT(count);
+        const palette = getHeatPalette();
+
+        if (palette.mode === "single") {
+            const full = hexToRgb(palette.colorFull) || [239, 68, 68];
+            return mixRgb(lightenRgb(full, 0.72), full, tVal);
+        }
+
+        if (palette.mode === "dual") {
+            const light = hexToRgb(palette.colorLight) || [76, 175, 80];
+            const full = hexToRgb(palette.colorFull) || [239, 68, 68];
+            return mixRgb(light, full, tVal);
+        }
+
+        const pos = tVal * (HEAT_STOPS.length - 1);
+        const i = Math.max(0, Math.min(HEAT_STOPS.length - 2, Math.floor(pos)));
+        const frac = pos - i;
+        return mixRgb(HEAT_STOPS[i], HEAT_STOPS[i + 1], frac);
+    }
+
+    function cssRgba(rgb, alpha) {
+        return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+    }
+
+    function formatClusterCount(count) {
+        return String(count);
+    }
+
+    function clusterIconCreateFunction(cluster) {
+        const count = cluster.getChildCount();
+        const color = heatRgb(count);
+        let tier = "small";
+        if (count >= 20) tier = "medium";
+        if (count >= 100) tier = "large";
+        return L.divIcon({
+            html: `<div style="background-color:${cssRgba(color, 0.85)};box-shadow:0 0 0 4px ${cssRgba(color, 0.35)}"><span>${formatClusterCount(count)}</span></div>`,
+            className: `marker-cluster marker-cluster-${tier}`,
+            iconSize: L.point(40, 40),
+        });
+    }
+
         // ── Map ───────────────────────────────────────────────────────────────
     
         async function fitMapToFolder() {
@@ -46,15 +150,16 @@
             const mapLoader = P.fn.createLoader(t("map.loading"));
             mapLoader.id = "map-loader";
             P.mapView.appendChild(mapLoader);
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: "&copy; OpenStreetMap",
-                maxZoom: 20,
-            }).addTo(P.map);
-            P.clusterGroup = L.markerClusterGroup({ maxClusterRadius: 40, spiderfyOnMaxZoom: true, showCoverageOnHover: false, disableClusteringAtZoom: 18 });
+            P.tileLayer = P.fn.buildTileLayer();
+            P.tileLayer.addTo(P.map);
+            P.fn.applyMapTileBackground(P.map);
+            P.fn.addTileControl(P.map);
+            P.clusterGroup = L.markerClusterGroup({ maxClusterRadius: 40, spiderfyOnMaxZoom: true, showCoverageOnHover: false, disableClusteringAtZoom: 18, iconCreateFunction: clusterIconCreateFunction });
             P.plainGroup = L.layerGroup();
             P.map.addLayer(P.clusterGroup);
             P.map.on("moveend", () => loadMapPhotos());
             setTimeout(() => P.map.invalidateSize(), 100);
+            setTimeout(() => P.map.invalidateSize(), 400);
             bindMapDrop();
         }
 

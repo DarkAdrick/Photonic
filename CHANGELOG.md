@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.1.2 — Pivot — 07 September 2026
+
+### Locations (map)
+- [ADD] **Horizontal layout** toggle in the map photo header: switch between the classic **stacked** view (map on top, photos below) and a **side-by-side** view (map left, photos right) — ideal on large or panoramic screens. The splitter stays draggable in both layouts, the choice is remembered and each pane keeps its size when you switch back and forth
+- [ADD] The photo strip splitter is now fully bounded: the map can't shrink below 100px, the header + photos strip keeps at least 130px, and the handle can no longer be dragged off-screen
+- [ADD] Exact cluster numbers: cluster badges show the full count (e.g. **8452**) instead of the rounded "8.5k"
+- [FIX] The map and its photo strip restore correctly when reloading straight into the Locations view (Ctrl+F5): the map waits for its container before measuring itself and no longer renders as a broken/empty grid
+
+### Map tiles
+- [EDIT] Map tiles are no longer forced to retina resolution and the map background matches each basemap's own color, removing the visible seams/lines between tiles on the dark and light themes
+
+### Settings
+- [ADD] **Heat palette** setting next to the heat gradient scale: choose the classic gradient, a two-color ramp or a single tint, with your own hot/cold colors (default: green → red)
+- [EDIT] Settings layout rework: **Language** now comes first in the General card, every setting row gets an **icon**, and the theme's custom colors are tucked into an **Advanced** accordion under Theme palettes
+- [FIX] The BETA badge on the Masonry layout button no longer overlaps the icon
+
+### General
+- [CHORE] Version bump to 1.1.2 and cache-busting bumped to match
+
 ## v1.1.1 — Responsive Update — 03 September 2026
 
 ### Mobile & tablet support
