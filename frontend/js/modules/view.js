@@ -246,7 +246,7 @@
             if (P.mapView) P.mapView.style.height = "";
             if (P.mapPhotos) P.mapPhotos.style.height = "";
             el.classList.add("horizontal");
-            if (savedHor.map && savedHor.panel && (savedHor.map + savedHor.panel <= mainW - 5)) {
+            if (savedHor.map && savedHor.panel && (savedHor.map + 5 + savedHor.panel >= mainW * 0.8)) {
                 el.style.gridTemplateColumns = savedHor.map + "px 5px " + savedHor.panel + "px";
             } else {
                 el.style.gridTemplateColumns = "";
@@ -273,6 +273,40 @@
     var btnLayout = document.getElementById("map-btn-layout");
     if (btnLayout) btnLayout.addEventListener("click", () => P.fn.toggleLocationsLayout());
     P.fn.setLocationsLayout(localStorage.getItem("photonic.locationsLayout") === "horizontal" ? "horizontal" : "vertical");
+
+    let resizeDebounce = null;
+    window.addEventListener("resize", () => {
+        clearTimeout(resizeDebounce);
+        resizeDebounce = setTimeout(() => {
+            const el = P.locationsLayout;
+            if (el && el.classList.contains("horizontal")) {
+                const cols = el.style.gridTemplateColumns || "";
+                const m = cols.match(/^(-?\d+(?:\.\d+)?)px 5px (-?\d+(?:\.\d+)?)px$/);
+                if (m) {
+                    const mainW = document.getElementById("main").clientWidth;
+                    const mapW = parseFloat(m[1]);
+                    const panelW = parseFloat(m[2]);
+                    if (mapW + 5 + panelW > mainW) {
+                        const newMap = Math.max(200, mainW - 5 - Math.max(130, panelW));
+                        savedHor.map = newMap;
+                        savedHor.panel = mainW - newMap - 5;
+                        el.style.gridTemplateColumns = savedHor.map + "px 5px " + savedHor.panel + "px";
+                    } else if (mapW + 5 + panelW < mainW) {
+                        el.style.gridTemplateColumns = "";
+                        requestAnimationFrame(() => {
+                            const naturalMap = P.mapView.offsetWidth;
+                            const naturalPanel = P.mapPhotos.offsetWidth;
+                            if (naturalMap && naturalPanel) {
+                                savedHor.map = naturalMap;
+                                savedHor.panel = naturalPanel;
+                            }
+                        });
+                    }
+                }
+            }
+            P.fn.ensureMapSize();
+        }, 150);
+    });
 
     
     // --- exports ---

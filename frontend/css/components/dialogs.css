@@ -444,6 +444,13 @@
     line-height: 1.5;
 }
 
+.confirm-box .dialog-note {
+    font-style: italic;
+    font-size: 11px;
+    color: color-mix(in srgb, var(--text-secondary) 85%, var(--accent));
+    margin: -8px 0 16px;
+}
+
 .confirm-box .dialog-actions {
     justify-content: center;
     gap: 8px;

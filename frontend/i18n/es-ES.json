@@ -340,6 +340,14 @@
   "settings.data.rescan_desc": "Vuelve a escanear todas las carpetas para detectar elementos nuevos o modificados.",
   "settings.data.rescan": "Volver a escanear",
 
+  "settings.application.reset_all": "Restablecer todos los ajustes",
+  "settings.application.reset_all_desc": "Restaura todos los parámetros a sus valores predeterminados.",
+  "settings.application.close": "Cerrar",
+  "settings.application.reset_confirm": "¿Restablecer todos los ajustes?",
+  "settings.application.reset_confirm_desc": "Todos los ajustes se restaurarán a sus valores predeterminados. Esta acción no se puede deshacer.",
+  "settings.application.reset_note": "Sus fotos, etiquetas y colecciones NO se eliminarán; solo se restablecen los ajustes.",
+  "settings.application.reset_done": "Ajustes restablecidos a los valores predeterminados.",
+
   "settings.tags.desc": "Gestiona las etiquetas para organizar tu biblioteca. Edita nombres y colores directamente.",
   "settings.tags.new": "Nueva etiqueta",
   "settings.tags.none": "Aún no hay etiquetas",

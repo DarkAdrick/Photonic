@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.1.3 — Settings Tidy — 07 September 2026
+
+### Locations (map)
+- [FIX] Ctrl+scroll now adjusts the thumbnail size from the map photo strip (it used to zoom the whole page instead)
+- [FIX] The map layout reflow when the window resizes or rotates: the panes re-clamp when shrinking and expand again when the window/area grows (no more empty space on the right)
+
+### Settings
+- [ADD] The settings page now covers the **whole window on desktop** (header, search and filters are hidden while editing) — same behavior as on mobile
+- [ADD] Badge counts are **preloaded**: Folders, Tags and Collections counters now show their real values as soon as the settings page opens
+- [ADD] New footer actions on the Application page: **Reset all settings** (with a confirmation dialog — your photos, tags and collections are never touched) and **Close** (settings are saved live)
+- [ADD] **Sponsor this project** button (pink) right in the settings header, and the PHOTONIC name + version badge now sit on a single line
+
+### General
+- [CHORE] Version bump to 1.1.3 and cache-busting bumped to match
+
 ## v1.1.2 — Pivot — 07 September 2026
 
 ### Locations (map)

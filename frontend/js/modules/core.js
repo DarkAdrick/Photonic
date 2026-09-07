@@ -168,10 +168,12 @@
         const confirmCancel = document.getElementById("confirm-cancel");
         let confirmResolve = null;
     
-        function showConfirm(title, message, okText) {
+        function showConfirm(title, message, okText, note) {
             if (localStorage.getItem("photonic.confirmDelete") === "false") return Promise.resolve(true);
             confirmTitle.textContent = title;
             confirmMsg.textContent = message;
+            const noteEl = document.getElementById("confirm-note");
+            if (noteEl) { noteEl.textContent = note || ""; noteEl.style.display = note ? "" : "none"; }
             confirmOk.textContent = okText || "Delete";
             confirmDialog.classList.remove("hidden");
             return new Promise(resolve => { confirmResolve = resolve; });

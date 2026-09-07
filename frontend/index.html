@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
-    <link rel="stylesheet" href="/css/style.css?v=1.1.2">
+    <link rel="stylesheet" href="/css/style.css?v=1.1.3">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
         <button id="btn-menu" class="header-btn" title="Menu"><i data-lucide="menu"></i></button>
         <div class="logo-icon"><i data-lucide="aperture"></i></div>
         <span class="logo">PHOTONIC</span>
-        <span class="version-badge-outer" id="version-badge" title="View changelog"><span class="version-badge-inner">v1.1.2</span></span>
+        <span class="version-badge-outer" id="version-badge" title="View changelog"><span class="version-badge-inner">v1.1.3</span></span>
         <a href="https://github.com/DarkAdrick/Photonic/releases" target="_blank" rel="noopener" id="update-pill" class="update-pill hidden" title="New version available — view release"><span class="update-pill-dot"></span><i data-lucide="arrow-up-circle"></i><span id="update-pill-text" data-i18n="header.update">Update</span></a>
     </div>
     <div id="titlebar-drag" class="pywebview-drag-region"></div>
@@ -153,13 +153,13 @@
     <nav>
         <div class="sb-quick-title" data-i18n="sidebar.views">Views</div>
         <ul>
-            <li class="active" data-view="library"><i data-lucide="image"></i><span data-i18n="sidebar.library">Library</span></li>
+            <li data-view="library"><i data-lucide="image"></i><span data-i18n="sidebar.library">Library</span></li>
+            <li data-view="locations"><i data-lucide="map-pin"></i><span data-i18n="sidebar.locations">Locations</span></li>
             <li data-view="folders"><i data-lucide="folder"></i><span data-i18n="sidebar.folders">Folders</span></li>
             <li data-view="collections"><i data-lucide="library"></i><span data-i18n="sidebar.collections">Collections</span></li>
             <li data-view="countries"><i data-lucide="globe"></i><span data-i18n="sidebar.countries">Countries</span></li>
             <li data-view="tags"><i data-lucide="tag"></i><span data-i18n="sidebar.tags">Tags</span></li>
             <li data-view="cameras"><i data-lucide="camera"></i><span data-i18n="sidebar.cameras">Cameras</span></li>
-            <li data-view="locations"><i data-lucide="map-pin"></i><span data-i18n="sidebar.locations">Locations</span></li>
             <li data-view="cleaning"><i data-lucide="sparkles"></i><span data-i18n="sidebar.cleaning">Cleaning</span><span class="sidebar-beta-tag">beta</span></li>
             <li data-view="stats"><i data-lucide="bar-chart-2"></i><span data-i18n="sidebar.stats">Stats</span></li>
         </ul>
@@ -221,11 +221,12 @@
         <div id="map-view" class="hidden"></div>
         <div id="map-resize" class="map-resize hidden"></div>
         <div id="map-photos-header" class="hidden">
-            <span id="map-photo-count"></span>
+            <button id="map-btn-layout" class="header-btn" title="Horizontal layout" data-i18n-title="map.layout_horizontal"><i data-lucide="columns-2"></i></button>
+            <span id="map-view-title" data-i18n="sidebar.locations">Locations</span>
             <span id="map-selection-count" class="hidden">0 selected</span>
             <button id="map-btn-deselect-all" class="cleaning-btn hidden">Deselect All</button>
             <button id="map-btn-selected-only" class="cleaning-btn hidden" title="Show only selected items"><span data-i18n="grid.only_selected">Only Selected</span></button>
-            <button id="map-btn-layout" class="header-btn" title="Horizontal layout" data-i18n-title="map.layout_horizontal"><i data-lucide="columns-2"></i></button>
+            <span id="map-photo-count"></span>
         </div>
         <div id="map-photos" class="hidden"></div>
     </div>
@@ -509,6 +510,7 @@
             <button id="confirm-dialog-close" class="detail-close-btn"><i data-lucide="x"></i></button>
         </div>
         <p id="confirm-message"></p>
+        <p id="confirm-note" class="dialog-note"></p>
         <div class="dialog-actions">
             <button id="confirm-cancel">Cancel</button>
             <button id="confirm-ok" class="danger-btn">Delete</button>
@@ -570,36 +572,36 @@
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-<script src="/js/i18n.js?v=1.1.2"></script>
-<script src="/js/modules/core.js?v=1.1.2"></script>
-<script src="/js/modules/state.js?v=1.1.2"></script>
-<script src="/js/modules/tile_providers.js?v=1.1.2"></script>
-<script src="/js/modules/utils.js?v=1.1.2"></script>
-<script src="/js/modules/view.js?v=1.1.2"></script>
-<script src="/js/modules/map.js?v=1.1.2"></script>
+<script src="/js/i18n.js?v=1.1.3"></script>
+<script src="/js/modules/core.js?v=1.1.3"></script>
+<script src="/js/modules/state.js?v=1.1.3"></script>
+<script src="/js/modules/tile_providers.js?v=1.1.3"></script>
+<script src="/js/modules/utils.js?v=1.1.3"></script>
+<script src="/js/modules/view.js?v=1.1.3"></script>
+<script src="/js/modules/map.js?v=1.1.3"></script>
 <script src="/js/modules/sidebar.js?v=1.0.7"></script>
-<script src="/js/modules/browse.js?v=1.1.2"></script>
-<script src="/js/modules/cleaning.js?v=1.1.2"></script>
-<script src="/js/modules/stats.js?v=1.1.2"></script>
-<script src="/js/modules/filters.js?v=1.1.2"></script>
-<script src="/js/modules/grid.js?v=1.1.2"></script>
-<script src="/js/modules/detail.js?v=1.1.2"></script>
-<script src="/js/modules/modal_helpers.js?v=1.1.2"></script>
-<script src="/js/modules/tag_modal.js?v=1.1.2"></script>
-<script src="/js/modules/coll_modal.js?v=1.1.2"></script>
-<script src="/js/modules/geotag_modal.js?v=1.1.2"></script>
-<script src="/js/modules/dialog.js?v=1.1.2"></script>
-<script src="/js/modules/scan.js?v=1.1.2"></script>
-<script src="/js/modules/events.js?v=1.1.2"></script>
-<script src="/js/modules/layout.js?v=1.1.2"></script>
-<script src="/js/modules/settings.js?v=1.1.2"></script>
-<script src="/js/modules/settings_tags.js?v=1.1.2"></script>
-<script src="/js/modules/settings_collections.js?v=1.1.2"></script>
-<script src="/js/modules/settings_folders.js?v=1.1.2"></script>
-<script src="/js/modules/update.js?v=1.1.2"></script>
-<script src="/js/modules/window.js?v=1.1.2"></script>
-<script src="/js/modules/i18n.js?v=1.1.2"></script>
-<script src="/js/modules/app.js?v=1.1.2"></script>
-<script src="/js/modules/mobile.js?v=1.1.2"></script>
+<script src="/js/modules/browse.js?v=1.1.3"></script>
+<script src="/js/modules/cleaning.js?v=1.1.3"></script>
+<script src="/js/modules/stats.js?v=1.1.3"></script>
+<script src="/js/modules/filters.js?v=1.1.3"></script>
+<script src="/js/modules/grid.js?v=1.1.3"></script>
+<script src="/js/modules/detail.js?v=1.1.3"></script>
+<script src="/js/modules/modal_helpers.js?v=1.1.3"></script>
+<script src="/js/modules/tag_modal.js?v=1.1.3"></script>
+<script src="/js/modules/coll_modal.js?v=1.1.3"></script>
+<script src="/js/modules/geotag_modal.js?v=1.1.3"></script>
+<script src="/js/modules/dialog.js?v=1.1.3"></script>
+<script src="/js/modules/scan.js?v=1.1.3"></script>
+<script src="/js/modules/events.js?v=1.1.3"></script>
+<script src="/js/modules/layout.js?v=1.1.3"></script>
+<script src="/js/modules/settings.js?v=1.1.3"></script>
+<script src="/js/modules/settings_tags.js?v=1.1.3"></script>
+<script src="/js/modules/settings_collections.js?v=1.1.3"></script>
+<script src="/js/modules/settings_folders.js?v=1.1.3"></script>
+<script src="/js/modules/update.js?v=1.1.3"></script>
+<script src="/js/modules/window.js?v=1.1.3"></script>
+<script src="/js/modules/i18n.js?v=1.1.3"></script>
+<script src="/js/modules/app.js?v=1.1.3"></script>
+<script src="/js/modules/mobile.js?v=1.1.3"></script>
 </body>
 </html>

@@ -341,6 +341,14 @@
   "settings.data.rescan_desc": "Re-scan all folders to pick up new or changed items.",
   "settings.data.rescan": "Rescan",
 
+  "settings.application.reset_all": "Reset all settings",
+  "settings.application.reset_all_desc": "Restore every parameter to its default value.",
+  "settings.application.close": "Close",
+  "settings.application.reset_confirm": "Reset all settings?",
+  "settings.application.reset_confirm_desc": "All preferences will be restored to their default values. This cannot be undone.",
+  "settings.application.reset_note": "Your photos, tags and collections will NOT be deleted — this only resets the settings.",
+  "settings.application.reset_done": "Settings reset to defaults.",
+
   "settings.tags.desc": "Manage tags used to organize your library. Edit names and colors inline.",
   "settings.tags.new": "New Tag",
   "settings.tags.none": "No tags yet",

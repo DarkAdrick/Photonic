@@ -340,6 +340,14 @@
   "settings.data.rescan_desc": "すべてのフォルダを再スキャンして、新規または変更されたアイテムを検出します。",
   "settings.data.rescan": "再スキャン",
 
+  "settings.application.reset_all": "すべての設定をリセット",
+  "settings.application.reset_all_desc": "すべてのパラメータを既定値に戻します。",
+  "settings.application.close": "閉じる",
+  "settings.application.reset_confirm": "すべての設定をリセットしますか？",
+  "settings.application.reset_confirm_desc": "すべての設定が既定値に戻されます。この操作は取り消せません。",
+  "settings.application.reset_note": "写真・タグ・コレクションは削除されません。設定のみがリセットされます。",
+  "settings.application.reset_done": "設定を既定値にリセットしました。",
+
   "settings.tags.desc": "ライブラリを整理するためのタグを管理します。名前と色を直接編集できます。",
   "settings.tags.new": "新しいタグ",
   "settings.tags.none": "タグはまだありません",

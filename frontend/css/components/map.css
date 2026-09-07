@@ -4,8 +4,13 @@
     display: contents;
 }
 
-#map-btn-layout {
+#map-photo-count {
     margin-left: auto;
+}
+
+#map-view-title {
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
 #locations-layout.horizontal {

@@ -53,6 +53,13 @@
             const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--thumb-size")) || thumbDefault;
             setThumbSize(cur + (e.deltaY < 0 ? 20 : -20));
         }, { passive: false });
+
+        P.mapPhotos.addEventListener("wheel", (e) => {
+            if (!e.ctrlKey) return;
+            e.preventDefault();
+            const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--thumb-size")) || thumbDefault;
+            setThumbSize(cur + (e.deltaY < 0 ? 20 : -20));
+        }, { passive: false });
     
         // ── Layout Toggle (Grid / Masonry) ────────────────────────────────────
     

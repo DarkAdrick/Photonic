@@ -33,7 +33,25 @@
             lucide.createIcons();
             P.settingsSection = "settings-application";
             P.fn.saveRestoreState();
+            P.fn.updateSettingsCounts();
         }
+
+        P.fn.updateSettingsCounts = async function () {
+            try {
+                const folders = await P.fn.api("GET", "/api/folders");
+                document.getElementById("settings-folders-count").textContent = folders.length;
+            } catch (e) {}
+            try {
+                const tags = await P.fn.api("GET", "/api/tags");
+                document.getElementById("settings-tags-count").textContent = tags.length;
+            } catch (e) {}
+            try {
+                const collections = await P.fn.api("GET", "/api/collections/tree");
+                let totalCount = 0;
+                (function countNodes(nodes) { for (const n of nodes) { totalCount++; if (n.children) countNodes(n.children); } })(collections);
+                document.getElementById("settings-collections-count").textContent = totalCount;
+            } catch (e) {}
+        };
 
         P.fn.activateSettingsSection = function (section) {
             if (!section || section === "settings-application") return;
@@ -119,10 +137,15 @@
                 <div class="settings-app-info">
                     <div class="settings-app-icon"><i data-lucide="aperture"></i></div>
                     <div class="settings-app-details">
-                        <div class="settings-app-name">PHOTONIC</div>
-                        <span class="settings-app-version" id="settings-page-version"></span>
+                        <div class="settings-app-title-row">
+                            <div class="settings-app-name">PHOTONIC</div>
+                            <span class="settings-app-version" id="settings-page-version"></span>
+                        </div>
                         <p class="settings-app-desc">${t("settings.app.desc")}</p>
-                        <button class="settings-action-btn" id="setting-open-changelog"><i data-lucide="scroll-text"></i> ${t("settings.app.whats_new")}</button>
+                        <div class="settings-app-actions">
+                            <button class="settings-action-btn" id="setting-open-changelog"><i data-lucide="scroll-text"></i> ${t("settings.app.whats_new")}</button>
+                            <a href="https://github.com/sponsors/DarkAdrick" target="_blank" rel="noopener" class="settings-action-btn sponsor" id="setting-sponsor"><i data-lucide="heart"></i> ${t("changelog.sponsor")}</a>
+                        </div>
                     </div>
                 </div>
     
@@ -518,6 +541,11 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="settings-footer-actions">
+                    <button class="settings-action-btn danger" id="setting-reset-all"><i data-lucide="rotate-ccw"></i> ${t("settings.application.reset_all")}</button>
+                    <button class="settings-action-btn primary" id="setting-close"><i data-lucide="check"></i> ${t("settings.application.close")}</button>
+                </div>
             `;
     
             const versionBadge = document.getElementById("version-badge");
@@ -776,6 +804,28 @@
                 localStorage.setItem("photonic.palette", "midnight");
                 document.querySelectorAll(".palette-swatch").forEach(s => s.classList.toggle("active", s.dataset.palette === "midnight"));
             });
+
+            document.getElementById("setting-reset-all").addEventListener("click", async () => {
+                const ok = await P.fn.showConfirm(t("settings.application.reset_confirm"), t("settings.application.reset_confirm_desc"), t("settings.application.reset_all"), t("settings.application.reset_note"));
+                if (!ok) return;
+                for (const key of Object.keys(localStorage)) {
+                    if (key.startsWith("photonic.") || key === "layout-mode") localStorage.removeItem(key);
+                }
+                const midnight = THEME_PALETTES.find(p => p.id === "midnight");
+                for (const [name, value] of Object.entries(midnight.colors)) {
+                    document.documentElement.style.setProperty(`--${name}`, value);
+                }
+                document.documentElement.style.setProperty("--thumb-size", "150px");
+                document.documentElement.style.setProperty("--thumb-gap", "6px");
+                const gridBtn = document.getElementById("btn-layout-grid");
+                if (gridBtn) gridBtn.click();
+                P.fn.setLocationsLayout("vertical");
+                renderApplicationSettings();
+                P.fn.updateSettingsCounts();
+                P.fn.showToast(t("settings.application.reset_done"), { icon: "check", duration: 3000 });
+            });
+
+            document.getElementById("setting-close").addEventListener("click", () => closeSettings());
     
             document.getElementById("setting-open-changelog").addEventListener("click", P.fn.openChangelog);
 
