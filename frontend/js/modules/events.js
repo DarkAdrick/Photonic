@@ -115,35 +115,34 @@
         (function() {
             let dragging = false, startY = 0, startTopH = 0, startBotH = 0, startHeaderH = 0, containerH = 0, containerW = 0, horiz = false, startX = 0, startMapW = 0;
             const mapContainer = document.getElementById("main");
-            P.mapResize.addEventListener("mousedown", (e) => {
-                e.preventDefault();
+            function startDrag(x, y) {
                 dragging = true;
                 horiz = P.locationsLayout.classList.contains("horizontal");
                 containerH = mapContainer.clientHeight;
                 containerW = mapContainer.clientWidth;
                 if (horiz) {
-                    startX = e.clientX;
+                    startX = x;
                     startMapW = P.mapView.offsetWidth;
                 } else {
-                    startY = e.clientY;
+                    startY = y;
                     startTopH = P.mapView.offsetHeight;
                     startBotH = P.mapPhotos.offsetHeight;
                     startHeaderH = P.mapPhotosHeader.offsetHeight;
                 }
                 document.body.style.cursor = horiz ? "col-resize" : "ns-resize";
                 document.body.style.userSelect = "none";
-            });
-            document.addEventListener("mousemove", (e) => {
+            }
+            function dragTo(x, y) {
                 if (!dragging) return;
                 if (horiz) {
-                    const delta = e.clientX - startX;
+                    const delta = x - startX;
                     const newMapW = Math.min(Math.max(200, startMapW + delta), Math.max(200, containerW - 5 - 130));
                     const newPanelW = Math.max(130, containerW - newMapW - 5);
                     P.locationsLayout.style.gridTemplateColumns = newMapW + "px 5px " + newPanelW + "px";
                     if (P.map) P.map.invalidateSize();
                     return;
                 }
-                const delta = e.clientY - startY;
+                const delta = y - startY;
                 const maxTop = containerH - 5 - startHeaderH - 130;
                 const newTop = Math.min(Math.max(100, startTopH + delta), Math.max(100, maxTop));
                 const newBot = containerH - newTop - 5 - startHeaderH;
@@ -151,13 +150,30 @@
                 P.mapView.style.height = newTop + "px";
                 P.mapPhotos.style.height = newBot + "px";
                 if (P.map) P.map.invalidateSize();
-            });
-            document.addEventListener("mouseup", () => {
+            }
+            function endDrag() {
                 if (!dragging) return;
                 dragging = false;
                 document.body.style.cursor = "";
                 document.body.style.userSelect = "";
-            });
+            }
+            P.mapResize.addEventListener("mousedown", (e) => { e.preventDefault(); startDrag(e.clientX, e.clientY); });
+            document.addEventListener("mousemove", (e) => { if (dragging) dragTo(e.clientX, e.clientY); });
+            document.addEventListener("mouseup", endDrag);
+            P.mapResize.addEventListener("touchstart", (e) => {
+                if (e.touches.length !== 1) return;
+                e.preventDefault();
+                const t = e.touches[0];
+                startDrag(t.clientX, t.clientY);
+            }, { passive: false });
+            document.addEventListener("touchmove", (e) => {
+                if (!dragging || e.touches.length !== 1) return;
+                e.preventDefault();
+                const t = e.touches[0];
+                dragTo(t.clientX, t.clientY);
+            }, { passive: false });
+            document.addEventListener("touchend", endDrag);
+            document.addEventListener("touchcancel", endDrag);
         })();
     
         P.detailClose.addEventListener("click", P.fn.closeDetail);
@@ -294,8 +310,75 @@
             applyDetailZoom();
         });
     
-        document.addEventListener("mouseup", () => { P.detailDragging = false; });
-    
+document.addEventListener("mouseup", () => { P.detailDragging = false; });
+
+        // ── Touch gestures: pinch zoom, one-finger pan (zoomed), swipe nav ──
+        let touchStartCount = 0;
+        let pinchStartDist = 0;
+        let pinchStartZoom = 100;
+        let swipeStartX = 0;
+        let swipeStartY = 0;
+        let touchLastX = 0;
+        let touchLastY = 0;
+
+        P.detailStage.addEventListener("touchstart", (e) => {
+            if (P.detailOverlay.classList.contains("hidden")) return;
+            if (e.touches.length === 2) {
+                touchStartCount = 2;
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                pinchStartDist = Math.max(1, Math.hypot(dx, dy));
+                pinchStartZoom = P.detailZoom;
+                e.preventDefault();
+            } else if (e.touches.length === 1) {
+                touchStartCount = 1;
+                swipeStartX = touchLastX = e.touches[0].clientX;
+                swipeStartY = touchLastY = e.touches[0].clientY;
+                if (P.detailZoom > 100) e.preventDefault();
+            }
+        }, { passive: false });
+
+        P.detailStage.addEventListener("touchmove", (e) => {
+            if (P.detailOverlay.classList.contains("hidden")) return;
+            if (e.touches.length === 2 && touchStartCount === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const dist = Math.max(1, Math.hypot(dx, dy));
+                let z = Math.round(pinchStartZoom * (dist / pinchStartDist));
+                z = Math.max(100, Math.min(500, z));
+                if (z <= 100) { P.detailPanX = 0; P.detailPanY = 0; }
+                P.detailZoom = z;
+                P.detailZoomSlider.value = z;
+                applyDetailZoom();
+                e.preventDefault();
+            } else if (e.touches.length === 1 && touchStartCount === 1) {
+                if (P.detailZoom > 100) {
+                    const cx = e.touches[0].clientX;
+                    const cy = e.touches[0].clientY;
+                    P.detailPanX += cx - touchLastX;
+                    P.detailPanY += cy - touchLastY;
+                    applyDetailZoom();
+                    e.preventDefault();
+                }
+                touchLastX = e.touches[0].clientX;
+                touchLastY = e.touches[0].clientY;
+            }
+        }, { passive: false });
+
+        P.detailStage.addEventListener("touchend", (e) => {
+            if (P.detailOverlay.classList.contains("hidden")) return;
+            if (touchStartCount === 1 && P.detailZoom <= 100) {
+                const dx = touchLastX - swipeStartX;
+                const dy = touchLastY - swipeStartY;
+                if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+                    e.preventDefault();
+                    P.fn.navigateDetail(dx < 0 ? 1 : -1);
+                }
+            }
+            touchStartCount = 0;
+        });
+        P.detailStage.addEventListener("touchcancel", () => { touchStartCount = 0; });
+
         P.detailOverlay.addEventListener("click", (e) => { if (e.target === P.detailOverlay) P.fn.closeDetail(); });
         function isEditable(el) {
             if (!el) return false;

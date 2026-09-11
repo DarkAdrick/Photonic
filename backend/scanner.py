@@ -26,16 +26,17 @@ def scan_folder(folder_path: str, progress_callback=None, should_cancel=None):
     from backend.database import get_connection
     conn = get_connection()
 
-    # Remove photos that no longer exist on disk
-    # Also remove existing videos so they are cleanly re-indexed and have their thumbnails generated with OpenCV
+    # Remove photos (images and videos) that no longer exist on disk.
+    # Videos are treated exactly like images: an existing row is kept and
+    # skipped, so re-scans stay fast. Missing thumbnails are regenerated
+    # afterwards by _start_scan / on demand by the thumbnail endpoint.
     from backend.thumbnails import delete_thumbnails
     esc = folder_path.replace("/", "\\").rstrip("\\").replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     existing = conn.execute(
         "SELECT id, path FROM photos WHERE path LIKE ? ESCAPE '\\'", (esc + "\\\\%",)
     ).fetchall()
     for row in existing:
-        ext = Path(row["path"]).suffix.lower()
-        if not os.path.isfile(row["path"]) or ext in VIDEO_EXTENSIONS:
+        if not os.path.isfile(row["path"]):
             conn.execute("DELETE FROM photo_tags WHERE photo_id = ?", (row["id"],))
             conn.execute("DELETE FROM _thumb_done WHERE photo_id = ?", (row["id"],))
             conn.execute("DELETE FROM photos WHERE id = ?", (row["id"],))
@@ -65,7 +66,7 @@ def scan_folder(folder_path: str, progress_callback=None, should_cancel=None):
         conn.commit()
 
         if progress_callback:
-            progress_callback(i + 1, total, indexed, skipped)
+            progress_callback(i + 1, total, indexed, skipped, fpath, result)
 
     conn.close()
     return {"total": total, "indexed": indexed, "skipped": skipped}

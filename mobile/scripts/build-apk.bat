@@ -33,7 +33,7 @@ if "%ANDROID_HOME%"=="" if "%ANDROID_SDK_ROOT%"=="" (
     if exist "C:\Android\Sdk\platform-tools\adb.exe" set "ANDROID_HOME=C:\Android\Sdk"
 )
 if "%ANDROID_HOME%"=="" if "%ANDROID_SDK_ROOT%"=="" (
-    echo [ERREUR] ANDROID_HOME non defini (repertoire du Android SDK).
+    echo [ERREUR] ANDROID_HOME non defini - repertoire du Android SDK.
     pause
     exit /b 1
 )
@@ -54,7 +54,7 @@ if errorlevel 1 ( echo [ERREUR] cap copy android a echoue. & pause & exit /b 1 )
 
 echo Compilation APK (assembleDebug)...
 pushd android
-call gradlew.bat :app:assembleDebug --no-daemon
+gradlew.bat app:assembleDebug --no-daemon
 set GRADLE_RC=%errorlevel%
 popd
 

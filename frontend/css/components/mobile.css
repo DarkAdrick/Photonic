@@ -22,6 +22,17 @@
     body.sidebar-open #status-bar {
         pointer-events: none;
     }
+    html {
+        zoom: 1.25;
+    }
+    /* Let the JS drag handle own the gesture instead of browser scroll */
+    #map-resize {
+        touch-action: none;
+    }
+    /* Allow one-finger pan but hand two-finger pinch to JS (thumbnail size) */
+    #photo-grid {
+        touch-action: pan-x pan-y;
+    }
 }
 
 /* ── Tablet landscape ───────────────────────────────────────────────────── */
@@ -42,10 +53,14 @@
 /* ── Tablet portrait ────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
+    html {
+        --safe-top: max(0px, calc(env(safe-area-inset-top) - 15px));
+        --safe-bottom: max(0px, calc(env(safe-area-inset-bottom) - 15px));
+    }
     /* ── Layout: sidebar becomes hamburger drawer ───────────────────────── */
     body {
         grid-template-columns: 1fr;
-        grid-template-rows: minmax(50px, auto) auto 1fr 24px;
+        grid-template-rows: minmax(50px, auto) auto 1fr calc(24px + var(--safe-bottom));
         grid-template-areas:
             "header"
             "drawer"
@@ -55,7 +70,8 @@
 
     #sidebar {
         position: fixed;
-        top: 50px;
+        /* Below the header: safe-top + 4px + menu row (34px) + gap (8px) + search row (30px) + bottom padding (8px) */
+        top: calc(var(--safe-top) + 42px);
         bottom: 0;
         left: 0;
         width: 260px;
@@ -67,6 +83,15 @@
 
     #sidebar.mobile-open {
         transform: translateX(0);
+    }
+
+    /* Keep the drawer content above the Android gesture/nav bar */
+    #sidebar-scroll {
+        padding-bottom: var(--safe-bottom);
+    }
+
+    #sidebar-actions {
+        padding-bottom: calc(12px + var(--safe-bottom));
     }
 
     /* Hamburger button (hidden on desktop) */
@@ -85,7 +110,7 @@
     #sidebar-backdrop {
         display: block;
         position: fixed;
-        inset: 50px 0 0 0;
+        inset: calc(var(--safe-top) + 42px) 0 0 0;
         background: rgba(0, 0, 0, 0.5);
         z-index: 890;
         opacity: 0;
@@ -111,7 +136,10 @@
 
     /* ── Header ─────────────────────────────────────────────────────────── */
     #header {
-        padding: 8px 6px;
+        padding-top: calc(4px + var(--safe-top));
+        padding-bottom: 8px;
+        padding-left: 6px;
+        padding-right: 6px;
         gap: 6px 8px;
         flex-wrap: wrap;
         height: auto;
@@ -127,11 +155,20 @@
         flex-shrink: 0;
     }
 
-    /* header-right keeps only the action buttons, grouped on the right */
+    /* Fold the header-right children into the #header flex so the search
+       gets its own full-width row under the logo + actions row. */
     .header-right {
-        order: 2;
+        display: contents;
+    }
+
+    .header-right > #btn-settings,
+    .header-right > .lang-dropdown,
+    .header-right > .donate-header-btn {
+        order: 1;
+    }
+
+    .header-right > .donate-header-btn {
         margin-left: auto;
-        gap: 6px;
     }
 
     .logo {
@@ -192,12 +229,15 @@
     /* ── Status bar ────────────────────────────────────────────────────── */
     #status-bar {
         padding: 0 8px;
+        height: auto;
+        min-height: 24px;
+        padding-bottom: var(--safe-bottom);
     }
 
-    /* Settings covers the main content area on mobile */
+    /* Settings covers everything on mobile (header included), above the sidebar */
     #settings-page {
-        grid-area: main;
-        z-index: 15;
+        grid-area: 1 / 1 / -1 / -1;
+        z-index: 950;
     }
 
     /* Hide status bar when the settings page is open (covers it) */
@@ -235,6 +275,13 @@
     }
 
     /* ── Detail viewer ─────────────────────────────────────────────────── */
+    /* The overlay is fullscreen so it runs under the status bar and the
+       gesture/nav-bar zone: keep the actual content inside the safe areas. */
+    .detail-overlay {
+        padding-top: var(--safe-top);
+        padding-bottom: var(--safe-bottom);
+    }
+
     #detail-layout {
         flex-direction: column;
     }
@@ -283,7 +330,7 @@
         min-height: 0;
         display: flex;
         flex-direction: column;
-        padding: 12px 16px 16px;
+        padding: calc(8px + var(--safe-top)) 16px 16px;
     }
 
     .changelog-content {
@@ -300,6 +347,7 @@
         max-height: none;
         border-left: none;
         border-top: 1px solid var(--border);
+        padding-bottom: var(--safe-bottom);
     }
 
     .cl-credits-section {
@@ -325,6 +373,137 @@
     /* ── Context menu ──────────────────────────────────────────────────── */
     #context-menu {
         max-width: 80vw;
+    }
+
+    /* ── Touch selection bar (mobile long-press) ───────────────────────── */
+    #touch-selection-bar {
+        position: fixed;
+        left: 50%;
+        bottom: calc(14px + var(--safe-bottom));
+        transform: translateX(-50%);
+        z-index: 9000;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 6px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+        max-width: calc(100vw - 24px);
+        min-width: 260px;
+    }
+
+    #touch-selection-bar.hidden {
+        display: none;
+    }
+
+    .touch-selection-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 2px 4px;
+    }
+
+    #touch-selection-count {
+        font-weight: 700;
+        font-size: 13px;
+        color: var(--accent);
+        min-width: 18px;
+        text-align: center;
+    }
+
+    .touch-selection-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-secondary);
+    }
+
+    .touch-selection-spacer {
+        flex: 1;
+    }
+
+    .touch-selection-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        cursor: pointer;
+        padding: 0;
+        flex-shrink: 0;
+    }
+
+    .touch-selection-btn:hover {
+        background: color-mix(in srgb, var(--accent) 13%, transparent);
+    }
+
+    .touch-selection-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .touch-selection-done {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        width: auto;
+        padding: 0 14px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .touch-selection-done:hover {
+        background: var(--accent);
+        filter: brightness(1.1);
+    }
+
+    /* Context menu rendered inside the bar (actions panel) */
+    #touch-selection-menu-slot #context-menu {
+        position: static;
+        top: auto;
+        left: auto;
+        width: 100%;
+        max-width: none;
+        border: none;
+        border-top: 1px solid var(--border);
+        border-radius: 0;
+        box-shadow: none;
+        background: transparent;
+        margin-top: 6px;
+        padding: 2px 0 4px;
+    }
+
+    #touch-selection-menu-slot #context-menu .context-item {
+        white-space: normal;
+    }
+
+    body.touch-selection-mode .photo-card {
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+    }
+
+    #photo-grid .photo-card,
+    #map-photos .photo-card {
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+    }
+
+    body.touch-selection-mode .photo-card:not(.selected) {
+        outline: 1px dashed var(--border);
+        outline-offset: -1px;
     }
 
     /* ── Toast ─────────────────────────────────────────────────────────── */
@@ -360,6 +539,39 @@
     .collection-icon-grid,
     .icon-picker-grid {
         grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+/* ── Mobile map ────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .leaflet-control-attribution {
+        display: none;
+    }
+}
+
+/* ── Landscape ────────────────────────────────────────────────────────── */
+
+/* In landscape the phone's own UI (status icons, gesture nav bar, camera
+   cutout) sits against the left/right edges. The desktop grid — which is
+   used past 768px — draws full-bleed, so nothing is protected. Inset the
+   whole app on the native build only: 40px minimum corridor on both sides,
+   plus the system insets. Desktop (pywebview/browser) is untouched. */
+@media (orientation: landscape) {
+    body.photonic-native {
+        padding-left: max(40px, env(safe-area-inset-left));
+        padding-right: max(40px, env(safe-area-inset-right));
+        padding-top: max(20px, env(safe-area-inset-top));
+        padding-bottom: max(14px, env(safe-area-inset-bottom));
+    }
+
+    /* Full-screen fixed overlays (photo detail, dialogs) are anchored to the
+       viewport, not to <body>, so they need the same corridor themselves. */
+    body.photonic-native .detail-overlay,
+    body.photonic-native .dialog-overlay {
+        padding-left: max(40px, env(safe-area-inset-left));
+        padding-right: max(40px, env(safe-area-inset-right));
+        padding-top: max(20px, env(safe-area-inset-top));
     }
 }
 
@@ -509,6 +721,11 @@
     /* ── Settings ──────────────────────────────────────────────────────── */
     .settings-content {
         padding: 12px;
+        padding-bottom: calc(24px + var(--safe-bottom));
+    }
+
+    .settings-nav-header {
+        padding-top: calc(12px + var(--safe-top));
     }
 
     /* ── Breadcrumb ────────────────────────────────────────────────────── */

@@ -65,6 +65,9 @@
 
   "grid.selected_count": "0 sélectionné",
   "grid.selected": "{count} sélectionnés",
+  "touch_selection.active": "Sélection",
+  "touch_selection.done": "Terminé",
+  "touch_selection.actions": "Actions",
   "grid.one_tag": "1 étiquette",
   "grid.tags_badge": "{count} étiquettes",
   "grid.one_collection": "1 collection",
@@ -87,6 +90,7 @@
   "dialog.cancel": "Annuler",
   "dialog.add": "Ajouter",
   "dialog.folder_path_placeholder": "C:\\Utilisateurs\\Vous\\Images",
+  "dialog.save": "Enregistrer",
 
   "tag_dialog.add_tag": "Ajouter une étiquette",
   "tag_dialog.existing": "Étiquettes existantes",
@@ -194,6 +198,14 @@
   "scan.progress": "{done} / {total} ({pct}%)",
   "scan.running": "Analyse déjà en cours",
   "scan.running_next": "Analyse déjà en cours — le dossier sera inclus la prochaine fois",
+  "scan.detail_title": "Analyse de la bibliothèque",
+  "scan.folder": "Dossier",
+  "scan.active_file": "Fichier en cours",
+  "scan.stats": "Statistiques",
+  "scan.stats_text": "{indexed} indexés · {skipped} ignorés",
+  "scan.recent": "Fichiers récents",
+  "scan.cancel": "Annuler l'analyse",
+  "scan.all_folders": "Tous les dossiers",
 
   "map.loading": "Chargement",
   "map.loading_map": "Chargement de la carte…",
@@ -280,6 +292,8 @@
   "settings.general.confirm_geotag_overwrite_desc": "Demander confirmation lorsqu'on définit une nouvelle localisation sur une photo qui en a déjà une.",
   "settings.general.telemetry": "Statistiques d'utilisation anonymes",
   "settings.general.telemetry_desc": "Envoyer un ping de lancement anonyme (version de l'application et système d'exploitation uniquement). Jamais de photo ni de donnée personnelle.",
+  "settings.general.scan_on_startup": "Analyser la bibliothèque au lancement",
+  "settings.general.scan_on_startup_desc": "Relance automatiquement l'analyse de tous les dossiers au démarrage de l'application. Désactivé par défaut.",
   "settings.general.tile_provider": "Fond de carte",
   "settings.general.tile_provider_desc": "Choisir le style de fond utilisé sur la carte des localisations et dans les cartes de détail/géolocalisation des photos.",
 
@@ -372,6 +386,10 @@
   "settings.folders.scan_running": "Analyse déjà en cours",
   "settings.folders.remove_title": "Retirer le dossier",
   "settings.folders.remove_msg": "Retirer le dossier \"{path}\" ? Les éléments de ce dossier resteront dans la bibliothèque.",
+  "settings.folders.rename": "Renommer le dossier",
+  "settings.folders.rename_title": "Renommer le dossier",
+  "settings.folders.rename_placeholder": "Nom affiché",
+  "settings.folders.rename_hint": "Cela ne change que le nom affiché, jamais le chemin réel. Laissez vide pour reprendre le nom du dossier depuis le chemin.",
 
   "update.last_check": "Dernière vérification : {s}",
   "update.not_checked": "Pas encore vérifié.",

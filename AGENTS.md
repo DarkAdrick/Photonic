@@ -8,9 +8,7 @@
 - **Mobile**: Capacitor/Android, everything in `mobile/` (WIP, source-only, **never mentioned in the CHANGELOG** — user decision).
 - Frontend: vanilla JS, no framework, in `frontend/`. Key structure:
   - `frontend/index.html` — single page. Version badge: `<span class="version-badge-inner">vX.Y.Z</span>`. Cache-busting `?v=X.Y.Z` on all `<script>`/`<link>`.
-  - `frontend/js/app.js` — **monolith** (all code inline).
   - `frontend/js/modules/*.js` — modular version **also loaded**.
-  - ⚠️ **ABSOLUTE RULE**: `app.js` runs last and **overrides** the modules' equivalents (e.g. `renderApplicationSettings()`, `initDesktopWindow()`, `showConfirm`). **Any UI/handler change must be duplicated in `app.js` AND in the matching module**, otherwise it is invisible/disabled.
   - `frontend/css/style.css` — imports all components with `?v=X.Y.Z` (must be bumped too).
   - `frontend/i18n/{en-US,fr-FR,de-DE,es-ES,ja-JP}.json` — **every new key translated in all 5 files**. Validation: `ConvertFrom-Json`.
 
@@ -23,12 +21,9 @@
 ## Frameless window (desktop)
 - `run.py`: `webview.create_window("Photonic", ..., width=1400, height=900, resizable=True, min_size=(450, 600), frameless=True, easy_drag=False, draggable=True, js_api=...)`.
 - Custom resize: handles → `pywebview.api.resize_window(w, h, edge)`.
-- ⚠️ The **width clamp lives in the frontend**, not only in run.py:
-  - `frontend/js/modules/window.js` (~l.28) and `frontend/js/app.js` (~l.4722): `Math.max(Math.round(w), 450)`, height clamped to 600.
-  - Don't change run.py without checking those two places (and vice versa).
+
 
 ## Misc JS
-- `P.fn.showConfirm(title, message, okText, note)` — the 4th arg `note` feeds `#confirm-note` (`.dialog-note`, italic). Auto-OK if `photonic.confirmDelete === "false"`. Duplicated in app.js + `modules/core.js`.
 - Locations layout: `setLocationsLayout("horizontal"|"vertical")`; on resize, clamp (map ≥ 200px, panel ≥ 130px, total = container); `savedHor` restored only if `map + panel >= 80%` of the width.
 - Ctrl+scroll on `#photo-grid` AND `#map-photos` adjusts thumbnail size (`thumbMin=20`, max 450, default 150).
 

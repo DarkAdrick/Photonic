@@ -17,6 +17,9 @@ def get_connection() -> sqlite3.Connection:
 def init_db():
     conn = get_connection()
     conn.executescript(SCHEMA)
+    folder_cols = [r[1] for r in conn.execute("PRAGMA table_info(folders)").fetchall()]
+    if "display_name" not in folder_cols:
+        conn.execute("ALTER TABLE folders ADD COLUMN display_name TEXT")
     cols = [r[1] for r in conn.execute("PRAGMA table_info(tags)").fetchall()]
     if "color" not in cols:
         conn.execute("ALTER TABLE tags ADD COLUMN color TEXT")
@@ -36,8 +39,9 @@ def init_db():
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS folders (
-    id   INTEGER PRIMARY KEY AUTOINCREMENT,
-    path TEXT NOT NULL UNIQUE
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    path         TEXT NOT NULL UNIQUE,
+    display_name TEXT
 );
 
 CREATE TABLE IF NOT EXISTS photos (

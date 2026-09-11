@@ -64,6 +64,7 @@
 
 #map-view .leaflet-container {
     background: var(--bg-secondary);
+    z-index: 0;
 }
 
 .leaflet-tile {

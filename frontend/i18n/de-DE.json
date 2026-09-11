@@ -65,6 +65,9 @@
 
   "grid.selected_count": "0 ausgewählt",
   "grid.selected": "{count} ausgewählt",
+  "touch_selection.active": "Auswahl",
+  "touch_selection.done": "Fertig",
+  "touch_selection.actions": "Aktionen",
   "grid.one_tag": "1 Tag",
   "grid.tags_badge": "{count} Tags",
   "grid.one_collection": "1 Sammlung",
@@ -87,6 +90,7 @@
   "dialog.cancel": "Abbrechen",
   "dialog.add": "Hinzufügen",
   "dialog.folder_path_placeholder": "C:\\Benutzer\\Du\\Bilder",
+  "dialog.save": "Speichern",
 
   "tag_dialog.add_tag": "Tag hinzufügen",
   "tag_dialog.existing": "Vorhandene Tags",
@@ -194,6 +198,14 @@
   "scan.progress": "{done} / {total} ({pct}%)",
   "scan.running": "Scan läuft bereits",
   "scan.running_next": "Scan läuft bereits — Ordner wird beim nächsten Mal einbezogen",
+  "scan.detail_title": "Bibliothek wird gescannt",
+  "scan.folder": "Ordner",
+  "scan.active_file": "Aktive Datei",
+  "scan.stats": "Statistik",
+  "scan.stats_text": "{indexed} indexiert · {skipped} übersprungen",
+  "scan.recent": "Zuletzt verarbeitet",
+  "scan.cancel": "Scan abbrechen",
+  "scan.all_folders": "Alle Ordner",
 
   "map.loading": "Lädt",
   "map.loading_map": "Karte wird geladen…",
@@ -280,6 +292,8 @@
   "settings.general.confirm_geotag_overwrite_desc": "Nach Bestätigung fragen, wenn für ein Foto mit vorhandenem Standort ein neuer festgelegt wird.",
   "settings.general.telemetry": "Anonyme Nutzungsstatistiken",
   "settings.general.telemetry_desc": "Einen anonymen Start-Ping senden (nur App-Version und Betriebssystem). Niemals Fotos oder persönliche Daten.",
+  "settings.general.scan_on_startup": "Bibliothek beim Start scannen",
+  "settings.general.scan_on_startup_desc": "Beim App-Start automatisch alle Ordner erneut scannen. Standardmäßig deaktiviert.",
   "settings.general.tile_provider": "Kartenkacheln",
   "settings.general.tile_provider_desc": "Stil der Basiskarte wählen, der auf der Karte der Standorte und in den Detail-/Geotagging-Karten der Fotos verwendet wird.",
 
@@ -372,6 +386,10 @@
   "settings.folders.scan_running": "Scan läuft bereits",
   "settings.folders.remove_title": "Ordner entfernen",
   "settings.folders.remove_msg": "Ordner \"{path}\" entfernen? Elemente in diesem Ordner bleiben in der Mediathek.",
+  "settings.folders.rename": "Ordner umbenennen",
+  "settings.folders.rename_title": "Ordner umbenennen",
+  "settings.folders.rename_placeholder": "Anzeigename",
+  "settings.folders.rename_hint": "Ändert nur den angezeigten Namen, nie den echten Pfad. Leer lassen, um den Ordnernamen aus dem Pfad zu verwenden.",
 
   "update.last_check": "Letzte Prüfung: {s}",
   "update.not_checked": "Noch nicht geprüft.",

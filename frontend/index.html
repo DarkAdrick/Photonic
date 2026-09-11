@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title data-i18n="app.title">Photonic</title>
     <link rel="icon" type="image/png" href="/icon.png">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -232,6 +232,17 @@
     </div>
 </main>
 
+<div id="touch-selection-bar" class="hidden">
+    <div class="touch-selection-row">
+        <span id="touch-selection-count">0</span>
+        <span class="touch-selection-label" data-i18n="touch_selection.active">Selection</span>
+        <span class="touch-selection-spacer"></span>
+        <button id="touch-selection-deselect-all" class="touch-selection-btn" data-i18n-title="context.deselect_all"><i data-lucide="x"></i></button>
+        <button id="btn-touch-selection-actions" class="touch-selection-btn touch-selection-done"><i data-lucide="more-horizontal"></i><span data-i18n="touch_selection.actions">Actions</span></button>
+    </div>
+    <div id="touch-selection-menu-slot"></div>
+</div>
+
 <div id="settings-page" class="hidden">
     <div class="settings-layout">
         <nav class="settings-nav">
@@ -276,6 +287,50 @@
         <div class="dialog-actions">
             <button id="btn-dialog-cancel" data-i18n="dialog.cancel">Cancel</button>
             <button id="btn-dialog-ok" data-i18n="dialog.add">Add</button>
+        </div>
+    </div>
+</div>
+
+<div id="folder-rename-dialog" class="dialog-overlay hidden">
+    <div class="dialog">
+        <div class="dialog-header">
+            <h3 data-i18n="settings.folders.rename_title">Rename Folder</h3>
+            <button id="folder-rename-close" class="detail-close-btn"><i data-lucide="x"></i></button>
+        </div>
+        <div class="folder-rename-path" id="folder-rename-path"></div>
+        <input type="text" id="folder-rename-input" maxlength="80" data-i18n-placeholder="settings.folders.rename_placeholder">
+        <div class="folder-rename-hint" data-i18n="settings.folders.rename_hint"></div>
+        <div class="dialog-actions">
+            <button id="folder-rename-cancel" data-i18n="dialog.cancel">Cancel</button>
+            <button id="folder-rename-ok" data-i18n="dialog.save">Save</button>
+        </div>
+    </div>
+</div>
+
+<div id="scan-detail-modal" class="dialog-overlay hidden">
+    <div class="dialog scan-detail-box">
+        <div class="dialog-header">
+            <h3 data-i18n="scan.detail_title">Scanning Library</h3>
+            <span id="scan-detail-pct" class="dialog-count">0%</span>
+            <button id="scan-detail-close" class="detail-close-btn"><i data-lucide="x"></i></button>
+        </div>
+        <div id="scan-modal-bar"><div id="scan-modal-fill"></div></div>
+        <div class="scan-detail-row">
+            <span class="field-label" data-i18n="scan.folder">Folder</span>
+            <span id="scan-detail-folder" class="scan-detail-filename"></span>
+        </div>
+        <div class="scan-detail-row">
+            <span class="field-label" data-i18n="scan.active_file">Active file</span>
+            <span id="scan-detail-file" class="scan-detail-filename"></span>
+        </div>
+        <div class="scan-detail-row">
+            <span class="field-label" data-i18n="scan.stats">Stats</span>
+            <span id="scan-detail-stats"></span>
+        </div>
+        <div class="scan-detail-log-header"><span data-i18n="scan.recent">Recent files</span></div>
+        <div id="scan-log" class="scan-log"></div>
+        <div class="dialog-actions">
+            <button id="btn-scan-cancel-modal" class="danger"><i data-lucide="x"></i><span data-i18n="scan.cancel">Cancel scan</span></button>
         </div>
     </div>
 </div>

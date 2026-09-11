@@ -134,6 +134,7 @@
             if (data.count > 0 && isFinite(data.south) && isFinite(data.west) && isFinite(data.north) && isFinite(data.east)) {
                 P.map.fitBounds([[data.south, data.west], [data.north, data.east]], { padding: [30, 30], maxZoom: 12 });
             }
+            P.fn.loadMapPhotos();
         }
     
         function initMap() {
@@ -220,7 +221,7 @@
         async function loadMapPhotosInner() {
             const b = P.map.getBounds();
             let url = `/api/photos/geo?south=${b.getSouth()}&west=${b.getWest()}&north=${b.getNorth()}&east=${b.getEast()}`;
-            if (P.activeFolderId) url += `&folder_id=${activeFolderId}`;
+            if (P.activeFolderId) url += `&folder_id=${P.activeFolderId}`;
             if (P.activeCollectionId) url += `&collection_id=${activeCollectionId}`;
             if (P.filterCountry.value) url += `&country=${encodeURIComponent(P.filterCountry.value)}`;
             if (P.filterCity.value) url += `&city=${encodeURIComponent(P.filterCity.value)}`;

@@ -50,6 +50,17 @@ self.PhotosDb = self.PhotosDb || {};
       db = new SQL.Database();
       db.exec(self.PhotosSchema.SQL);
       await persist(db);
+    } else {
+      // Migration: ensure the "folder" column exists on databases created
+      // before the per-photo relative-path column was added.
+      var tableInfo = (db.exec("PRAGMA table_info(photos)") || [])[0];
+      var cols = tableInfo ? tableInfo.values.map(function (r) { return r[1]; }) : [];
+      if (cols.indexOf("folder") < 0) {
+        try {
+          db.exec("ALTER TABLE photos ADD COLUMN folder TEXT;");
+          await persist(db);
+        } catch (e) { /* migration best-effort */ }
+      }
     }
     return db;
   }

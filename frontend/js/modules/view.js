@@ -12,6 +12,7 @@
             P.activeCameraBrowseId = null;
             P.activeCollectionId = null;
             P.fn.hideContextMenu();
+            if (P.fn.exitTouchSelectionMode) P.fn.exitTouchSelectionMode();
             P.navItems.forEach(li => {
                 li.classList.toggle("active", li.dataset.view === view);
             });

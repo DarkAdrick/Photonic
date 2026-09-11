@@ -250,6 +250,21 @@
                     </div>
                     <div class="setting-row">
                         <div class="setting-info">
+                            <div class="setting-row-icon"><i data-lucide="play"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.general.scan_on_startup")}</div>
+                                <div class="setting-desc">${t("settings.general.scan_on_startup_desc")}</div>
+                            </div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="setting-scan-startup">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
                             <div class="setting-row-icon"><i data-lucide="layers"></i></div>
                             <div class="setting-row-text">
                                 <div class="setting-label">${t("settings.general.tile_provider")}</div>
@@ -575,6 +590,16 @@
             });
             P.fn.api("GET", "/api/settings/telemetry").then(d => {
                 if (!telemetryDirty && d && typeof d.enabled === "boolean") telemetryToggle.checked = d.enabled;
+            }).catch(() => {});
+
+            const scanStartupToggle = document.getElementById("setting-scan-startup");
+            let scanStartupDirty = false;
+            scanStartupToggle.addEventListener("change", (e) => {
+                scanStartupDirty = true;
+                P.fn.api("POST", "/api/settings/scan-on-startup", { enabled: e.target.checked });
+            });
+            P.fn.api("GET", "/api/settings/scan-on-startup").then(d => {
+                if (!scanStartupDirty && d && typeof d.enabled === "boolean") scanStartupToggle.checked = d.enabled;
             }).catch(() => {});
 
             const tileSelect = document.getElementById("setting-tile-provider");

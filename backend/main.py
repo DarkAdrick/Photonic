@@ -9,7 +9,7 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, Response, StreamingResponse, HTMLResponse, JSONResponse
 
@@ -148,6 +148,8 @@ def _write_location_to_file(fpath: str, latitude, longitude) -> bool:
 
 # ── Scan state (shared across threads) ───────────────────────────────────────
 
+_SCAN_LOG_MAX = 30
+
 _scan_state = {
     "running": False,
     "folder": "",
@@ -155,11 +157,32 @@ _scan_state = {
     "total": 0,
     "indexed": 0,
     "skipped": 0,
+    "active_file": "",
+    "logs": [],
     "cancel": False,
     "cancelled": False,
 }
 
 _scan_lock = threading.Lock()
+
+
+def _push_scan_log(fpath: str, action: str):
+    logs = _scan_state["logs"]
+    logs.append({"f": fpath, "a": action})
+    if len(logs) > _SCAN_LOG_MAX:
+        del logs[: len(logs) - _SCAN_LOG_MAX]
+
+
+def _reset_scan_state(running=True):
+    _scan_state["running"] = running
+    _scan_state["done"] = 0
+    _scan_state["total"] = 0
+    _scan_state["indexed"] = 0
+    _scan_state["skipped"] = 0
+    _scan_state["active_file"] = ""
+    _scan_state["logs"] = []
+    _scan_state["cancel"] = False
+    _scan_state["cancelled"] = False
 
 
 @app.on_event("startup")
@@ -175,6 +198,8 @@ def startup():
 
 
 def _auto_resume():
+    if not _scan_on_startup():
+        return
     conn = get_connection()
     folders = conn.execute("SELECT id, path FROM folders").fetchall()
     conn.close()
@@ -216,21 +241,18 @@ def _start_scan(folder_path: str):
     from backend.thumbnails import generate_all_thumbnails
 
     # Set synchronously (caller holds _scan_lock) to avoid a start race
-    _scan_state["running"] = True
+    _reset_scan_state(running=True)
     _scan_state["folder"] = folder_path
-    _scan_state["done"] = 0
-    _scan_state["total"] = 0
-    _scan_state["indexed"] = 0
-    _scan_state["skipped"] = 0
-    _scan_state["cancel"] = False
-    _scan_state["cancelled"] = False
 
     def _run():
-        def progress(done, total, indexed, skipped):
+        def progress(done, total, indexed, skipped, fpath="", result=""):
             _scan_state["done"] = done
             _scan_state["total"] = total
             _scan_state["indexed"] = indexed
             _scan_state["skipped"] = skipped
+            if fpath:
+                _scan_state["active_file"] = fpath
+                _push_scan_log(fpath, "indexed" if result == "ok" else "skipped")
 
         result = _scan(folder_path, progress_callback=progress, should_cancel=lambda: _scan_state["cancel"])
 
@@ -254,14 +276,8 @@ def _start_scan_all():
     from backend.scanner import scan_folder as _scan
 
     # Set synchronously (caller holds _scan_lock) to avoid a start race
-    _scan_state["running"] = True
+    _reset_scan_state(running=True)
     _scan_state["folder"] = "all"
-    _scan_state["done"] = 0
-    _scan_state["total"] = 0
-    _scan_state["indexed"] = 0
-    _scan_state["skipped"] = 0
-    _scan_state["cancel"] = False
-    _scan_state["cancelled"] = False
 
     def _run():
         conn = get_connection()
@@ -283,11 +299,14 @@ def _start_scan_all():
             _scan_state["indexed"] = 0
             _scan_state["skipped"] = 0
 
-            def progress(done, total, indexed, skipped):
+            def progress(done, total, indexed, skipped, fpath="", result=""):
                 _scan_state["done"] = done
                 _scan_state["total"] = total
                 _scan_state["indexed"] = indexed
                 _scan_state["skipped"] = skipped
+                if fpath:
+                    _scan_state["active_file"] = fpath
+                    _push_scan_log(fpath, "indexed" if result == "ok" else "skipped")
 
             result = _scan(folder_path, progress_callback=progress, should_cancel=lambda: _scan_state["cancel"])
             grand_total += result["total"] if result else 0
@@ -318,17 +337,30 @@ def status(show_hidden: bool = False, hidden_only: bool = False):
     return {"status": "running", "version": APP_VERSION, "photo_count": count}
 
 
+def _folder_display_name(path: str, display_name) -> str:
+    """Virtual folder label: the user-defined name, or the last path segment."""
+    if display_name:
+        return display_name
+    import re
+    return re.split(r"[/\\]", path.rstrip("/\\"))[-1]
+
+
 @app.get("/api/folders")
 def list_folders(show_hidden: bool = False, hidden_only: bool = False):
     conn = get_connection()
-    rows = conn.execute("SELECT id, path FROM folders ORDER BY path").fetchall()
+    rows = conn.execute("SELECT id, path, display_name FROM folders ORDER BY path").fetchall()
     cond = _hidden_sql("", show_hidden, hidden_only)
     hf = ("AND " + cond + " ") if cond else ""
     result = []
     for r in rows:
         base = r["path"].rstrip("/\\")
         cnt = conn.execute("SELECT COUNT(*) FROM photos WHERE path LIKE ? ESCAPE '\\' " + hf, (_under_pattern(base),)).fetchone()[0]
-        result.append({"id": r["id"], "path": r["path"], "photo_count": cnt})
+        result.append({
+            "id": r["id"],
+            "path": r["path"],
+            "name": _folder_display_name(r["path"], r["display_name"]),
+            "photo_count": cnt,
+        })
     conn.close()
     return result
 
@@ -337,10 +369,10 @@ def list_folders(show_hidden: bool = False, hidden_only: bool = False):
 def list_folders_tree():
     import re
     conn = get_connection()
-    rows = conn.execute("SELECT id, path FROM folders ORDER BY path").fetchall()
+    rows = conn.execute("SELECT id, path, display_name FROM folders ORDER BY path").fetchall()
     conn.close()
 
-    entries = [{"id": r["id"], "path": r["path"], "children": []} for r in rows]
+    entries = [{"id": r["id"], "path": r["path"], "display_name": r["display_name"], "children": []} for r in rows]
     roots = []
 
     for entry in entries:
@@ -360,7 +392,7 @@ def list_folders_tree():
     def _flatten(nodes, depth=0):
         result = []
         for n in nodes:
-            name = re.split(r"[/\\]", n["path"])[-1]
+            name = _folder_display_name(n["path"], n["display_name"])
             result.append({
                 "id": n["id"],
                 "path": n["path"],
@@ -391,7 +423,7 @@ def browse_folder(folder_path: Optional[str] = None, show_hidden: bool = False, 
     conn = get_connection()
     if folder_path is not None:
         parent_path = folder_path.rstrip("/\\")
-        all_folders = conn.execute("SELECT id, path FROM folders ORDER BY path").fetchall()
+        all_folders = conn.execute("SELECT id, path, display_name FROM folders ORDER BY path").fetchall()
 
         # Group descendants by immediate child folder name
         child_map = {}
@@ -443,7 +475,7 @@ def browse_folder(folder_path: Optional[str] = None, show_hidden: bool = False, 
             if fid is None:
                 fid = -hash(sub_path) % 100000
             subfolder_entries.append({
-                "id": fid, "name": name, "path": sub_path,
+                "id": fid, "name": _folder_display_name(sub_path, f.get("display_name")), "path": sub_path,
                 "photo_count": cnt, "sample_ids": samples,
             })
 
@@ -456,14 +488,15 @@ def browse_folder(folder_path: Optional[str] = None, show_hidden: bool = False, 
             (under_pat, deeper_pat),
         ).fetchall()]
 
+        folder_row = conn.execute("SELECT display_name FROM folders WHERE path = ?", (parent_path,)).fetchone()
         conn.close()
         return {
-            "folder": {"id": None, "path": parent_path, "name": _name(parent_path)},
+            "folder": {"id": None, "path": parent_path, "name": _folder_display_name(parent_path, folder_row["display_name"] if folder_row else None)},
             "folders": subfolder_entries,
             "photos": direct_photos,
         }
     else:
-        all_folders = conn.execute("SELECT id, path FROM folders ORDER BY path").fetchall()
+        all_folders = conn.execute("SELECT id, path, display_name FROM folders ORDER BY path").fetchall()
 
         # Group top-level folders by first path segment (same logic)
         child_map = {}
@@ -491,7 +524,7 @@ def browse_folder(folder_path: Optional[str] = None, show_hidden: bool = False, 
                 (pat,)
             ).fetchall()]
             entries.append({
-                "id": f["id"], "name": name, "path": folder_path,
+                "id": f["id"], "name": _folder_display_name(folder_path, f.get("display_name")), "path": folder_path,
                 "photo_count": cnt, "sample_ids": samples,
             })
 
@@ -519,6 +552,16 @@ def add_folder(folder: dict):
 def delete_folder(folder_id: int):
     conn = get_connection()
     conn.execute("DELETE FROM folders WHERE id = ?", (folder_id,))
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+
+@app.patch("/api/folders/{folder_id}")
+def rename_folder(folder_id: int, payload: dict):
+    name = (payload.get("name") or "").strip()
+    conn = get_connection()
+    conn.execute("UPDATE folders SET display_name = ? WHERE id = ?", (name or None, folder_id))
     conn.commit()
     conn.close()
     return {"ok": True}
@@ -1225,7 +1268,7 @@ def rotate_photo(photo_id: int, payload: dict):
 
 
 @app.get("/api/photos/{photo_id}/thumb/{size}")
-def get_thumbnail(photo_id: int, size: str):
+def get_thumbnail(photo_id: int, size: str, request: Request):
     from backend.thumbnails import get_thumb_path, generate_thumbnail
 
     conn = get_connection()
@@ -1240,14 +1283,16 @@ def get_thumbnail(photo_id: int, size: str):
         if not thumb_path:
             return Response(status_code=404)
 
+    # Content-based ETag: revalidation is cheap (304) so the browser can keep
+    # thumbnails across view switches without ever going stale; a rotation
+    # rewrites the file in place, which changes the mtime → new ETag.
+    stat = thumb_path.stat()
+    etag = f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"'
+    if request.headers.get("If-None-Match") == etag:
+        return Response(status_code=304)
     resp = FileResponse(str(thumb_path), media_type="image/jpeg")
-    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    if "etag" in resp.headers:
-        del resp.headers["etag"]
-    if "last-modified" in resp.headers:
-        del resp.headers["last-modified"]
+    resp.headers["Cache-Control"] = "no-cache"
+    resp.headers["ETag"] = etag
     return resp
 
 
@@ -2362,6 +2407,10 @@ def _telemetry_enabled() -> bool:
     return bool(_read_settings().get("telemetry_enabled", True))
 
 
+def _scan_on_startup() -> bool:
+    return bool(_read_settings().get("scan_on_startup", False))
+
+
 def _get_install_id() -> str:
     """Anonymous per-installation UUID persisted in .photonic/data/install_id."""
     try:
@@ -2417,6 +2466,18 @@ def get_telemetry_setting():
 def set_telemetry_setting(payload: dict):
     enabled = bool(payload.get("enabled", True))
     _write_settings({**_read_settings(), "telemetry_enabled": enabled})
+    return {"enabled": enabled}
+
+
+@app.get("/api/settings/scan-on-startup")
+def get_scan_on_startup_setting():
+    return {"enabled": _scan_on_startup()}
+
+
+@app.post("/api/settings/scan-on-startup")
+def set_scan_on_startup_setting(payload: dict):
+    enabled = bool(payload.get("enabled", False))
+    _write_settings({**_read_settings(), "scan_on_startup": enabled})
     return {"enabled": enabled}
 
 

@@ -1,7 +1,7 @@
 // Photonic module: mobile (responsive nav + touch interactions)
 (function () {
     function isMobile() {
-        return window.innerWidth <= 768;
+        return window.innerWidth <= 800;
     }
 
     // On mobile, promote .search-line to a direct child of #header so the

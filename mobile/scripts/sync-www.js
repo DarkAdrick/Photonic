@@ -120,6 +120,13 @@ async function main() {
     copyTree(SRC_WWW, WWW);
   }
 
+  // Bundle the changelog so the mobile backend can serve /api/changelog
+  const changelogSrc = path.join(ROOT, "..", "CHANGELOG.md");
+  if (fs.existsSync(changelogSrc)) {
+    fs.copyFileSync(changelogSrc, path.join(WWW, "CHANGELOG.md"));
+    console.log("Bundling CHANGELOG.md ...");
+  }
+
   console.log("Vendoring CDN libraries ...");
   ensureDir(VENDOR_DST);
   for (const lib of VENDORED) {
@@ -284,12 +291,13 @@ function injectMobile(htmlPath) {
   }
 
   const bridgeScript =
-    '<script src="page/bridge.js?v=1.1.1"></script>\n' +
+    '<script src="page/bridge.js?v=1.1.5"></script>\n' +
     '<script>\n' +
     '/* Photonic mobile boot */\n' +
     '(function () {\n' +
     '  function bootScan() {\n' +
     '    if (!window.Photonic || !window.Photonic.isNative()) return; // plain browser\n' +
+    '    if (window.Photonic.scanRoots && window.Photonic.scanRoots().length === 0) return; // no library root configured\n' +
     '    fetch("/api/status").then(function (r) { return r.json(); }).then(function (s) {\n' +
     '      if (s && s.photo_count === 0) { window.Photonic.scan(); }\n' +
     '    }).catch(function () {});\n' +

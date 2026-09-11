@@ -65,6 +65,9 @@
 
   "grid.selected_count": "0 selected",
   "grid.selected": "{count} selected",
+  "touch_selection.active": "Selection",
+  "touch_selection.done": "Done",
+  "touch_selection.actions": "Actions",
   "grid.one_tag": "1 tag",
   "grid.tags_badge": "{count} tags",
   "grid.one_collection": "1 collection",
@@ -87,6 +90,7 @@
   "dialog.cancel": "Cancel",
   "dialog.add": "Add",
   "dialog.folder_path_placeholder": "C:\\Users\\You\\Pictures",
+  "dialog.save": "Save",
 
   "tag_dialog.add_tag": "Add Tag",
   "tag_dialog.existing": "Existing Tags",
@@ -194,6 +198,14 @@
   "scan.progress": "{done} / {total} ({pct}%)",
   "scan.running": "Scan already running",
   "scan.running_next": "Scan already running — folder will be included next time",
+  "scan.detail_title": "Scanning Library",
+  "scan.folder": "Folder",
+  "scan.active_file": "Active file",
+  "scan.stats": "Stats",
+  "scan.stats_text": "{indexed} indexed · {skipped} skipped",
+  "scan.recent": "Recent files",
+  "scan.cancel": "Cancel scan",
+  "scan.all_folders": "All folders",
 
   "map.loading": "Loading",
   "map.loading_map": "Loading map…",
@@ -280,6 +292,8 @@
   "settings.general.confirm_geotag_overwrite_desc": "Ask for confirmation when setting a new location on a photo that already has one.",
   "settings.general.telemetry": "Anonymous usage statistics",
   "settings.general.telemetry_desc": "Send an anonymous launch ping (app version and OS only). Never any photo or personal data.",
+  "settings.general.scan_on_startup": "Scan library at launch",
+  "settings.general.scan_on_startup_desc": "Automatically rescan all folders when the app starts. Disabled by default.",
   "settings.general.tile_provider": "Map tiles",
   "settings.general.tile_provider_desc": "Choose the base map style used on the Locations map and in the photo detail/geotagging maps.",
 
@@ -372,6 +386,10 @@
   "settings.folders.scan_running": "Scan already running",
   "settings.folders.remove_title": "Remove Folder",
   "settings.folders.remove_msg": "Remove folder \"{path}\"? Items in this folder will remain in the library.",
+  "settings.folders.rename": "Rename folder",
+  "settings.folders.rename_title": "Rename Folder",
+  "settings.folders.rename_placeholder": "Display name",
+  "settings.folders.rename_hint": "This only changes the displayed name, never the real folder path. Leave empty to use the folder name from the path.",
 
   "update.last_check": "Last check: {s}",
   "update.not_checked": "Not checked yet.",

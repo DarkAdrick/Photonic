@@ -1,8 +1,57 @@
 // Photonic module: grid
 (function (P) {
     const t = P.t;
+
+    // ── Touch Selection Mode (mobile long-press) ───────────────────────────
+    let touchSelectionMode = false;
+    let longPressTimer = null;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchMoved = false;
+    let touchGestureActive = false;
+    const touchSelectionBar = document.getElementById("touch-selection-bar");
+    const touchMenuSlot = document.getElementById("touch-selection-menu-slot");
+
+    function enterTouchSelectionMode() {
+        touchSelectionMode = true;
+        document.body.classList.add("touch-selection-mode");
+        if (P.contextMenu && touchMenuSlot && P.contextMenu.parentElement !== touchMenuSlot) {
+            touchMenuSlot.appendChild(P.contextMenu);
+        }
+        hideContextMenu();
+        showTouchSelectionBar();
+    }
+
+    function exitTouchSelectionMode() {
+        touchSelectionMode = false;
+        document.body.classList.remove("touch-selection-mode");
+        if (P.contextMenu && touchMenuSlot && P.contextMenu.parentElement === touchMenuSlot) {
+            document.body.appendChild(P.contextMenu);
+        }
+        hideContextMenu();
+        hideTouchSelectionBar();
+    }
+
+    function showTouchSelectionBar() {
+        const bar = document.getElementById("touch-selection-bar");
+        if (bar) bar.classList.remove("hidden");
+    }
+
+    function hideTouchSelectionBar() {
+        const bar = document.getElementById("touch-selection-bar");
+        if (bar) bar.classList.add("hidden");
+    }
+
+    function isTouchSelectionMode() { return touchSelectionMode; }
+
         // ── Photo Grid ────────────────────────────────────────────────────────
-    
+
+        // Grid thumbnails use the lighter "small" render when shown tiny
+        // (matches the thumbs-tiny threshold), "medium" otherwise.
+        function thumbSizePath() {
+            return document.documentElement.classList.contains("thumbs-tiny") ? "small" : "medium";
+        }
+
         async function loadPhotos(reset = true) {
             const usesGrid = P.activeView === "library" || P.activeView === "cleaning" || (P.activeView === "countries" && P.activeCountryCode) || (P.activeView === "tags" && P.activeTagBrowseId) || (P.activeView === "cameras" && P.activeCameraBrowseId);
             if (!usesGrid) return;
@@ -44,7 +93,7 @@
                         badge = `<div class="photo-video-badge" title="Video"><i data-lucide="play"></i></div>`;
                     }
                     card.innerHTML = `
-                        <img src="/api/photos/${p.id}/thumb/medium" alt="${p.filename}" loading="lazy">
+                        <img src="/api/photos/${p.id}/thumb/${thumbSizePath()}" alt="${p.filename}" loading="lazy">
                         ${badge}
                         ${P.fn.renderHiddenBadge(p)}
                         ${P.fn.renderMetaBadges(p)}
@@ -251,6 +300,10 @@
             const id = getPhotoIdFromEvent(e);
             if (id == null) return;
             e.stopPropagation();
+            if (touchSelectionMode) {
+                e.preventDefault();
+                return;
+            }
             if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) {
                 e.preventDefault();
                 return;
@@ -264,6 +317,70 @@
         P.mapPhotos.addEventListener("mousemove", gridMouseMove);
         P.photoGrid.addEventListener("click", gridClickCapture, true);
         P.mapPhotos.addEventListener("click", gridClickCapture, true);
+
+        // ── Touch Selection (long-press) ────────────────────────────────────
+
+        function gridTouchStart(e) {
+            if (e.touches.length !== 1) return;
+            if (e.target.closest(".cleaning-check")) return;
+            const id = getPhotoIdFromEvent(e);
+            if (id == null) return;
+            touchGestureActive = true;
+            touchMoved = false;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            clearTimeout(longPressTimer);
+            longPressTimer = setTimeout(() => {
+                longPressTimer = null;
+                if (!touchSelectionMode) enterTouchSelectionMode();
+                if (!P.selectedIds.has(id)) selectPhoto(id, "toggle");
+            }, 500);
+        }
+
+        function gridTouchMove(e) {
+            if (longPressTimer == null) return;
+            if (e.touches.length !== 1) { clearTimeout(longPressTimer); longPressTimer = null; return; }
+            const dx = e.touches[0].clientX - touchStartX;
+            const dy = e.touches[0].clientY - touchStartY;
+            if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                touchMoved = true;
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }
+
+        function gridTouchEnd(e) {
+            if (longPressTimer != null) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+                if (!touchMoved && touchSelectionMode) {
+                    const id = getPhotoIdFromEvent(e);
+                    if (id != null && !e.target.closest(".cleaning-check")) {
+                        e.preventDefault();
+                        hideContextMenu();
+                        selectPhoto(id, "toggle");
+                    }
+                }
+            }
+            touchMoved = false;
+            touchGestureActive = false;
+        }
+
+        function gridTouchCancel() {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+            touchMoved = false;
+            touchGestureActive = false;
+        }
+
+        P.photoGrid.addEventListener("touchstart", gridTouchStart, { passive: true });
+        P.mapPhotos.addEventListener("touchstart", gridTouchStart, { passive: true });
+        P.photoGrid.addEventListener("touchmove", gridTouchMove, { passive: true });
+        P.mapPhotos.addEventListener("touchmove", gridTouchMove, { passive: true });
+        P.photoGrid.addEventListener("touchend", gridTouchEnd, { passive: false });
+        P.mapPhotos.addEventListener("touchend", gridTouchEnd, { passive: false });
+        P.photoGrid.addEventListener("touchcancel", gridTouchCancel, { passive: true });
+        P.mapPhotos.addEventListener("touchcancel", gridTouchCancel, { passive: true });
     
         // ── Drag & Drop photos → Quick Filters (tags / collections) ───────────
     
@@ -350,6 +467,11 @@
         }
     
         function gridContextMenu(e) {
+            if (touchGestureActive || touchSelectionMode) {
+                e.preventDefault();
+                hideContextMenu();
+                return;
+            }
             const id = getPhotoIdFromEvent(e);
             if (id == null) { hideContextMenu(); return; }
             e.preventDefault();
@@ -365,17 +487,8 @@
         P.photoGrid.addEventListener("contextmenu", gridContextMenu);
         P.mapPhotos.addEventListener("contextmenu", gridContextMenu);
     
-        function showContextMenu(x, y) {
+function updateContextItems() {
             const count = contextMenuTargets.length;
-            const header = document.getElementById("context-header");
-            header.textContent = count === 1 ? t("common.item") : t("common.items", { count: count });
-    
-            P.contextMenu.classList.remove("hidden");
-            const mw = P.contextMenu.offsetWidth;
-            const mh = P.contextMenu.offsetHeight;
-            P.contextMenu.style.left = Math.min(x, window.innerWidth - mw - 4) + "px";
-            P.contextMenu.style.top = Math.min(y, window.innerHeight - mh - 4) + "px";
-    
             const isCleaning = P.activeView === "cleaning";
             const isMulti = count > 1;
             const clickedId = P.contextMenuPhotoId;
@@ -401,11 +514,26 @@
             P.contextMenu.querySelector('[data-action="hide"]').classList.toggle("hidden", hideInfo.shown === 0);
             P.contextMenu.querySelector('[data-action="show"]').classList.toggle("hidden", hideInfo.hidden === 0);
 
-
-    
             const visibleItems = P.contextMenu.querySelectorAll(".context-item:not(.hidden)");
             visibleItems.forEach(item => item.classList.remove("striped"));
             visibleItems.forEach((item, i) => { if (i % 2 === 1) item.classList.add("striped"); });
+        }
+
+        function showContextMenu(x, y) {
+            const count = contextMenuTargets.length;
+            const header = document.getElementById("context-header");
+            header.textContent = count === 1 ? t("common.item") : t("common.items", { count: count });
+
+            P.contextMenu.classList.remove("hidden");
+
+            if (!touchSelectionMode) {
+                const mw = P.contextMenu.offsetWidth;
+                const mh = P.contextMenu.offsetHeight;
+                P.contextMenu.style.left = Math.min(x, window.innerWidth - mw - 4) + "px";
+                P.contextMenu.style.top = Math.min(y, window.innerHeight - mh - 4) + "px";
+            }
+
+            updateContextItems();
         }
     
         function hideContextMenu() {
@@ -502,22 +630,36 @@
     
         function updateSelectionBar() {
             const n = P.selectedIds.size;
-            if (n === 0 && selectedOnlyActive) {
+            const isMobile = window.innerWidth <= 800;
+            if (n === 0 && touchSelectionMode) {
+                exitTouchSelectionMode();
+            }
+            if (n === 0 && selectedOnlyActive && !touchSelectionMode) {
                 selectedOnlyActive = false;
                 btnSelectedOnly.classList.remove("active");
                 P.mapBtnSelectedOnly.classList.remove("active");
                 applySelectedOnlyFilter();
             }
-            selectionCount.textContent = n > 0 ? t("grid.selected", { count: n }) : "";
-            selectionCount.classList.toggle("hidden", n === 0);
-            btnDeselectAll.classList.toggle("hidden", n === 0);
-            btnSelectedOnly.classList.toggle("hidden", n === 0);
-            if (P.mapSelectionCount) {
-                P.mapSelectionCount.textContent = n > 0 ? t("grid.selected", { count: n }) : "";
-                P.mapSelectionCount.classList.toggle("hidden", n === 0);
+            if (isMobile) {
+                selectionCount.classList.add("hidden");
+                btnDeselectAll.classList.add("hidden");
+                if (P.mapSelectionCount) P.mapSelectionCount.classList.add("hidden");
+                if (P.mapBtnDeselectAll) P.mapBtnDeselectAll.classList.add("hidden");
+            } else {
+                const show = n > 0 || touchSelectionMode;
+                selectionCount.textContent = n > 0 ? t("grid.selected", { count: n }) : (touchSelectionMode ? t("touch_selection.active") : "");
+                selectionCount.classList.toggle("hidden", !show);
+                btnDeselectAll.classList.toggle("hidden", !show);
+                if (P.mapSelectionCount) {
+                    P.mapSelectionCount.textContent = n > 0 ? t("grid.selected", { count: n }) : (touchSelectionMode ? t("touch_selection.active") : "");
+                    P.mapSelectionCount.classList.toggle("hidden", !show);
+                }
+                if (P.mapBtnDeselectAll) P.mapBtnDeselectAll.classList.toggle("hidden", !show);
             }
-            if (P.mapBtnDeselectAll) P.mapBtnDeselectAll.classList.toggle("hidden", n === 0);
+            btnSelectedOnly.classList.toggle("hidden", n === 0);
             if (P.mapBtnSelectedOnly) P.mapBtnSelectedOnly.classList.toggle("hidden", n === 0);
+            const touchCount = document.getElementById("touch-selection-count");
+            if (touchCount) touchCount.textContent = touchSelectionMode ? n : "";
         }
     
         document.addEventListener("keydown", (e) => {
@@ -632,6 +774,30 @@
         P.fn.clearFilters = clearFilters;
         P.fn.hasActiveFilters = hasActiveFilters;
         P.fn.showEmptyState = showEmptyState;
+        P.fn.enterTouchSelectionMode = enterTouchSelectionMode;
+        P.fn.exitTouchSelectionMode = exitTouchSelectionMode;
+        P.fn.isTouchSelectionMode = isTouchSelectionMode;
         const resetBtn = document.getElementById("btn-reset-filters");
         if (resetBtn) resetBtn.addEventListener("click", () => P.fn.clearFilters());
+        const touchSelNoneBtn = document.getElementById("touch-selection-deselect-all");
+        if (touchSelNoneBtn) touchSelNoneBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            deselectAll();
+        });
+        const btnTouchActions = document.getElementById("btn-touch-selection-actions");
+        if (btnTouchActions) btnTouchActions.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (!touchSelectionMode) return;
+            if (P.contextMenu.classList.contains("hidden")) {
+                contextMenuTargets = Array.from(P.selectedIds);
+                P.contextMenuPhotoId = null;
+                showContextMenu(0, 0);
+            } else {
+                hideContextMenu();
+            }
+        });
+        // Exit touch selection mode on Escape
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && touchSelectionMode) exitTouchSelectionMode();
+        });
 })(window.PhotoApp = window.PhotoApp || {});

@@ -8,6 +8,10 @@ echo ==========================================================
 echo.
 
 rem --- 1. Verifier adb ------------------------------------------------
+rem        Fallback automatique sur le chemin connu si ANDROID_HOME non defini.
+if "%ANDROID_HOME%"=="" if "%ANDROID_SDK_ROOT%"=="" (
+    if exist "C:\Android\Sdk\platform-tools\adb.exe" set "ANDROID_HOME=C:\Android\Sdk"
+)
 set "ADB=%ANDROID_HOME%\platform-tools\adb.exe"
 if not exist "%ADB%" (
     echo [ERREUR] adb introuvable dans "%ADB%"
@@ -17,16 +21,22 @@ if not exist "%ADB%" (
 
 rem --- 2. Chercher un appareil / emulateur ---------------------------
 echo Recherche d'un appareil Android connecte...
-"%ADB%" get-state >nul 2>nul
-if errorlevel 1 (
+set FOUND=0
+"%ADB%" devices 2>nul | findstr /r "device$" >nul && set FOUND=1
+if not %FOUND%==1 (
     echo.
-    echo Aucun appareil / emulateur connecte.
-    echo - Demarrez un emulateur Android Studio (AVD),
+    echo Aucun appareil / emulateur connecte - ou non autorise.
+    echo.
+    echo --- Diagnostique adb devices ---
+    "%ADB%" devices
+    echo --------------------------------
+    echo - Demarrez un emulateur Android Studio  AVD,
     echo - OU branchez un tele en mode debugging USB.
     pause
     exit /b 1
 )
-for /f "delims=" %%d in ('"%ADB%" devices ^| findstr /r "device$"') do echo Detecte : %%d
+echo Detecte : 
+"%ADB%" devices 2>nul | findstr /r "device$"
 
 rem --- 3. S'assurer que l'APK existe (build si besoin) ---------------
 set APK=android\app\build\outputs\apk\debug\app-debug.apk

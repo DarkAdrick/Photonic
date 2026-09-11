@@ -65,6 +65,9 @@
 
   "grid.selected_count": "0 件選択中",
   "grid.selected": "{count} 件選択中",
+  "touch_selection.active": "選択中",
+  "touch_selection.done": "完了",
+  "touch_selection.actions": "アクション",
   "grid.one_tag": "1 タグ",
   "grid.tags_badge": "{count} タグ",
   "grid.one_collection": "1 コレクション",
@@ -87,6 +90,7 @@
   "dialog.cancel": "キャンセル",
   "dialog.add": "追加",
   "dialog.folder_path_placeholder": "C:\\ユーザー\\あなた\\ピクチャ",
+  "dialog.save": "保存",
 
   "tag_dialog.add_tag": "タグを追加",
   "tag_dialog.existing": "既存のタグ",
@@ -193,6 +197,14 @@
   "scan.progress": "{done} / {total} ({pct}%)",
   "scan.running": "スキャンはすでに実行中です",
   "scan.running_next": "スキャンはすでに実行中です — 次回このフォルダが含まれます",
+  "scan.detail_title": "ライブラリをスキャン中",
+  "scan.folder": "フォルダ",
+  "scan.active_file": "処理中のファイル",
+  "scan.stats": "統計",
+  "scan.stats_text": "{indexed} 件インデックス済み · {skipped} 件スキップ",
+  "scan.recent": "最近のファイル",
+  "scan.cancel": "スキャンをキャンセル",
+  "scan.all_folders": "すべてのフォルダ",
 
   "map.loading": "読み込み中",
   "map.loading_map": "マップを読み込み中…",
@@ -279,6 +291,8 @@
   "settings.general.confirm_geotag_overwrite_desc": "すでに位置情報がある写真に新しい場所を設定する際に確認を求めます。",
   "settings.general.telemetry": "匿名の利用統計",
   "settings.general.telemetry_desc": "匿名の起動 Ping（アプリのバージョンと OS のみ）を送信します。写真や個人データは決して送信されません。",
+  "settings.general.scan_on_startup": "起動時にライブラリをスキャン",
+  "settings.general.scan_on_startup_desc": "アプリ起動時にすべてのフォルダを自動的に再スキャンします。デフォルトは無効です。",
   "settings.general.tile_provider": "地図タイル",
   "settings.general.tile_provider_desc": "位置マップや写真の詳細・位置情報設定マップで使用する基本地図のスタイルを選択します。",
 
@@ -371,6 +385,10 @@
   "settings.folders.scan_running": "スキャンはすでに実行中です",
   "settings.folders.remove_title": "フォルダを削除",
   "settings.folders.remove_msg": "フォルダ \"{path}\" を削除しますか？ このフォルダのアイテムはライブラリに残ります。",
+  "settings.folders.rename": "フォルダの名前を変更",
+  "settings.folders.rename_title": "フォルダの名前を変更",
+  "settings.folders.rename_placeholder": "表示名",
+  "settings.folders.rename_hint": "表示される名前だけを変更し、実際のフォルダパスは変更しません。空のままにすると、パスのフォルダ名が使われます。",
 
   "update.last_check": "最終確認: {s}",
   "update.not_checked": "まだ確認されていません。",

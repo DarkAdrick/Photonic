@@ -149,6 +149,7 @@
     gap: 8px;
     padding: 0 8px;
     overflow: hidden;
+    touch-action: none;
 }
 
 #detail-img {
@@ -445,6 +446,7 @@
     gap: 8px;
     padding: 0 8px;
     overflow: hidden;
+    touch-action: none;
 }
 
 #detail-img {
@@ -924,6 +926,7 @@
     gap: 8px;
     padding: 0 8px;
     overflow: hidden;
+    touch-action: none;
 }
 
 #detail-img {

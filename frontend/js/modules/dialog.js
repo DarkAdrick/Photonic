@@ -4,6 +4,18 @@
         // ── Dialog ────────────────────────────────────────────────────────────
     
         function openDialog() {
+            if (window.Photonic && window.Photonic.isNative && window.Photonic.isNative()) {
+                // Mobile: choose the folder with the native SAF picker instead of
+                // the physical-path input used by the desktop app.
+                if (window.__photonicPickingFolder) return;
+                if (window.Photonic.pickFolder) {
+                    window.__photonicPickingFolder = true;
+                    const p = window.Photonic.pickFolder();
+                    if (p && typeof p.finally === "function") p.finally(() => { window.__photonicPickingFolder = false; });
+                    else window.__photonicPickingFolder = false;
+                }
+                return;
+            }
             P.dialog.classList.remove("hidden");
             P.folderInput.value = "";
             P.folderInput.focus();
@@ -28,10 +40,11 @@
                 P.fn.pollScan();
                 return;
             }
-            P.scanPollCount = 0;
+P.scanPollCount = 0;
             P.fn.pollScan();
+            if (P.fn.openScanModal) P.fn.openScanModal();
         }
-    
+
         async function rescanAll() {
             P.btnRescan.disabled = true;
             P.scanStatus.textContent = t("scan.starting");
@@ -44,6 +57,7 @@
             }
             P.scanPollCount = 0;
             P.fn.pollScan();
+            if (P.fn.openScanModal) P.fn.openScanModal();
         }
     
     

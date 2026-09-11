@@ -460,8 +460,90 @@ self.ApiHandlers = self.ApiHandlers || {};
 
   // ── GET /api/changelog ──────────────────────────────────────────────────
 
-  function getChangelog(db, url, body, match) {
-    return { html: "<p>No changelog available.</p>" };
+  var CHIP_MAP = {
+    "ADD": "chip-add",
+    "FIX": "chip-fix",
+    "EDIT": "chip-edit",
+    "REMOVE": "chip-remove",
+  };
+
+  function mdToChangelogHtml(md) {
+    var lines = md.trim().split("\n");
+    var html = [];
+    var inList = false;
+    var versions = [];
+    var current = null;
+
+    for (var i = 0; i < lines.length; i++) {
+      var stripped = lines[i].replace(/\s+$/, "");
+      if (stripped.indexOf("## ") === 0) {
+        if (inList && current) { current.content.push("</ul>"); inList = false; }
+        if (current) versions.push(current);
+        var title = stripped.slice(3);
+        // Group headers (e.g. "## v0.2.x") have no " — " date separator
+        if (title.indexOf(" — ") === -1) {
+          versions.push({ group: title });
+          current = null;
+        } else {
+          current = { title: title, content: [] };
+        }
+      } else if (stripped.indexOf("### ") === 0) {
+        if (!current) continue;
+        if (inList) { current.content.push("</ul>"); inList = false; }
+        current.content.push("<h5>" + stripped.slice(4) + "</h5>");
+      } else if (stripped.indexOf("- ") === 0) {
+        if (!inList) { current.content.push("<ul>"); inList = true; }
+        var content = stripped.slice(2);
+        content = content.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+        var chipMatch = content.match(/^\[(\w+)\]\s*(.*)$/);
+        if (chipMatch) {
+          var tag = chipMatch[1].toUpperCase();
+          content = '<span class="cl-chip ' + (CHIP_MAP[tag] || "chip-default") + '">' + tag + "</span> " + chipMatch[2];
+        }
+        current.content.push("<li>" + content + "</li>");
+      } else {
+        if (inList) { current.content.push("</ul>"); inList = false; }
+      }
+    }
+    if (inList && current) current.content.push("</ul>");
+    if (current) versions.push(current);
+
+    var versionIndex = 0;
+    for (var v = 0; v < versions.length; v++) {
+      var ver = versions[v];
+      if (ver.group) {
+        html.push('<div class="cl-group-header">' + ver.group + "</div>");
+        continue;
+      }
+      // open the first real version by default (skip group headers)
+      var openAttr = versionIndex === 0 ? " open" : "";
+      versionIndex++;
+      var titleText = ver.title;
+      var sep = titleText.lastIndexOf(" — ");
+      var nameHtml = sep >= 0
+        ? titleText.slice(0, sep) + ' <span class="cl-version-date">' + titleText.slice(sep + 3) + "</span>"
+        : titleText;
+      var chevron = '<svg class="cl-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>';
+      html.push('<details class="cl-version"' + openAttr + ">");
+      html.push("<summary>" + chevron + '<span class="cl-version-title">' + nameHtml + "</span></summary>");
+      html.push('<div class="cl-version-body">');
+      html.push.apply(html, ver.content);
+      html.push("</div></details>");
+    }
+
+    return html.join("\n");
+  }
+
+  var changelogCache = null;
+
+  async function getChangelog(db, url, body, match) {
+    if (!changelogCache) {
+      try {
+        var res = await fetch("./CHANGELOG.md");
+        if (res.ok) changelogCache = mdToChangelogHtml(await res.text());
+      } catch (e) { /* keep null → fallback below */ }
+    }
+    return { html: changelogCache || "<p>No changelog available.</p>" };
   }
 
   // ── GET /api/settings/language ──────────────────────────────────────────

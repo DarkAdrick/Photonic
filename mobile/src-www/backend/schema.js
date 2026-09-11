@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS folders (
 CREATE TABLE IF NOT EXISTS photos (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
     path           TEXT    NOT NULL UNIQUE,
+    folder         TEXT,
     filename       TEXT    NOT NULL,
     extension      TEXT    NOT NULL,
     size           INTEGER NOT NULL,

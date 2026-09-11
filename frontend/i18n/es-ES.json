@@ -65,6 +65,9 @@
 
   "grid.selected_count": "0 seleccionados",
   "grid.selected": "{count} seleccionados",
+  "touch_selection.active": "Selección",
+  "touch_selection.done": "Listo",
+  "touch_selection.actions": "Acciones",
   "grid.one_tag": "1 etiqueta",
   "grid.tags_badge": "{count} etiquetas",
   "grid.one_collection": "1 colección",
@@ -87,6 +90,7 @@
   "dialog.cancel": "Cancelar",
   "dialog.add": "Añadir",
   "dialog.folder_path_placeholder": "C:\\Usuarios\\Tú\\Imágenes",
+  "dialog.save": "Guardar",
 
   "tag_dialog.add_tag": "Añadir etiqueta",
   "tag_dialog.existing": "Etiquetas existentes",
@@ -193,6 +197,14 @@
   "scan.progress": "{done} / {total} ({pct}%)",
   "scan.running": "El análisis ya está en marcha",
   "scan.running_next": "El análisis ya está en marcha — la carpeta se incluirá la próxima vez",
+  "scan.detail_title": "Analizando biblioteca",
+  "scan.folder": "Carpeta",
+  "scan.active_file": "Archivo activo",
+  "scan.stats": "Estadísticas",
+  "scan.stats_text": "{indexed} indexados · {skipped} omitidos",
+  "scan.recent": "Archivos recientes",
+  "scan.cancel": "Cancelar análisis",
+  "scan.all_folders": "Todas las carpetas",
 
   "map.loading": "Cargando",
   "map.loading_map": "Cargando mapa…",
@@ -279,6 +291,8 @@
   "settings.general.confirm_geotag_overwrite_desc": "Pedir confirmación al establecer una nueva ubicación en una foto que ya tiene una.",
   "settings.general.telemetry": "Estadísticas de uso anónimas",
   "settings.general.telemetry_desc": "Enviar un ping de inicio anónimo (solo versión de la app y sistema operativo). Nunca fotos ni datos personales.",
+  "settings.general.scan_on_startup": "Analizar biblioteca al iniciar",
+  "settings.general.scan_on_startup_desc": "Vuelve a analizar automáticamente todas las carpetas al arrancar la aplicación. Desactivado por defecto.",
   "settings.general.tile_provider": "Fondo del mapa",
   "settings.general.tile_provider_desc": "Elegir el estilo base del mapa usado en el mapa de ubicaciones y en los mapas de detalle/geolocalización de las fotos.",
 
@@ -371,6 +385,10 @@
   "settings.folders.scan_running": "El análisis ya está en marcha",
   "settings.folders.remove_title": "Quitar carpeta",
   "settings.folders.remove_msg": "¿Quitar la carpeta \"{path}\"? Los elementos de esta carpeta permanecerán en la biblioteca.",
+  "settings.folders.rename": "Renombrar carpeta",
+  "settings.folders.rename_title": "Renombrar carpeta",
+  "settings.folders.rename_placeholder": "Nombre visible",
+  "settings.folders.rename_hint": "Solo cambia el nombre mostrado, nunca la ruta real. Déjalo vacío para usar el nombre de la carpeta de la ruta.",
 
   "update.last_check": "Última comprobación: {s}",
   "update.not_checked": "Aún no se ha comprobado.",

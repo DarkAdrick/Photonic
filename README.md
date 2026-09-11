@@ -93,7 +93,7 @@ Photonic/
 ├── frontend/
 │   ├── index.html           # App shell (header, sidebar, photo grid, dialogs)
 │   ├── css/style.css        # Dark theme + photo grid styles
-│   └── js/app.js            # API calls, photo grid rendering, folder dialog
+│   └── js/modules/app.js            # API calls, photo grid rendering, folder dialog
 ├── docs/
 │   └── userguide.md         # Illustrated user guide
 ├── data/                    # Runtime: SQLite DB (photonic.db)

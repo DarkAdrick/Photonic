@@ -35,7 +35,7 @@ self.ApiHandlers = self.ApiHandlers || {};
     return rows.map(function (r) {
       var base = r.path.replace(/\/+$/, "").replace(/\\+$/, "");
       var cnt = N.count1(db,
-        "SELECT COUNT(*) AS c FROM photos WHERE path LIKE ? ESCAPE '\\' " + hf,
+        "SELECT COUNT(*) AS c FROM photos WHERE folder LIKE ? ESCAPE '\\' " + hf,
         [N.underPattern(base)]
       );
       return { id: r.id, path: r.path, photo_count: cnt };
@@ -131,11 +131,11 @@ self.ApiHandlers = self.ApiHandlers || {};
         var subPath = f.path.replace(/\/+$/, "").replace(/\\+$/, "");
         var pat = N.underPattern(subPath);
         var cnt = N.count1(db2,
-          "SELECT COUNT(*) AS c FROM photos WHERE path LIKE ? ESCAPE '\\' " + hf,
+          "SELECT COUNT(*) AS c FROM photos WHERE folder LIKE ? ESCAPE '\\' " + hf,
           [pat]
         );
         var sampleRows = all(db2,
-          "SELECT id FROM photos WHERE path LIKE ? ESCAPE '\\' " + hf + "ORDER BY date_taken DESC LIMIT 4",
+          "SELECT id FROM photos WHERE folder LIKE ? ESCAPE '\\' " + hf + "ORDER BY date_taken DESC LIMIT 4",
           [pat]
         );
         var samples = sampleRows.map(function (r) { return r.id; });
@@ -153,7 +153,7 @@ self.ApiHandlers = self.ApiHandlers || {};
       var deeperPat = underPat + "/%";
       var directPhotos = all(db2,
         "SELECT id, filename, width, height, camera_model, date_taken, is_hidden " +
-        "FROM photos WHERE path LIKE ? ESCAPE '\\' AND path NOT LIKE ? ESCAPE '\\' " + hf +
+        "FROM photos WHERE folder LIKE ? ESCAPE '\\' AND folder NOT LIKE ? ESCAPE '\\' " + hf +
         "ORDER BY date_taken DESC LIMIT 200",
         [underPat, deeperPat]
       );
@@ -193,11 +193,11 @@ self.ApiHandlers = self.ApiHandlers || {};
       var fp = f.path.replace(/\/+$/, "").replace(/\\+$/, "");
       var pat = N.underPattern(fp);
       var cnt = N.count1(db2,
-        "SELECT COUNT(*) AS c FROM photos WHERE path LIKE ? ESCAPE '\\' " + hf,
+        "SELECT COUNT(*) AS c FROM photos WHERE folder LIKE ? ESCAPE '\\' " + hf,
         [pat]
       );
       var sampleRows = all(db2,
-        "SELECT id FROM photos WHERE path LIKE ? ESCAPE '\\' " + hf + "ORDER BY date_taken DESC LIMIT 4",
+        "SELECT id FROM photos WHERE folder LIKE ? ESCAPE '\\' " + hf + "ORDER BY date_taken DESC LIMIT 4",
         [pat]
       );
       var samples = sampleRows.map(function (r) { return r.id; });

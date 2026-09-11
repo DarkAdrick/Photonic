@@ -3,10 +3,24 @@
         // ── Thumb size slider + Ctrl+Scroll ────────────────────────────────────
     
          P.thumbSlider  = document.getElementById("thumb-size");
-        const thumbMin = 20;
+const thumbMin = 20;
         const thumbMax = 450;
         const thumbDefault = 150;
-    
+
+        // Grid thumbnails use the lighter "small" render when shown tiny
+        // (matches the thumbs-tiny threshold), "medium" otherwise.
+        function thumbSizePath() {
+            return document.documentElement.classList.contains("thumbs-tiny") ? "small" : "medium";
+        }
+
+        function rebindThumbSrcs() {
+            const size = thumbSizePath();
+            P.photoGrid.querySelectorAll(".photo-card img, .country-card img").forEach((img) => {
+                const src = img.getAttribute("src");
+                if (src && src.includes("/thumb/")) img.src = src.replace(/\/thumb\/(small|medium|large)/, "/thumb/" + size);
+            });
+        }
+
         function setThumbSize(px) {
             px = Math.round(Math.max(thumbMin, Math.min(thumbMax, px)));
             const prev = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--thumb-size")) || thumbDefault;
@@ -16,9 +30,10 @@
                 P.photoGrid.classList.add("zoom-pulse");
                 setTimeout(() => P.photoGrid.classList.remove("zoom-pulse"), 300);
             }
+            const prevTiny = prev <= 90;
             document.documentElement.style.setProperty("--thumb-size", px + "px");
-            document.documentElement.style.setProperty("--thumb-gap", (px <= 20 ? 2 : px <= 100 ? 3 : 6) + "px");
             document.documentElement.classList.toggle("thumbs-tiny", px <= 90);
+            if (prevTiny !== (px <= 90)) rebindThumbSrcs();
             P.thumbSlider.value = px;
             localStorage.setItem("photonic.thumbnailSize", px);
             if (currentLayout === "masonry") requestAnimationFrame(() => layoutMasonry());
@@ -53,6 +68,31 @@
             const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--thumb-size")) || thumbDefault;
             setThumbSize(cur + (e.deltaY < 0 ? 20 : -20));
         }, { passive: false });
+
+        // Touch pinch → resize thumbnails (mobile equivalent of Ctrl+scroll)
+        let pinchStartDist = 0, pinchStartSize = 0, pinchActive = false;
+        P.photoGrid.addEventListener("touchstart", (e) => {
+            if (e.touches.length === 2) {
+                pinchStartDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                pinchStartSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--thumb-size")) || thumbDefault;
+                pinchActive = true;
+            } else {
+                pinchActive = false;
+            }
+        }, { passive: true });
+        P.photoGrid.addEventListener("touchmove", (e) => {
+            if (!pinchActive || e.touches.length !== 2) return;
+            e.preventDefault();
+            const dist = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            if (pinchStartDist > 0) setThumbSize(pinchStartSize * (dist / pinchStartDist));
+        }, { passive: false });
+        ["touchend", "touchcancel"].forEach((ev) => P.photoGrid.addEventListener(ev, () => { pinchActive = false; }));
 
         P.mapPhotos.addEventListener("wheel", (e) => {
             if (!e.ctrlKey) return;

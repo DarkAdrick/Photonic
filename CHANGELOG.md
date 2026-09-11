@@ -48,7 +48,7 @@
 ## v1.1.1 — Responsive Update — 03 September 2026
 
 ### Mobile & tablet support
-- [ADD] **Responsive layout** for tablets and phones: the sidebar becomes a **hamburger drawer** with a backdrop, centered at three breakpoints (≤1024px tablet landscape, ≤768px tablet portrait, ≤480px phone)
+- [ADD] **Responsive layout** for tablets and phones: the sidebar becomes a **hamburger drawer** with a backdrop, centered at three breakpoints (≤1024px tablet landscape, ≤800px tablet portrait, ≤480px phone)
 - [ADD] **Smart header on mobile**: the logo and action buttons stay on the first line (grouped on the right) while a full-width search bar sits below, with the **Filters** button right next to it
 - [ADD] The photo grid adapts to small screens and a **mobile default thumbnail size** (110px) is used when no size has been saved
 - [EDIT] The **Settings page opens full-screen** on mobile and hides the status bar instead of being squeezed into the bottom third
@@ -245,7 +245,6 @@
 
 ### Build
 - [EDIT] #Build.bat hardened: detects a broken/moved venv and rebuilds it, installs dependencies via `python -m pip`, embeds `rg_cities1000.csv`, explicit error handling at each step
-- [CLEANUP] Removed unused legacy `frontend/js/old.app.js`
 
 ## v0.2.3 — Signal — 23 August 2026
 
