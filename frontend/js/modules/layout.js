@@ -21,6 +21,21 @@ const thumbMin = 20;
             });
         }
 
+        // Zoom toward the photo-card under the pointer/touch midpoint:
+        // after resizing, keep that card at the same viewport position.
+        function zoomThumbsTo(px, clientX, clientY, grid) {
+            const el = document.elementFromPoint(clientX, clientY);
+            const card = el && el.closest ? el.closest(".photo-card") : null;
+            const gridRect = grid.getBoundingClientRect();
+            const cardTop = (card) => card.getBoundingClientRect().top - gridRect.top + grid.scrollTop;
+            const prevTop = card ? cardTop(card) : 0;
+            setThumbSize(px);
+            if (card) {
+                void grid.offsetHeight;
+                grid.scrollTop += cardTop(card) - prevTop;
+            }
+        }
+
         function setThumbSize(px) {
             px = Math.round(Math.max(thumbMin, Math.min(thumbMax, px)));
             const prev = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--thumb-size")) || thumbDefault;
@@ -45,6 +60,21 @@ const thumbMin = 20;
         }
     
         P.thumbSlider.addEventListener("input", () => setThumbSize(+P.thumbSlider.value));
+
+        // Grid gap (0–10 px) drives both spacing and photo-card corner radius.
+        let currentThumbGap = 3;
+        function setThumbGap(px) {
+            currentThumbGap = Math.max(0, Math.min(10, Math.round(+px || 0)));
+            const gapPx = currentThumbGap + "px";
+            document.documentElement.style.setProperty("--thumb-gap", gapPx);
+            document.documentElement.style.setProperty("--thumb-radius", gapPx);
+            P.photoGrid.style.setProperty("--thumb-gap", gapPx);
+            P.photoGrid.style.setProperty("--thumb-radius", gapPx);
+            localStorage.setItem("photonic.gridGap", currentThumbGap);
+            if (currentLayout === "masonry") requestAnimationFrame(() => layoutMasonry());
+            return currentThumbGap;
+        }
+        P.fn.setThumbGap = setThumbGap;
     
         const btnZoomOut = document.getElementById("btn-zoom-out");
         if (btnZoomOut) {
@@ -66,7 +96,7 @@ const thumbMin = 20;
             if (!e.ctrlKey) return;
             e.preventDefault();
             const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--thumb-size")) || thumbDefault;
-            setThumbSize(cur + (e.deltaY < 0 ? 20 : -20));
+            zoomThumbsTo(cur + (e.deltaY < 0 ? 20 : -20), e.clientX, e.clientY, P.photoGrid);
         }, { passive: false });
 
         // Touch pinch → resize thumbnails (mobile equivalent of Ctrl+scroll)
@@ -90,7 +120,11 @@ const thumbMin = 20;
                 e.touches[0].clientX - e.touches[1].clientX,
                 e.touches[0].clientY - e.touches[1].clientY
             );
-            if (pinchStartDist > 0) setThumbSize(pinchStartSize * (dist / pinchStartDist));
+            if (pinchStartDist > 0) {
+                const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                zoomThumbsTo(pinchStartSize * (dist / pinchStartDist), midX, midY, P.photoGrid);
+            }
         }, { passive: false });
         ["touchend", "touchcancel"].forEach((ev) => P.photoGrid.addEventListener(ev, () => { pinchActive = false; }));
 
@@ -113,7 +147,7 @@ const thumbMin = 20;
             const cards = P.photoGrid.querySelectorAll(".photo-card, .country-card");
             if (cards.length === 0) return;
     
-            const gap = 6;
+            const gap = currentThumbGap;
             const pad = 12;
             const headerBar = document.getElementById("header-photo-grid");
             const topPad = pad + (headerBar ? headerBar.offsetHeight : 0);
@@ -190,6 +224,11 @@ const thumbMin = 20;
         const savedThumbSize = localStorage.getItem("photonic.thumbnailSize");
         const mobileDefault = window.innerWidth <= 480 ? 110 : thumbDefault;
         setThumbSize(savedThumbSize ? +savedThumbSize : mobileDefault);
+
+        const savedGridGap = parseInt(localStorage.getItem("photonic.gridGap"));
+        setThumbGap(Number.isFinite(savedGridGap) ? savedGridGap : 3);
+
+        document.documentElement.classList.toggle("hide-photo-labels", localStorage.getItem("photonic.showPhotoLabels") === "false");
     
     
     // --- exports ---

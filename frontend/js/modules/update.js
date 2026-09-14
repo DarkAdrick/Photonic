@@ -223,9 +223,23 @@
                 clCreditsDrawer.classList.add("hidden");
             }
         }
+        function closeChangelog() {
+            stopAllCredits();
+            const cd = changelogDialog;
+            if (cd.classList.contains("hidden") || cd.classList.contains("closing")) return;
+            cd.classList.add("closing");
+            const finish = () => {
+                if (cd.classList.contains("hidden")) return;
+                cd.classList.remove("closing");
+                cd.classList.add("hidden");
+            };
+            const onEnd = (e) => { if (e.target === cd) { cd.removeEventListener("animationend", onEnd); finish(); } };
+            cd.addEventListener("animationend", onEnd);
+            setTimeout(finish, 300);
+        }
         P.versionBadge.addEventListener("click", openChangelog);
-        changelogClose.addEventListener("click", () => { stopAllCredits(); changelogDialog.classList.add("hidden"); });
-        changelogDialog.addEventListener("click", (e) => { if (e.target === changelogDialog) { stopAllCredits(); changelogDialog.classList.add("hidden"); } });
+        changelogClose.addEventListener("click", closeChangelog);
+        changelogDialog.addEventListener("click", (e) => { if (e.target === changelogDialog) closeChangelog(); });
     
     
     // --- exports ---
@@ -233,4 +247,5 @@
         P.fn.describeUpdateState = describeUpdateState;
         P.fn.initUpdateChecker = initUpdateChecker;
         P.fn.openChangelog = openChangelog;
+        P.fn.closeChangelog = closeChangelog;
 })(window.PhotoApp = window.PhotoApp || {});

@@ -175,19 +175,140 @@
             document.addEventListener("touchend", endDrag);
             document.addEventListener("touchcancel", endDrag);
         })();
+
+        // ── Detail resize handle (mobile) ──────────────────────────────────
+
+        (function () {
+            const GAP = 5, MIN_MAIN = 200, MIN_SIDE = 130;
+            const el = P.detailResize, layout = P.detailLayout,
+                  image = P.detailImage, sidebar = P.detailSidebar;
+            if (!el || !layout) return;
+            const KEY = "photonic.detailResize";
+            let dragging = false, vert = true, startX = 0, startY = 0, startSide = 0, containerW = 0, containerH = 0;
+
+            function isColumn() {
+                try { return getComputedStyle(layout).flexDirection === "column"; }
+                catch (e) { return false; }
+            }
+            function isMobile() {
+                return (window.Photonic && window.Photonic.isNative && window.Photonic.isNative()) ||
+                       window.matchMedia("(max-width: 768px)").matches;
+            }
+            function loadSaved() { try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { return {}; } }
+            function saveSaved(v) { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) {} }
+
+            function clearSizes() {
+                image.style.removeProperty("flex");
+                image.style.removeProperty("width");
+                image.style.removeProperty("height");
+                sidebar.style.removeProperty("flex");
+                sidebar.style.removeProperty("width");
+                sidebar.style.removeProperty("height");
+                sidebar.style.removeProperty("min-width");
+                sidebar.style.removeProperty("max-width");
+                sidebar.style.removeProperty("max-height");
+            }
+
+            function applySizes(side, main) {
+                if (vert) {
+                    image.style.flex = "0 0 " + main + "px";
+                    sidebar.style.flex = "0 0 " + side + "px";
+                    sidebar.style.minWidth = side + "px";
+                    sidebar.style.maxWidth = side + "px";
+                } else {
+                    image.style.flex = "0 0 auto";
+                    image.style.height = main + "px";
+                    sidebar.style.flex = "0 0 auto";
+                    sidebar.style.height = side + "px";
+                    sidebar.style.maxHeight = side + "px";
+                }
+            }
+
+            function applyDetailResize() {
+                clearSizes();
+                const mobile = isMobile();
+                if (!mobile) { el.style.display = "none"; return; }
+                const visible = !P.detailOverlay.classList.contains("hidden");
+                el.style.display = visible ? "" : "none";
+                vert = !isColumn();
+                el.classList.toggle("detail-resize-v", vert);
+                if (!visible) return;
+                containerW = layout.clientWidth;
+                containerH = layout.clientHeight;
+                const saved = loadSaved();
+                if (vert && saved.lan) {
+                    const w = Math.min(Math.max(MIN_SIDE, saved.lan), Math.max(MIN_SIDE, containerW - GAP - MIN_MAIN));
+                    applySizes(w, containerW - GAP - w);
+                } else if (!vert && saved.por) {
+                    const h = Math.min(Math.max(MIN_SIDE, saved.por), Math.max(MIN_SIDE, containerH - GAP - MIN_MAIN));
+                    applySizes(h, containerH - GAP - h);
+                }
+            }
+
+            function startDrag(ev) {
+                dragging = true;
+                vert = !isColumn();
+                containerW = layout.clientWidth;
+                containerH = layout.clientHeight;
+                if (vert) { startSide = sidebar.offsetWidth || 340; startX = ev.clientX; }
+                else { startSide = sidebar.offsetHeight; startY = ev.clientY; }
+                if (ev.cancelable) ev.preventDefault();
+                document.body.style.cursor = vert ? "col-resize" : "ns-resize";
+                document.body.style.userSelect = "none";
+            }
+
+            function dragTo(x, y) {
+                if (!dragging) return;
+                if (vert) {
+                    const w = Math.min(Math.max(MIN_SIDE, startSide + (startX - x)), Math.max(MIN_SIDE, containerW - GAP - MIN_MAIN));
+                    applySizes(w, containerW - GAP - w);
+                } else {
+                    const h = Math.min(Math.max(MIN_SIDE, startSide + (startY - y)), Math.max(MIN_SIDE, containerH - GAP - MIN_MAIN));
+                    applySizes(h, containerH - GAP - h);
+                }
+            }
+
+            function endDrag() {
+                if (!dragging) return;
+                dragging = false;
+                document.body.style.cursor = "";
+                document.body.style.userSelect = "";
+                const s = loadSaved();
+                if (vert) s.lan = sidebar.offsetWidth;
+                else s.por = sidebar.offsetHeight;
+                saveSaved(s);
+                if (P.fn.applyDetailZoom) P.fn.applyDetailZoom();
+            }
+
+            P.fn.applyDetailResize = applyDetailResize;
+            el.addEventListener("mousedown", (e) => { e.preventDefault(); startDrag(e); });
+            document.addEventListener("mousemove", (e) => { if (dragging) dragTo(e.clientX, e.clientY); });
+            document.addEventListener("mouseup", endDrag);
+            el.addEventListener("touchstart", (e) => {
+                if (e.touches.length !== 1) return;
+                e.preventDefault();
+                const t = e.touches[0];
+                startDrag({ clientX: t.clientX, clientY: t.clientY, cancelable: false });
+            }, { passive: false });
+            document.addEventListener("touchmove", (e) => {
+                if (!dragging || e.touches.length !== 1) return;
+                e.preventDefault();
+                const t = e.touches[0];
+                dragTo(t.clientX, t.clientY);
+            }, { passive: false });
+            document.addEventListener("touchend", endDrag);
+            document.addEventListener("touchcancel", endDrag);
+            window.addEventListener("resize", () => { if (!P.detailOverlay.classList.contains("hidden")) applyDetailResize(); });
+            if (!P.detailOverlay.classList.contains("hidden")) applyDetailResize();
+        })();
     
         P.detailClose.addEventListener("click", P.fn.closeDetail);
         P.detail360Btn.addEventListener("click", P.fn.toggle360);
         P.detailFullscreenBtn.addEventListener("click", P.fn.toggleFullscreen);
         document.addEventListener("fullscreenchange", () => {
-            if (document.fullscreenElement) {
-                P.detailFullscreenBtn.innerHTML = '<i data-lucide="minimize"></i>';
-                P.detailFullscreenBtn.title = "Exit fullscreen";
-            } else {
-                P.detailFullscreenBtn.innerHTML = '<i data-lucide="maximize"></i>';
-                P.detailFullscreenBtn.title = "Fullscreen";
+            if (typeof P.fn.setDetailFullscreenIcon === "function") {
+                P.fn.setDetailFullscreenIcon(!!document.fullscreenElement);
             }
-            lucide.createIcons({ root: P.detailFullscreenBtn });
         });
     
         const detailMoreBtn = document.getElementById("detail-more");
@@ -213,10 +334,24 @@
             if (!item || !P.detailCurrentPhotoId) return;
             const action = item.dataset.action;
             hideDetailMenu();
-            if (action === "open") {
-                P.fn.api("POST", `/api/photos/${P.detailCurrentPhotoId}/open`);
-            } else if (action === "reveal") {
-                P.fn.api("POST", `/api/photos/${P.detailCurrentPhotoId}/reveal`);
+            if (action === "open" || action === "reveal") {
+                const isNative = P.fn.isNative && P.fn.isNative();
+                const plugin = isNative && window.Photonic ? window.Photonic.nativePlugin() : null;
+                const data = P.detailCurrentPhotoData;
+                if (plugin && data && data.path) {
+                    const method = action === "open" ? "openMedia" : "revealMedia";
+                    if (typeof plugin[method] === "function") {
+                        const params = { uri: data.path, mime: data.mime_type || "" };
+                        if (action === "reveal") params.folder = data.folder || "";
+                        plugin[method](params).catch((err) => {
+                            P.fn.showToast(String((err && (err.message || err)) || err), { icon: "x" });
+                        });
+                    }
+                } else if (action === "open") {
+                    P.fn.api("POST", `/api/photos/${P.detailCurrentPhotoId}/open`);
+                } else {
+                    P.fn.api("POST", `/api/photos/${P.detailCurrentPhotoId}/reveal`);
+                }
             } else if (action === "copy-path") {
                 if (P.detailCurrentPhotoData?.path) await navigator.clipboard.writeText(P.detailCurrentPhotoData.path);
             } else if (action === "delete") {
@@ -265,10 +400,66 @@
         });
     
         function applyDetailZoom() {
-            const tx = `translate(${P.detailPanX}px, ${P.detailPanY}px)`;
-            P.detailImg.style.transform = `rotate(${P.detailRotation}deg) scale(${P.detailZoom / 100}) ${tx}`;
+            // translate must come before scale so the pan values map to 1:1 screen
+            // pixels. (translate applied after scale is in the element's local
+            // space and gets multiplied by the zoom factor → too fast.)
+            P.detailImg.style.transform = `translate(${P.detailPanX}px, ${P.detailPanY}px) scale(${P.detailZoom / 100}) rotate(${P.detailRotation}deg)`;
             P.detailZoomLabel.textContent = P.detailZoom + "%";
             P.detailImg.classList.toggle("zoomed", P.detailZoom > 100);
+            // On mobile the zoomed image covers the whole frame (and swipes are
+            // used to pan): hide the prev/next arrows as soon as we zoom in.
+            const hideNav = P.detailZoom > 100 && detailMobile();
+            P.detailPrev.classList.toggle("hidden", hideNav);
+            P.detailNext.classList.toggle("hidden", hideNav);
+        }
+
+        function detailMobile() {
+            return (P.fn.isNative && P.fn.isNative()) ||
+                (window.matchMedia && window.matchMedia("(max-width: 768px)").matches);
+        }
+
+        // Double-tap zoom (mobile only): 100% ↔ 250%. Uses the tap position as
+        // the zoom anchor when zooming in.
+        function toggleDetailDoubleTapZoom(x, y) {
+            if (P.detailZoom <= 100) {
+                P.detailZoom = 250;
+            } else {
+                P.detailZoom = 100;
+                P.detailPanX = 0;
+                P.detailPanY = 0;
+            }
+            P.detailZoomSlider.value = P.detailZoom;
+            applyDetailZoom();
+        }
+
+        // Single vs double tap on the detail stage (mobile). A single tap exits
+        // the CSS fullscreen; a double tap toggles the zoom. Detection runs on
+        // touch events: when zoomed, touchstart preventDefaults and the
+        // synthesized click never fires, so a click-based detector is dead.
+        let detailLastTapTime = 0;
+        let detailLastTapX = 0;
+        let detailLastTapY = 0;
+        let detailTapTimer = null;
+        function registerDetailTap(x, y) {
+            if (!detailMobile()) return;
+            const now = Date.now();
+            const isDouble = (now - detailLastTapTime) < 320 &&
+                Math.abs(x - detailLastTapX) < 36 && Math.abs(y - detailLastTapY) < 36;
+            detailLastTapTime = now;
+            detailLastTapX = x;
+            detailLastTapY = y;
+            if (detailTapTimer) clearTimeout(detailTapTimer);
+            detailTapTimer = null;
+            if (isDouble) {
+                toggleDetailDoubleTapZoom(x, y);
+                return;
+            }
+            detailTapTimer = setTimeout(() => {
+                if (document.body.classList.contains("photonic-detail-fs")) {
+                    document.body.classList.remove("photonic-detail-fs");
+                    if (typeof P.fn.setDetailFullscreenIcon === "function") P.fn.setDetailFullscreenIcon(false);
+                }
+            }, 320);
         }
     
         function resetDetailZoom() {
@@ -284,6 +475,15 @@
             if (P.detailZoom <= 100) { P.detailPanX = 0; P.detailPanY = 0; }
             applyDetailZoom();
         });
+
+        function stepDetailZoom(delta) {
+            P.detailZoom = Math.max(100, Math.min(500, P.detailZoom + delta));
+            P.detailZoomSlider.value = P.detailZoom;
+            if (P.detailZoom <= 100) { P.detailPanX = 0; P.detailPanY = 0; }
+            applyDetailZoom();
+        }
+        document.getElementById("detail-zoom-out").addEventListener("click", () => stepDetailZoom(-40));
+        document.getElementById("detail-zoom-in").addEventListener("click", () => stepDetailZoom(40));
     
         P.detailStage.addEventListener("wheel", (e) => {
             if (P.detailOverlay.classList.contains("hidden")) return;
@@ -367,12 +567,17 @@ document.addEventListener("mouseup", () => { P.detailDragging = false; });
 
         P.detailStage.addEventListener("touchend", (e) => {
             if (P.detailOverlay.classList.contains("hidden")) return;
-            if (touchStartCount === 1 && P.detailZoom <= 100) {
+            if (touchStartCount === 1) {
                 const dx = touchLastX - swipeStartX;
                 const dy = touchLastY - swipeStartY;
-                if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+                const onNav = e.target.closest(".detail-nav-btn");
+                if (P.detailZoom <= 100 && !onNav && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
                     e.preventDefault();
                     P.fn.navigateDetail(dx < 0 ? 1 : -1);
+                } else if (!onNav && !e.target.closest("#detail-360-viewer, #detail-video") && Math.hypot(dx, dy) < 12) {
+                    // tap: handled here (not via click, which is suppressed).
+                    e.preventDefault();
+                    registerDetailTap(swipeStartX, swipeStartY);
                 }
             }
             touchStartCount = 0;

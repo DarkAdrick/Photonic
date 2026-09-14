@@ -14,6 +14,7 @@ import androidx.exifinterface.media.ExifInterface
 import java.io.ByteArrayInputStream
 import android.net.Uri
 import android.os.Build
+import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Base64
 import android.util.Log
@@ -1013,6 +1014,89 @@ class PhotonicBackendPlugin : Plugin() {
                 call.reject("setSystemBarStyle failed: ${e.message}", e)
             }
         }
+    }
+
+    // Open the media file in the system's default app (image viewer / player).
+    @PluginMethod
+    fun openMedia(call: PluginCall) {
+        val act = activity ?: run {
+            call.reject("no activity")
+            return
+        }
+        val uriStr = call.getString("uri") ?: run {
+            call.reject("uri is required")
+            return
+        }
+        val mime = call.getString("mime") ?: ""
+        act.runOnUiThread {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(Uri.parse(uriStr), if (mime.isBlank()) "application/octet-stream" else mime)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                act.startActivity(intent)
+                call.resolve(JSObject().put("ok", true))
+            } catch (e: Exception) {
+                call.reject("openMedia failed: ${e.message}", e)
+            }
+        }
+    }
+
+    // Reveal a photo in a file manager: open its parent folder via the
+    // DocumentsUI external-storage provider (built-in Files app). No file
+    // manager available → falls back to opening the photo itself.
+    @PluginMethod
+    fun revealMedia(call: PluginCall) {
+        val act = activity ?: run {
+            call.reject("no activity")
+            return
+        }
+        val uriStr = call.getString("uri") ?: run {
+            call.reject("uri is required")
+            return
+        }
+        val uri = Uri.parse(uriStr)
+        val fallbackRel = call.getString("folder") ?: ""
+        val mime = call.getString("mime") ?: ""
+        act.runOnUiThread {
+            try {
+                val folderRel = resolveFolderRelative(uri) ?: fallbackRel
+                val docId = "primary:" + folderRel.trim('/')
+                val dirUri = DocumentsContract.buildDocumentUri(
+                    "com.android.externalstorage.documents", docId
+                )
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(dirUri, "vnd.android.document/directory")
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    act.startActivity(intent)
+                    call.resolve(JSObject().put("ok", true))
+                } catch (e: Exception) {
+                    // No handler for the folder → open the file itself instead.
+                    val fallback = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(uri, if (mime.isBlank()) "application/octet-stream" else mime)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    act.startActivity(fallback)
+                    call.resolve(JSObject().put("ok", true))
+                }
+            } catch (e: Exception) {
+                call.reject("revealMedia failed: ${e.message}", e)
+            }
+        }
+    }
+
+    private fun resolveFolderRelative(uri: Uri): String? {
+        val resolver = activity?.contentResolver ?: return null
+        var rel: String? = null
+        resolver.query(uri, arrayOf(MediaStore.MediaColumns.RELATIVE_PATH), null, null, null)?.use { c ->
+            if (c.moveToFirst()) {
+                val idx = c.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)
+                if (idx >= 0 && !c.isNull(idx)) rel = c.getString(idx)
+            }
+        }
+        return rel
     }
 
     // Pick a folder via the Android Storage Access Framework and return its

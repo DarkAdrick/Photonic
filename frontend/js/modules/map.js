@@ -253,7 +253,7 @@
             // matches the cluster radius (in screen px). Cells with >= the group-size
             // threshold become clusters; smaller cells render as individual markers.
             // A group-size threshold of 1 therefore groups from 2 photos at a spot.
-            const clusterGlobalThreshold = parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "500") || 500;
+            const clusterGlobalThreshold = Math.min(1000, Math.max(50, parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "500") || 500));
             const clusteringDisabled = data.total < clusterGlobalThreshold;
 
             const markerPhotos = data.photos.filter(ph => ph.lat != null && ph.lng != null);

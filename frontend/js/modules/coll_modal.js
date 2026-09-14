@@ -33,16 +33,9 @@
                 delete P.collectionDialogOk.dataset.id;
             }
     
-            const assignMode = !collection && !!P.pendingCollectionAssignIds;
-            document.getElementById("collection-dialog-tabs").hidden = !!collection;
-            if (collection) {
-                document.getElementById("collection-existing-section").hidden = true;
-                document.getElementById("collection-create-section").hidden = false;
-                P.collectionDialogOk.classList.remove("hidden");
-                P.collectionDialogCancel.textContent = t("confirm.cancel");
-            } else {
-                setCollectionTab(assignMode ? "existing" : "new");
-            }
+            P.collectionDialogCancel.textContent = t("confirm.cancel");
+            P.collectionDialogOk.classList.remove("hidden");
+            document.getElementById("collection-create-section").hidden = false;
     
             const currentIcon = (collection && collection.icon) ? collection.icon : "library";
             P.fn.renderIconPicker(P.collectionIconPicker, currentIcon, (name) => {
@@ -76,23 +69,7 @@
             P.collectionColorHex.addEventListener("input", onCollHexInput);
     
             P.collectionDialog.classList.remove("hidden");
-            if (!assignMode) P.collectionInput.focus();
-        }
-    
-        function setCollectionTab(tab) {
-            const isExisting = tab === "existing";
-            document.getElementById("collection-existing-section").hidden = !isExisting;
-            document.getElementById("collection-create-section").hidden = isExisting;
-            document.querySelectorAll("#collection-dialog-tabs .dialog-tab").forEach((b) => {
-                b.classList.toggle("active", b.dataset.tab === tab);
-            });
-            P.collectionDialogOk.classList.toggle("hidden", isExisting);
-            P.collectionDialogCancel.textContent = isExisting ? t("common.close") : t("confirm.cancel");
-            if (isExisting) {
-                P.collectionInput.blur();
-            } else {
-                P.collectionInput.focus();
-            }
+            P.collectionInput.focus();
         }
     
         function onCollectionDialogCancel() {
@@ -102,9 +79,6 @@
     
         P.collectionDialogCancel.addEventListener("click", onCollectionDialogCancel);
         document.getElementById("collection-dialog-close").addEventListener("click", onCollectionDialogCancel);
-        document.querySelectorAll("#collection-dialog-tabs .dialog-tab").forEach((btn) => {
-            btn.addEventListener("click", () => setCollectionTab(btn.dataset.tab));
-        });
     
         P.collectionDialogOk.addEventListener("click", async () => {
             const name = P.collectionInput.value.trim();
@@ -146,48 +120,14 @@
             P.collectionModalPhotoId = photoId;
             P.collectionModalBatchIds = null;
             P.pendingCollectionAssignIds = [photoId];
-            await openAssignCollectionsDialog();
+            await openCollectionDialog();
         }
     
         async function openCollectionModalBatch(photoIds) {
             P.collectionModalBatchIds = photoIds;
             P.collectionModalPhotoId = null;
             P.pendingCollectionAssignIds = photoIds;
-            await openAssignCollectionsDialog();
-        }
-    
-        async function openAssignCollectionsDialog() {
-            P.collectionModalExistingCollections = await P.fn.api("GET", "/api/collections");
-            renderCollectionExistingList();
             await openCollectionDialog();
-        }
-    
-        function renderCollectionExistingList() {
-            if (P.collectionModalExistingCollections.length === 0) {
-                P.collectionExistingList.innerHTML = `<div style="font-size:12px;color:var(--text-secondary);padding:4px">${t("collections.none_found")}</div>`;
-                return;
-            }
-            P.collectionExistingList.innerHTML = "";
-            for (const c of P.collectionModalExistingCollections) {
-                const el = document.createElement("div");
-                el.className = "tag-existing-item";
-                const color = c.color || P.TAG_COLORS[Math.abs(P.fn.hashStr(c.name)) % P.TAG_COLORS.length];
-                el.style.setProperty("--tag-color", color);
-                el.innerHTML = c.name;
-                el.addEventListener("click", async () => {
-                    const ids = P.pendingCollectionAssignIds || [];
-                    for (const pid of ids) {
-                        await P.fn.api("POST", `/api/photos/${pid}/collections`, { collection_id: c.id });
-                    }
-                    P.pendingCollectionAssignIds = null;
-                    P.collectionDialog.classList.add("hidden");
-                    if (P.activeView === "collections") P.fn.loadCollectionsBrowse();
-                    P.fn.loadSidebar();
-                    P.fn.renderSelection();
-                    if (P.collectionModalPhotoId != null) await P.fn.loadDetail(P.collectionModalPhotoId);
-                });
-                P.collectionExistingList.appendChild(el);
-            }
         }
     
         async function removeCollectionsFromTargets(targets) {
@@ -229,4 +169,5 @@
         P.fn.openCollectionModal = openCollectionModal;
         P.fn.openCollectionModalBatch = openCollectionModalBatch;
         P.fn.removeCollectionsFromTargets = removeCollectionsFromTargets;
+        P.fn.closeCollectionDialog = onCollectionDialogCancel;
 })(window.PhotoApp = window.PhotoApp || {});

@@ -84,6 +84,14 @@
     color: var(--text-primary);
 }
 
+.hero-logo {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 28px;
+    filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.3));
+    user-select: none;
+}
+
 #empty-state h2 {
     font-size: 32px;
     font-weight: 700;
@@ -155,7 +163,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(var(--thumb-size, 150px), 1fr));
     grid-auto-rows: min-content;
-    gap: var(--thumb-gap, 6px);
+    gap: var(--thumb-gap, 3px);
     align-content: start;
     align-items: start;
     overflow-y: auto;
@@ -175,7 +183,7 @@
 
 .photo-card {
     background: var(--bg-tertiary);
-    border-radius: 4px;
+    border-radius: var(--thumb-radius, 3px);
     overflow: hidden;
     cursor: pointer;
     position: relative;
@@ -526,6 +534,15 @@ html.thumbs-tiny .photo-card .photo-label {
 }
 
 html.thumbs-tiny .photo-meta-badges {
+    bottom: 4px;
+}
+
+/* Photo labels can be hidden from Settings > Display */
+html.hide-photo-labels .photo-card .photo-label {
+    display: none;
+}
+
+html.hide-photo-labels .photo-meta-badges {
     bottom: 4px;
 }
 

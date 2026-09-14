@@ -28,6 +28,24 @@
     animation: dialogScaleIn 0.3s cubic-bezier(.4,0,.2,1);
 }
 
+#changelog-dialog.closing {
+    animation: overlayFadeOut 0.22s ease forwards;
+}
+
+#changelog-dialog.closing .dialog {
+    animation: dialogScaleOut 0.22s ease forwards;
+}
+
+@keyframes overlayFadeOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+@keyframes dialogScaleOut {
+    from { opacity: 1; transform: scale(1) translateY(0); }
+    to   { opacity: 0; transform: scale(0.95) translateY(8px); }
+}
+
 @keyframes dialogScaleIn {
     from { opacity: 0; transform: scale(0.92) translateY(10px); }
     to   { opacity: 1; transform: scale(1) translateY(0); }
@@ -150,8 +168,8 @@
 #tag-dialog-ok,
 #collection-dialog-ok,
 #collection-add-new {
-    background: var(--photonic-gradient-dark);
-    color: #fff;
+    background: var(--photonic-gradient);
+    color: var(--text-primary);
 }
 
 #btn-dialog-ok:hover,
@@ -181,9 +199,10 @@
 
 .tag-color-palette {
     display: grid;
-    grid-template-columns: repeat(10, 1fr);
+    grid-template-columns: repeat(12, 1fr);
     gap: 6px;
     margin-bottom: 10px;
+    padding: 8px;
 }
 
 .tag-color-swatch {
@@ -270,8 +289,7 @@
     border-radius: 8px;
 }
 
-#tag-existing-list::before,
-#collection-existing-list::before {
+#tag-existing-list::before {
     content: "Existing";
     display: block;
     width: 100%;
@@ -503,7 +521,7 @@
     padding-bottom: 12px;
     background: color-mix(in srgb, var(--bg-primary) 40%, var(--bg-secondary));
     border-bottom: 1px solid var(--border);
-    padding: 0.6em;
+    padding: 0.8em 1em;
 }
 
 .changelog-header h3 {
@@ -632,7 +650,7 @@
     justify-content: center;
     gap: 7px;
     flex-shrink: 0;
-    padding: 12px 10px;
+    padding: 14.5px 10px;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 1.5px;

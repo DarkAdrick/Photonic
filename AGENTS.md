@@ -7,7 +7,7 @@
 - **Desktop**: a **frameless** pywebview window (drag + controls + custom resize) loading `frontend/index.html`; EXE build via PyInstaller (`Photonic.spec`) on GitHub Actions.
 - **Mobile**: Capacitor/Android, everything in `mobile/` (WIP, source-only, **never mentioned in the CHANGELOG** — user decision).
 - Frontend: vanilla JS, no framework, in `frontend/`. Key structure:
-  - `frontend/index.html` — single page. Version badge: `<span class="version-badge-inner">vX.Y.Z</span>`. Cache-busting `?v=X.Y.Z` on all `<script>`/`<link>`.
+  - `frontend/index.html` — single page. Version badge: `<span class="version-badge-inner">vX.Y.Z</span>` followed by a `<span class="version-badge-snapshot">SNAPSHOT</span>` pill on snapshot builds (remove the pill for a real release). Cache-busting `?v=X.Y.Z` on all `<script>`/`<link>`.
   - `frontend/js/modules/*.js` — modular version **also loaded**.
   - `frontend/css/style.css` — imports all components with `?v=X.Y.Z` (must be bumped too).
   - `frontend/i18n/{en-US,fr-FR,de-DE,es-ES,ja-JP}.json` — **every new key translated in all 5 files**. Validation: `ConvertFrom-Json`.
@@ -49,7 +49,7 @@
 10. **Check the last Build & Release run before announcing a release is ready** (status/conclusion + asset present).
 
 ## Rules of collaboration
-- **Never commit or push without explicit user confirmation.**
+- **NEVER commit or push unless the user explicitly says the word "commit" / "committe"** — asking "tu committe ?", proposing to commit, or building release files is NOT enough. Only an explicit, direct instruction unlocks a git commit.
 - **Never skip a version number** (see GitHub rule 2).
 
 ## State at 2026-09-07 (end of day)

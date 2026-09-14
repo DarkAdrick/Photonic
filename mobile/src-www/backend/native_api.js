@@ -115,7 +115,7 @@ self.ApiHandlers = self.ApiHandlers || {};
 
   // ── Version ─────────────────────────────────────────────────────────────
 
-  var APP_VERSION = "1.1.1";
+  var APP_VERSION = "1.2.0";
 
   // ── Stats helper ────────────────────────────────────────────────────────
 

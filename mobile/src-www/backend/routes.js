@@ -120,6 +120,14 @@
       [/^\/api\/tags\/(\d+)$/,                      H.updateTag]
     ],
 
+    PATCH: [
+      // Folders
+      [/^\/api\/folders\/(\d+)$/,                   H.updateFolder],
+
+      // Tags
+      [/^\/api\/tags\/(\d+)$/,                      H.updateTag]
+    ],
+
     DELETE: [
       // Folders
       [/^\/api\/folders\/(\d+)$/,                   H.deleteFolder],

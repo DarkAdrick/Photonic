@@ -38,7 +38,26 @@
 .collection-dot i {
     width: 11px;
     height: 11px;
-    color: #fff;
+    color: currentColor;
+}
+
+.settings-row .tag-dot.collection-dot {
+    width: 28px;
+    height: 28px;
+}
+
+.settings-row .tag-dot.collection-dot svg,
+.settings-row .tag-dot.collection-dot i {
+    width: 15px;
+    height: 15px;
+}
+
+.settings-row.collection-row {
+    background: color-mix(in srgb, var(--row-tint, var(--accent)) 12%, transparent);
+}
+
+.settings-row.collection-row:hover {
+    background: color-mix(in srgb, var(--row-tint, var(--accent)) 18%, transparent);
 }
 
 .collection-item .col-icon {

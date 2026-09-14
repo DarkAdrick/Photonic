@@ -5,6 +5,49 @@
     width: 100%;
     overflow: hidden;
     z-index: 10;
+    display: flex;
+    flex-direction: column;
+}
+
+#settings-page:not(.hidden) {
+    animation: settingsPageIn 0.28s cubic-bezier(.4,0,.2,1);
+}
+
+#settings-page.closing {
+    animation: settingsPageOut 0.22s ease forwards;
+}
+
+@keyframes settingsPageIn {
+    from { opacity: 0; transform: translateX(24px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes settingsPageOut {
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(24px); }
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px 8px 16px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.settings-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    background: var(--photonic-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 /* ── Layout ──────────────────────────────────────────────────────────────── */
@@ -12,7 +55,8 @@
 .settings-layout {
     display: grid;
     grid-template-columns: 240px 1fr;
-    height: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow: hidden;
 }
 
@@ -24,49 +68,6 @@
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-}
-
-.settings-nav-header {
-    padding: 8px 15px 8px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.settings-nav-header h2 {
-    font-size: 18px;
-    font-weight: 700;
-    margin-top: 0;
-    background: var(--photonic-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.settings-back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text-secondary);
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.settings-back-btn svg {
-    width: 14px;
-    height: 14px;
-}
-
-.settings-back-btn:hover {
-    color: var(--text-primary);
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 10%, var(--bg-tertiary));
 }
 
 .settings-nav-items {
@@ -177,8 +178,8 @@
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 20px;
+    padding: 5px;
+    margin-bottom: 10px;
     transition: border-color 0.2s;
 }
 
@@ -190,7 +191,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .settings-card-header svg {
@@ -354,6 +355,17 @@
     line-height: 1.4;
 }
 
+.setting-update-line {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 2px 6px;
+}
+
+.setting-update-line .setting-label {
+    margin-bottom: 0;
+}
+
 .setting-desc-warn {
     margin-top: 6px;
     color: #f39c12;
@@ -513,6 +525,7 @@
     width: auto;
     padding: 0 6px;
     gap: 3px;
+    background: var(--bg-primary);
 }
 
 .btn-beta-tag {
@@ -533,7 +546,7 @@
 .palette-group {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 9px;
 }
 
 .palette-group-label {
@@ -547,7 +560,7 @@
 
 .palette-row {
     display: flex;
-    gap: 8px;
+    gap: 5px;
     flex-wrap: wrap;
 }
 
@@ -771,15 +784,16 @@
 
 .settings-app-info {
     display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 20px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 10px;
     background: linear-gradient(135deg,
         color-mix(in srgb, var(--accent) 8%, var(--bg-secondary)),
         color-mix(in srgb, var(--bg-tertiary) 60%, var(--bg-secondary)));
     border: 1px solid var(--border);
     border-radius: 14px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     position: relative;
     overflow: hidden;
 }
@@ -808,6 +822,15 @@
     box-shadow:
         0 0 0 5px color-mix(in srgb, var(--accent) 6%, transparent),
         0 4px 20px color-mix(in srgb, var(--photonic-1) 25%, transparent);
+    background: transparent;
+}
+
+.settings-app-icon img {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    object-fit: contain;
+    /* background: #d8dbf8; */
 }
 
 .settings-app-icon svg {
@@ -855,7 +878,10 @@
     display: flex;
     gap: 8px;
     align-items: center;
+    justify-content: flex-end;
     margin-top: 8px;
+    width: 100%;
+    flex-basis: 100%;
 }
 
 .settings-app-desc {
@@ -870,7 +896,8 @@
     color: #e84393;
     border: 1px solid color-mix(in srgb, #e84393 40%, var(--border));
     font-weight: 600;
-    padding: 6.7px 16px;
+    padding: 6.7px 9px 6.7px 8px;
+    font-size: 0.8em;
 }
 
 .settings-action-btn.sponsor:hover {
@@ -938,7 +965,18 @@
     padding: 0;
     cursor: pointer;
     background: none;
+    -webkit-appearance: none;
+    appearance: none;
     transition: border-color 0.2s;
+}
+
+.settings-row input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.settings-row input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 4px;
 }
 
 .settings-row input[type="color"]:hover {
@@ -1098,15 +1136,33 @@
 
     .settings-nav-items {
         flex-direction: row;
-        overflow-x: auto;
-        padding: 8px 12px;
+        flex-wrap: nowrap;
+        overflow: hidden;
+        padding: 2px 10px;
         gap: 4px;
     }
 
     .settings-nav-item {
+        flex: 1 1 0;
+        min-width: 0;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
         white-space: nowrap;
-        padding: 8px 12px;
-        font-size: 12px;
+        padding: 6px 4px;
+        font-size: 11px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .settings-nav-items :where(.settings-nav-item:nth-child(even)) {
+        background: none;
+    }
+
+    .settings-nav-item svg {
+        width: 14px;
+        height: 14px;
     }
 
     .settings-nav-item.active::before {
@@ -1118,19 +1174,24 @@
         color: #fff;
     }
 
-    .settings-nav-header h2 {
+    .settings-nav-badge {
+        display: none;
+    }
+
+    .settings-header h2 {
         font-size: 15px;
-        margin-top: 0;
+        margin: 0;
     }
 
     .settings-content {
-        padding: 20px;
+        padding: 10px;
         padding-bottom: calc(24px + max(0px, calc(env(safe-area-inset-bottom) - 15px)));
     }
 
     .settings-app-info {
-        flex-direction: column;
-        text-align: center;
+        flex-direction: row;
+        align-items: flex-start;
+        text-align: left;
     }
 
     .settings-range {
@@ -1161,6 +1222,7 @@
     }
 
     .lang-settings-menu {
+        top: 100%;
         left: 0;
         right: 0;
     }
@@ -1193,6 +1255,8 @@
         width: 100%;
         justify-content: center;
         padding: 12px 16px;
+        padding: 7.7px 9px 6.7px 8px;
+        font-size: 0.8em;
     }
 
     .settings-data-actions .settings-action-btn {
@@ -1203,6 +1267,46 @@
     .settings-footer-actions {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .setting-row:has(.toggle-switch) {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .setting-row:has(.toggle-switch) .setting-control {
+        margin-left: 12px;
+        margin-top: 0;
+        width: auto;
+        flex-shrink: 0;
+    }
+
+    .settings-row {
+        flex-wrap: nowrap;
+        gap: 8px;
+        padding: 8px 6px;
+    }
+
+    .settings-row .tag-dot:not(.collection-dot) {
+        display: none;
+    }
+
+    .settings-row input[type="color"] {
+        width: 34px;
+        height: 34px;
+        flex-shrink: 0;
+        border-radius: 8px;
+    }
+
+    .settings-row input[type="text"] {
+        flex: 1;
+        min-width: 0;
+        font-size: 13px;
+        padding: 8px 10px;
+    }
+
+    .settings-row .settings-row-actions {
+        flex-shrink: 0;
     }
 }
 

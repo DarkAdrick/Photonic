@@ -6,8 +6,9 @@ self.PhotosSchema = self.PhotosSchema || {};
 
 self.PhotosSchema.SQL = `
 CREATE TABLE IF NOT EXISTS folders (
-    id   INTEGER PRIMARY KEY AUTOINCREMENT,
-    path TEXT NOT NULL UNIQUE
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    path         TEXT NOT NULL UNIQUE,
+    display_name TEXT
 );
 
 CREATE TABLE IF NOT EXISTS photos (
@@ -50,7 +51,6 @@ CREATE TABLE IF NOT EXISTS tags (
     parent_id INTEGER REFERENCES tags(id) ON DELETE SET NULL,
     UNIQUE(name, parent_id)
 );
-
 CREATE TABLE IF NOT EXISTS collections (
     id        INTEGER PRIMARY KEY AUTOINCREMENT,
     name      TEXT    NOT NULL,

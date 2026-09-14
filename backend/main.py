@@ -1297,13 +1297,22 @@ def get_thumbnail(photo_id: int, size: str, request: Request):
 
 
 @app.get("/api/photos/{photo_id}/raw")
-def get_raw_photo(photo_id: int):
+def get_raw_photo(photo_id: int, request: Request):
     conn = get_connection()
     r = conn.execute("SELECT path, mime_type FROM photos WHERE id = ?", (photo_id,)).fetchone()
     conn.close()
     if not r or not Path(r["path"]).is_file():
         return Response(status_code=404)
-    return FileResponse(r["path"], media_type=r["mime_type"])
+    # Content-based ETag: cheap revalidation (304) once the browser has the raw
+    # file; rotation/editing rewrites the file in place → new mtime → new ETag.
+    stat = Path(r["path"]).stat()
+    etag = f'"{stat.st_mtime_ns:x}-{stat.st_size:x}"'
+    if request.headers.get("If-None-Match") == etag:
+        return Response(status_code=304)
+    resp = FileResponse(r["path"], media_type=r["mime_type"])
+    resp.headers["Cache-Control"] = "no-cache"
+    resp.headers["ETag"] = etag
+    return resp
 
 
 import os, subprocess, hashlib

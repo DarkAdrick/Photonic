@@ -7,7 +7,7 @@
          P.settingsPageNav   = P.settingsPage.querySelector(".settings-nav-items");
         const settingsSections  = P.settingsPage.querySelectorAll(".settings-section");
         const btnSettings       = document.getElementById("btn-settings");
-        const settingsBack      = document.getElementById("settings-back");
+        const settingsClose     = document.getElementById("settings-close");
         let previousView        = "library";
     
         function openSettings() {
@@ -71,18 +71,28 @@
         };
     
         function closeSettings() {
-            P.settingsPage.classList.add("hidden");
             btnSettings.classList.remove("active");
             document.getElementById("sidebar").classList.remove("hidden");
             document.getElementById("filter-drawer").classList.remove("hidden");
             P.fn.setView(previousView);
+            const sp = P.settingsPage;
+            if (sp.classList.contains("hidden") || sp.classList.contains("closing")) return;
+            sp.classList.add("closing");
+            const finish = () => {
+                if (sp.classList.contains("hidden")) return;
+                sp.classList.remove("closing");
+                sp.classList.add("hidden");
+            };
+            const onEnd = (e) => { if (e.target === sp) { sp.removeEventListener("animationend", onEnd); finish(); } };
+            sp.addEventListener("animationend", onEnd);
+            setTimeout(finish, 300);
         }
     
         btnSettings.addEventListener("click", () => {
             if (!P.settingsPage.classList.contains("hidden")) closeSettings();
             else openSettings();
         });
-        settingsBack.addEventListener("click", closeSettings);
+        settingsClose.addEventListener("click", closeSettings);
     
         P.settingsPageNav.querySelectorAll(".settings-nav-item").forEach(item => {
             item.addEventListener("click", () => {
@@ -125,9 +135,11 @@
             const showExts = localStorage.getItem("photonic.showExtensions") === "true";
             const showHiddenDefault = localStorage.getItem("photonic.showHiddenDefault") === "true";
             const thumbSize = parseInt(localStorage.getItem("photonic.thumbnailSize") || "150");
+            const gridGap = Math.min(10, Math.max(0, parseInt(localStorage.getItem("photonic.gridGap") || "3") || 0));
+            const showPhotoLabels = localStorage.getItem("photonic.showPhotoLabels") !== "false";
             const defaultView = localStorage.getItem("photonic.defaultView") || "grid";
             const clusterThreshold = parseInt(localStorage.getItem("photonic.clusterThreshold") || "1");
-            const clusterGlobalThreshold = parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "500");
+            const clusterGlobalThreshold = Math.min(1000, Math.max(50, parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "500") || 500));
             const heatMax = parseInt(localStorage.getItem("photonic.heatMax") || "5000");
             const heatPalette = localStorage.getItem("photonic.heatPalette") || "heatmap";
             const heatColorLight = localStorage.getItem("photonic.heatColorLight") || "#4caf50";
@@ -137,18 +149,18 @@
     
             el.innerHTML = `
                 <div class="settings-app-info">
-                    <div class="settings-app-icon"><i data-lucide="aperture"></i></div>
+                    <div class="settings-app-icon"><img src="/logo.svg" alt="Photonic" loading="lazy"></div>
                     <div class="settings-app-details">
                         <div class="settings-app-title-row">
                             <div class="settings-app-name">PHOTONIC</div>
                             <span class="settings-app-version" id="settings-page-version"></span>
                         </div>
                         <p class="settings-app-desc">${t("settings.app.desc")}</p>
-                        <div class="settings-app-actions">
+                    </div>
+                    <div class="settings-app-actions">
                             <button class="settings-action-btn" id="setting-open-changelog"><i data-lucide="scroll-text"></i> ${t("settings.app.whats_new")}</button>
                             <a href="https://github.com/sponsors/DarkAdrick" target="_blank" rel="noopener" class="settings-action-btn sponsor" id="setting-sponsor"><i data-lucide="heart"></i> ${t("changelog.sponsor")}</a>
                         </div>
-                    </div>
                 </div>
     
                 <div class="settings-card settings-card-gradient">
@@ -158,8 +170,10 @@
                     </div>
                     <div class="setting-row">
                         <div class="setting-info">
-                            <div class="setting-label" id="setting-update-status">${P.fn.describeUpdateState(P.lastUpdateState)}</div>
-                            <div class="setting-desc">${P.lastUpdateState && P.lastUpdateState.current_version ? t("settings.updates.current_version", { v: P.lastUpdateState.current_version }) : ""}${t("settings.updates.desc")}</div>
+                            <div class="setting-update-line">
+                                <div class="setting-label" id="setting-update-status">${P.fn.describeUpdateState(P.lastUpdateState)}</div>
+                                <div class="setting-desc">${P.lastUpdateState && P.lastUpdateState.current_version ? t("settings.updates.current_version", { v: P.lastUpdateState.current_version }) : ""}${t("settings.updates.desc")}</div>
+                            </div>
                         </div>
                         <div class="setting-control" style="display:flex; gap:8px;">
                             <button class="settings-action-btn" id="setting-update-check"><i data-lucide="refresh-cw"></i> ${t("settings.updates.check")}</button>
@@ -323,6 +337,37 @@
                     </div>
                     <div class="setting-row">
                         <div class="setting-info">
+                            <div class="setting-row-icon"><i data-lucide="stretch-horizontal"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.display.grid_gap_label")}</div>
+                                <div class="setting-desc">${t("settings.display.grid_gap_desc")}</div>
+                            </div>
+                        </div>
+                        <div class="setting-control">
+                            <div class="settings-range-wrap">
+                                <input type="range" class="settings-range" id="setting-grid-gap" min="0" max="10" step="1" value="${gridGap}">
+                                <input type="number" class="settings-range-label settings-range-input" id="setting-grid-gap-label" value="${gridGap}" min="0" max="10" step="1" aria-label="${t("settings.display.grid_gap_label")}">
+                                <span class="settings-range-unit">px</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-row-icon"><i data-lucide="file-text"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.display.photo_label_label")}</div>
+                                <div class="setting-desc">${t("settings.display.photo_label_desc")}</div>
+                            </div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="setting-photo-labels" ${showPhotoLabels ? "checked" : ""}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
                             <div class="setting-row-icon"><i data-lucide="layout-grid"></i></div>
                             <div class="setting-row-text">
                                 <div class="setting-label">${t("settings.display.default_view")}</div>
@@ -365,8 +410,8 @@
                         </div>
                         <div class="setting-control">
                             <div class="settings-range-wrap">
-                                <input type="range" class="settings-range" id="setting-cluster-global" min="300" max="5000" step="1" value="${clusterGlobalThreshold}">
-                                <input type="number" class="settings-range-label settings-range-input" id="setting-cluster-global-label" value="${clusterGlobalThreshold}" min="300" max="5000" step="1" aria-label="${t("settings.display.cluster_global_label")}">
+                                <input type="range" class="settings-range" id="setting-cluster-global" min="50" max="1000" step="25" value="${clusterGlobalThreshold}">
+                                <input type="number" class="settings-range-label settings-range-input" id="setting-cluster-global-label" value="${clusterGlobalThreshold}" min="50" max="1000" step="25" aria-label="${t("settings.display.cluster_global_label")}">
                             </div>
                         </div>
                     </div>
@@ -659,12 +704,39 @@
                 thumbLabel.value = v;
                 localStorage.setItem("photonic.thumbnailSize", v);
                 document.documentElement.style.setProperty("--thumb-size", v + "px");
-                document.documentElement.style.setProperty("--thumb-gap", (v <= 20 ? 2 : v <= 100 ? 3 : 6) + "px");
                 document.documentElement.classList.toggle("thumbs-tiny", +v <= 90);
                 if (mainThumb) mainThumb.value = v;
             }
             thumbSlider.addEventListener("input", (e) => applyThumbSize(e.target.value));
             thumbLabel.addEventListener("change", (e) => applyThumbSize(e.target.value));
+
+            const gridGapSlider = document.getElementById("setting-grid-gap");
+            const gridGapLabel = document.getElementById("setting-grid-gap-label");
+            if (gridGapSlider && gridGapLabel) {
+                function applyGridGap(v) {
+                    v = Math.max(0, Math.min(10, +v || 0));
+                    gridGapSlider.value = v;
+                    gridGapLabel.value = v;
+                    if (typeof P.fn.setThumbGap === "function") P.fn.setThumbGap(v);
+                    else {
+                        const gapPx = v + "px";
+                        document.documentElement.style.setProperty("--thumb-gap", gapPx);
+                        document.documentElement.style.setProperty("--thumb-radius", gapPx);
+                        localStorage.setItem("photonic.gridGap", v);
+                    }
+                }
+                gridGapSlider.addEventListener("input", (e) => applyGridGap(e.target.value));
+                gridGapLabel.addEventListener("change", (e) => applyGridGap(e.target.value));
+            }
+
+            const photoLabelsToggle = document.getElementById("setting-photo-labels");
+            if (photoLabelsToggle) {
+                photoLabelsToggle.addEventListener("change", (e) => {
+                    const show = e.target.checked;
+                    localStorage.setItem("photonic.showPhotoLabels", show ? "true" : "false");
+                    document.documentElement.classList.toggle("hide-photo-labels", !show);
+                });
+            }
     
             document.querySelectorAll("#setting-default-view .layout-btn").forEach(btn => {
                 btn.addEventListener("click", () => {
@@ -705,28 +777,17 @@
     
             const clusterGlobalSlider = document.getElementById("setting-cluster-global");
             const clusterGlobalLabel = document.getElementById("setting-cluster-global-label");
-            const clusterGlobalDesc = document.getElementById("setting-cluster-global-desc");
-            const clusterGlobalDescBase = clusterGlobalDesc ? clusterGlobalDesc.innerHTML : "";
             if (clusterGlobalSlider && clusterGlobalLabel) {
-                const setClusterGlobalWarn = (v) => {
-                    clusterGlobalLabel.classList.toggle("warn", +v > 1000);
-                    if (clusterGlobalDesc) {
-                        clusterGlobalDesc.innerHTML = clusterGlobalDescBase + (+v > 1000
-                            ? `<div class="setting-desc-warn">⚠ ${t("settings.display.cluster_global_warn")}</div>`
-                            : "");
-                    }
-                };
                 const applyClusterGlobal = (v) => {
-                    v = Math.max(300, Math.min(5000, +v || 300));
+                    v = Math.max(50, Math.min(1000, +v || 50));
                     clusterGlobalSlider.value = v;
                     clusterGlobalLabel.value = v;
                     localStorage.setItem("photonic.clusterGlobalThreshold", v);
-                    setClusterGlobalWarn(v);
                     if (P.activeView === "locations") { P.lastMapQueryUrl = null; P.fn.loadMapPhotos(); }
                 };
                 clusterGlobalSlider.addEventListener("input", (e) => applyClusterGlobal(e.target.value));
                 clusterGlobalLabel.addEventListener("change", (e) => applyClusterGlobal(e.target.value));
-                setClusterGlobalWarn(clusterGlobalSlider.value);
+                applyClusterGlobal(clusterGlobalSlider.value);
             }
 
             const heatMaxSlider = document.getElementById("setting-heat-max");
@@ -843,7 +904,7 @@
                     document.documentElement.style.setProperty(`--${name}`, value);
                 }
                 document.documentElement.style.setProperty("--thumb-size", "150px");
-                document.documentElement.style.setProperty("--thumb-gap", "6px");
+                if (typeof P.fn.setThumbGap === "function") P.fn.setThumbGap(3);
                 const gridBtn = document.getElementById("btn-layout-grid");
                 if (gridBtn) gridBtn.click();
                 P.fn.setLocationsLayout("vertical");
@@ -873,4 +934,5 @@
     // --- exports ---
         P.fn.renderApplicationSettings = renderApplicationSettings;
         P.fn.openSettings = openSettings;
+        P.fn.closeSettings = closeSettings;
 })(window.PhotoApp = window.PhotoApp || {});

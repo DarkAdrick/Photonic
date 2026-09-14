@@ -1,5 +1,49 @@
 # Changelog
 
+## v1.2.0 — Mobile Update — 14 September 2026
+
+### Mobile (Capacitor / Android)
+- [ADD] Full Capacitor Android backend rewrite (Kotlin): database, thumbnails and file I/O are now handled entirely by the native plugin
+- [ADD] Touch selection mode: long-press enters selection; a bottom action bar replaces the header with batch operations; auto-exits when the selection empties
+- [ADD] Detail view: immersive fullscreen mode (CSS-based on mobile — hides chrome while keeping Android safe areas; tap to exit)
+- [ADD] Detail view: draggable resize handle between the photo and metadata sidebar (landscape and portrait, with saved proportions)
+- [ADD] Detail view: double-tap zoom (100% ↔ 250%) with tap-position anchoring
+- [ADD] Detail view: prev/next nav buttons disabled on first/last photo
+- [ADD] Detail view: next/prev photos are preloaded in the background while viewing
+- [ADD] Native `content://` streaming: video and photo paths go through the native plugin instead of loading full files through the WebView bridge (prevents OOM on large files)
+- [ADD] Native open/reveal: "Open in…" and "Reveal in folder" use the native plugin directly on mobile
+- [ADD] New splash screen design (all densities, landscape and portrait)
+- [ADD] Square app launcher icon (`logosquared.png`) with adaptive icon safe-zone padding; round icon preserved for in-app / changelog use
+- [ADD] Grid mode gap fix on mobile (small-screen CSS)
+- [FIX] Detail zoom transform order: translate now precedes scale — prevents accelerated panning at high zoom
+- [FIX] Swipe navigation no longer conflicts with nav buttons or fires when zoomed in
+- [FIX] Touch gesture handling: `suppressContext` flag prevents native context-menu flash during touch
+
+### Desktop
+- [ADD] Scan progress bar opens a **live scan dashboard**: overall percentage, current file being processed, indexed/skipped stats, a rolling log of the last 30 files and a Cancel button
+- [ADD] Folders can be **renamed** in Settings → Folders: a custom display name is used across the app (sidebar, browse title) while the real folder path on disk stays untouched
+- [ADD] Ctrl+scroll and pinch-to-zoom now scale **toward the pointer position** (keeps the card under the cursor in place)
+- [ADD] Zoom-in / zoom-out buttons (+ / −) next to the thumbnail slider
+- [ADD] Country card border-radius now follows the grid gap setting (linked to `--thumb-radius`)
+- [FIX] The automatic rescan at launch now **respects the "Scan library at launch" setting** (it used to start a scan regardless)
+
+### Settings
+- [ADD] Grid gap slider (0–10 px) in Display: controls photo-card spacing and corner radius
+- [ADD] Photo labels toggle in Display: show or hide filenames below thumbnails
+- [EDIT] Cluster threshold range re-tuned: 50–1 000, step 25 (was 300–5 000)
+- [CHANGE] Settings page: close button (X) replaces the back button, with a smooth close animation
+- [CHANGE] Changelog dialog close animation (no more instant snap)
+
+### General
+- [CHANGE] Collection dialog simplified: removed existing/new tab navigation — the creation form opens directly; the "Add to collection" flow from the photo detail still works via the hidden batch-assign path
+- [CHANGE] Collection dots in settings and sidebar now use adaptive contrast (black or white icon depending on color luminance) and 28 × 28 px sizing; collection settings rows are tinted with the collection color
+- [CHANGE] Frontend boot logic moved into the modular `app.js` — the monolithic `frontend/js/app.js` has been removed
+- [ADD] Animated SVG logo (`logo.svg`) on the welcome screen and Settings app info (replaces the Lucide aperture icon)
+- [ADD] ETag + `Cache-Control: no-cache` on the `/raw` photo endpoint (efficient browser revalidation)
+- [ADD] Detail image preloading strategy: thumbnail placeholder shown first, then full-size decoded and swapped in without ghosting
+- [EDIT] New app icon and logo design (SVG-based, used for the window, favicon and installables)
+- [EDIT] Translations added across all 5 languages for all new features
+
 ## v1.1.4 — Pocket — 07 September 2026
 
 ### Desktop

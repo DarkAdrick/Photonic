@@ -82,21 +82,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--border);
-    color:black!important;
-    --conic-1: #ff70ff;
-    --conic-2: #ffac88;
-    --conic-3: #ffee80;
-    --conic-4: #72ff9f;
-    --conic-5: #55daff;
-    background: conic-gradient(from var(--badge-angle) at 50% 50%, var(--conic-5) 0deg, var(--conic-1) 72deg, var(--conic-2) 144deg, var(--conic-3) 216deg, var(--conic-4) 288deg, var(--conic-5) 360deg);
-    animation: badgeSpin 4s linear infinite;
+    color: black !important;
 }
 
-.logo-icon svg {
-    width: 20px;
-    height: 20px;
-    animation: logoIconSpin 60s linear infinite reverse;
+.logo-icon svg,
+.logo-icon img {
+    width: 100%;
+    height: 100%;
 }
 
 @keyframes logoHue {
@@ -378,6 +370,27 @@
 
 .version-badge-outer:hover .version-badge-inner {
     text-shadow: 0 0 10px rgba(255, 77, 255, 0.7), 0 0 20px rgba(0, 200, 255, 0.3);
+}
+
+.version-badge-snapshot {
+    display: inline-block;
+    font-size: 9.5px;
+    padding: 1.5px 6px;
+    margin-left: 2px;
+    border-radius: 5px;
+    background: color-mix(in srgb, #fbbf24 14%, transparent);
+    border: 1px solid color-mix(in srgb, #fbbf24 45%, transparent);
+    color: #fbbf24;
+    letter-spacing: 0.6px;
+    vertical-align: middle;
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
+    cursor: default;
+    user-select: none;
+    background: var(--bg-primary);
+    margin-right: 5px;
+    margin-bottom: 0.2em;
 }
 
 /* ── Update Available Pill ──────────────────────────────────────────────── */

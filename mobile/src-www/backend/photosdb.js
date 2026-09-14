@@ -61,6 +61,24 @@ self.PhotosDb = self.PhotosDb || {};
           await persist(db);
         } catch (e) { /* migration best-effort */ }
       }
+      // Migrations: databases created before the mobile backend gained
+      // these optional columns need them added (mirror desktop database.py).
+      var folderCols = (db.exec("PRAGMA table_info(folders)") || [])[0];
+      var fcols = folderCols ? folderCols.values.map(function (r) { return r[1]; }) : [];
+      if (fcols.indexOf("display_name") < 0) {
+        try {
+          db.exec("ALTER TABLE folders ADD COLUMN display_name TEXT;");
+          await persist(db);
+        } catch (e) { /* migration best-effort */ }
+      }
+      var tagCols = (db.exec("PRAGMA table_info(tags)") || [])[0];
+      var tcols = tagCols ? tagCols.values.map(function (r) { return r[1]; }) : [];
+      if (tcols.indexOf("color") < 0) {
+        try {
+          db.exec("ALTER TABLE tags ADD COLUMN color TEXT;");
+          await persist(db);
+        } catch (e) { /* migration best-effort */ }
+      }
     }
     return db;
   }

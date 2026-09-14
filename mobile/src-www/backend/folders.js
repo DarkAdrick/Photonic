@@ -28,7 +28,7 @@ self.ApiHandlers = self.ApiHandlers || {};
     var showHidden = url.searchParams.get("show_hidden") === "true" || url.searchParams.get("show_hidden") === "1";
     var hiddenOnly = url.searchParams.get("hidden_only") === "true" || url.searchParams.get("hidden_only") === "1";
 
-    var rows = all(db, "SELECT id, path FROM folders ORDER BY path");
+    var rows = all(db, "SELECT id, path, display_name FROM folders ORDER BY path");
     var cond = N.hiddenSql("", showHidden, hiddenOnly);
     var hf = cond ? "AND " + cond + " " : "";
 
@@ -38,17 +38,23 @@ self.ApiHandlers = self.ApiHandlers || {};
         "SELECT COUNT(*) AS c FROM photos WHERE folder LIKE ? ESCAPE '\\' " + hf,
         [N.underPattern(base)]
       );
-      return { id: r.id, path: r.path, photo_count: cnt };
+      return { id: r.id, path: r.path, name: _folderDisplayName(r), photo_count: cnt };
     });
   }
 
   // ── GET /api/folders/tree ───────────────────────────────────────────────
 
+  function _folderDisplayName(r) {
+    var d = (r.display_name || "").trim();
+    if (d) return d;
+    return N.nameFromPath(r.path);
+  }
+
   function listFoldersTree(db, url, body, match) {
-    var rows = all(db, "SELECT id, path FROM folders ORDER BY path");
+    var rows = all(db, "SELECT id, path, display_name FROM folders ORDER BY path");
 
     var entries = rows.map(function (r) {
-      return { id: r.id, path: r.path, children: [] };
+      return { id: r.id, path: r.path, display_name: r.display_name, children: [] };
     });
     var roots = [];
 

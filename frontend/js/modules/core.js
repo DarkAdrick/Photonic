@@ -96,6 +96,10 @@
          P.navItems        = document.querySelectorAll("#sidebar nav li");
     
          P.detailOverlay = document.getElementById("photo-detail");
+         P.detailLayout   = document.getElementById("detail-layout");
+         P.detailImage    = document.getElementById("detail-image");
+         P.detailSidebar  = document.getElementById("detail-sidebar");
+         P.detailResize   = document.getElementById("detail-resize");
          P.detailImg     = document.getElementById("detail-img");
          P.detailFname   = document.getElementById("detail-filename");
          P.detailMeta    = document.getElementById("detail-meta");
@@ -147,9 +151,6 @@
          P.collectionDialogOk    = document.getElementById("collection-dialog-ok");
          P.collectionDialogCancel= document.getElementById("collection-dialog-cancel");
     
-         P.collectionExistingList    = document.getElementById("collection-existing-list");
-        const collectionExistingSection = document.getElementById("collection-existing-section");
-    
          P.tagModalPhotoId = null;
          P.tagModalBatchIds = null;
          P.tagModalSelectedColor = null;
@@ -159,7 +160,6 @@
          P.collectionModalBatchIds = null;
          P.collectionModalSelectedColor = null;
          P.pendingCollectionAssignIds = null;
-         P.collectionModalExistingCollections = [];
     
         const confirmDialog = document.getElementById("confirm-dialog");
         const confirmTitle  = document.getElementById("confirm-title");
@@ -191,6 +191,18 @@
     
     // --- exports ---
         P.fn.showConfirm = showConfirm;
+        P.fn.isNative = function () {
+            return !!(window.Photonic && window.Photonic.isNative && window.Photonic.isNative());
+        };
+        // Video src for the <video>/360 players. On mobile, /stream forces the
+        // whole file through the native base64 bridge (OOM crash). The photo's
+        // stored native URI (content://) instead plays directly in the WebView.
+        P.fn.detailVideoSrc = function (photoId, data) {
+            if (P.fn.isNative && P.fn.isNative() && data && data.path && String(data.path).indexOf("://") !== -1) {
+                return data.path;
+            }
+            return `/api/photos/${photoId}/stream`;
+        };
         P.fn.hiddenQuery = function () {
             if (P.hiddenFilter === "all") return "show_hidden=1";
             if (P.hiddenFilter === "only") return "hidden_only=1";

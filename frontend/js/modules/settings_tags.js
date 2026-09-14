@@ -31,7 +31,7 @@
                 row.className = "settings-row";
                 row.id = "new-tag-row";
                 row.innerHTML = `
-                    <input type="color" value="${TAG_COLORS[3]}" id="new-tag-color">
+                    <input type="color" value="${P.TAG_COLORS[3]}" id="new-tag-color">
                     <input type="text" placeholder="${t("tag_dialog.name_placeholder")}" id="new-tag-name">
                     <div class="settings-row-actions">
                         <button class="settings-row-btn" title="${t("settings.tags.create")}" id="new-tag-ok"><i data-lucide="check"></i></button>

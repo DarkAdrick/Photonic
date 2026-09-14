@@ -20,6 +20,7 @@
             P.detailThumbVersion = 0;
             P.detailOverlay.classList.remove("hidden");
             document.body.style.overflow = "hidden";
+            if (P.fn.applyDetailResize) P.fn.applyDetailResize();
             try {
                 await loadDetail(photoId);
             } catch (e) {
@@ -28,12 +29,16 @@
         }
     
         function closeDetail() {
+            if (document.fullscreenElement) document.exitFullscreen();
             P.fn.destroy360Viewer();
+            document.body.classList.remove("photonic-detail-fs");
             P.detailOverlay.classList.add("hidden");
             document.body.style.overflow = "";
             P.detailCurrentPhotoId = null;
             P.detailCurrentPhotoData = null;
             P.fn.resetDetailZoom();
+            P.detailImg.removeAttribute("src");
+            P.detailImg.classList.remove("loading");
             if (P.detailMap) { P.detailMap.remove(); P.detailMap = null; }
         }
     
@@ -46,6 +51,39 @@
             await loadDetail(P.currentPhotoIds[newIdx]);
         }
     
+        function setDetailImage(photoId, useRaw = true) {
+            P.detailImg.src = `/api/photos/${photoId}/thumb/medium`;
+            if (!useRaw) return;
+            // Mobile: /raw charge toute la photo en base64 via le bridge natif
+            // (crash mémoire). On monte donc vers le thumb "large" (1600px, natif) à la place.
+            const isNative = !!(window.Photonic && window.Photonic.isNative && window.Photonic.isNative());
+            const rawUrl = isNative ? `/api/photos/${photoId}/thumb/large` : `/api/photos/${photoId}/raw`;
+            // Placeholder instantané : le thumb medium est déjà dans le cache navigateur (grille / carte),
+            // on efface donc l'ancienne image sans ghost.
+            P.detailImg.classList.add("loading");
+            const preloader = new Image();
+            preloader.onload = () => {
+                preloader.decode().then(() => {
+                    if (P.detailCurrentPhotoId !== photoId) return;
+                    P.detailImg.src = rawUrl;
+                    P.detailImg.classList.remove("loading");
+                    P.fn.applyDetailZoom();
+                }).catch(() => {
+                    if (P.detailCurrentPhotoId !== photoId) return;
+                    P.detailImg.src = rawUrl;
+                    P.detailImg.classList.remove("loading");
+                    P.fn.applyDetailZoom();
+                });
+            };
+            preloader.src = rawUrl;
+        }
+
+        function preloadDetailImage(photoId) {
+            const isNative = !!(window.Photonic && window.Photonic.isNative && window.Photonic.isNative());
+            const img = new Image();
+            img.src = isNative ? `/api/photos/${photoId}/thumb/large` : `/api/photos/${photoId}/raw`;
+        }
+
         async function loadDetail(photoId) {
             P.fn.destroy360Viewer();
             P.detailCurrentPhotoId = photoId;
@@ -53,9 +91,18 @@
             if (data.error) return;
             P.detailCurrentPhotoData = data;
     
-            P.detailImg.src = `/api/photos/${photoId}/thumb/large?t=${P.detailThumbVersion}`;
+            const isVideo = P.fn.isVideo(data);
+            const is360Photo = P.fn.is360Photo(data);
+            const is360Video = P.fn.is360Video(data);
+            setDetailImage(photoId, !(isVideo || is360Photo || is360Video));
+            if (!(isVideo || is360Photo || is360Video)) {
+                if (P.detailIndex > 0) preloadDetailImage(P.currentPhotoIds[P.detailIndex - 1]);
+                if (P.detailIndex < P.currentPhotoIds.length - 1) preloadDetailImage(P.currentPhotoIds[P.detailIndex + 1]);
+            }
             P.detailFname.textContent = data.filename;
             P.detailCounter.textContent = `${P.detailIndex + 1} / ${P.currentPhotoIds.length}`;
+            P.detailPrev.disabled = P.detailIndex <= 0;
+            P.detailNext.disabled = P.detailIndex >= P.currentPhotoIds.length - 1;
             P.fn.applyDetailZoom();
     
             if (P.detailFooterCenter) P.detailFooterCenter.classList.remove("hidden");
@@ -75,7 +122,7 @@
                 P.detail360Btn.classList.add("hidden");
                 P.detailImg.classList.add("hidden");
                 if (P.detailVideo) {
-                    P.detailVideo.src = `/api/photos/${photoId}/stream`;
+                    P.detailVideo.src = P.fn.detailVideoSrc(photoId, data);
                     P.detailVideo.classList.remove("hidden");
                 }
                 if (P.detailFooterCenter) P.detailFooterCenter.classList.add("hidden");

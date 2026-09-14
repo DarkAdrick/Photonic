@@ -37,12 +37,13 @@
             function renderNode(n) {
                 const color = n.color || P.TAG_COLORS[Math.abs(P.fn.hashStr(n.name)) % P.TAG_COLORS.length];
                 const row = document.createElement("div");
-                row.className = "settings-row";
+                row.className = "settings-row collection-row";
+                row.style.setProperty("--row-tint", color);
                 const indent = n.depth > 0 ? `margin-left: ${n.depth * 20}px;` : "";
                 const iconName = n.icon || "library";
                 row.innerHTML = `
                     <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0; ${indent}">
-                        <span class="tag-dot collection-dot" style="background:${color}"><i data-lucide="${iconName}"></i></span>
+                        <span class="tag-dot collection-dot" style="background:${color}; color:${P.fn.contrastIconColor(color)}"><i data-lucide="${iconName}"></i></span>
                         <span style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${n.name}</span>
                     </div>
                     <div class="settings-row-actions">

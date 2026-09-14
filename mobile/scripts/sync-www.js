@@ -291,7 +291,7 @@ function injectMobile(htmlPath) {
   }
 
   const bridgeScript =
-    '<script src="page/bridge.js?v=1.1.5"></script>\n' +
+    '<script src="page/bridge.js?v=1.2.0"></script>\n' +
     '<script>\n' +
     '/* Photonic mobile boot */\n' +
     '(function () {\n' +

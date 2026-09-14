@@ -150,7 +150,7 @@
             if (opts.fallbackToFlatVideo && P.detailCurrentPhotoId && P.isCurrentPhoto360Video) {
                 P.detailImg.classList.add("hidden");
                 if (P.detailVideo) {
-                    P.detailVideo.src = `/api/photos/${P.detailCurrentPhotoId}/stream`;
+                    P.detailVideo.src = P.fn.detailVideoSrc(P.detailCurrentPhotoId, P.detailCurrentPhotoData);
                     P.detailVideo.classList.remove("hidden");
                 }
             } else {
@@ -171,7 +171,7 @@
             const ctx = P.video360Canvas.getContext("2d");
     
             P.video360Video = document.createElement("video");
-            P.video360Video.src = `/api/photos/${photoId}/stream`;
+            P.video360Video.src = P.fn.detailVideoSrc(photoId, P.detailCurrentPhotoData);
             P.video360Video.loop = true;
             P.video360Video.playsInline = true;
             P.video360Video.preload = "auto";
@@ -349,7 +349,27 @@
             }
         }
     
+function setDetailFullscreenIcon(active) {
+            if (!P.detailFullscreenBtn) return;
+            P.detailFullscreenBtn.innerHTML = active ? '<i data-lucide="minimize"></i>' : '<i data-lucide="maximize"></i>';
+            P.detailFullscreenBtn.title = active ? "Exit fullscreen" : "Fullscreen";
+            if (window.lucide) lucide.createIcons({ root: P.detailFullscreenBtn });
+        }
+
         function toggleFullscreen() {
+            const isNative = P.fn.isNative && P.fn.isNative();
+            const narrow = window.matchMedia && window.matchMedia("(max-width: 768px)").matches;
+            if (isNative || narrow) {
+                // Mobile / WebView: the native Fullscreen API is not supported
+                // for arbitrary elements (and on some WebViews it pushes the
+                // media under the system bars, hiding the close button). Use an
+                // immersive CSS mode that hides the chrome while keeping the
+                // photo inside the Android safe areas (status bar + gesture
+                // navigation stay visible). Tap the photo to exit.
+                const active = document.body.classList.toggle("photonic-detail-fs");
+                setDetailFullscreenIcon(active);
+                return;
+            }
             const detailImgContainer = document.getElementById("detail-image");
             if (!document.fullscreenElement) {
                 detailImgContainer.requestFullscreen().catch(err => console.error(err));
@@ -373,6 +393,17 @@
         }
     
     
+    function contrastIconColor(hex) {
+            const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
+            if (!m) return "#ffffff";
+            const n = parseInt(m[1], 16);
+            const r = (n >> 16) & 255;
+            const g = (n >> 8) & 255;
+            const b = n & 255;
+            return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55 ? "#000000" : "#ffffff";
+        }
+
+
     // --- exports ---
         P.fn.api = api;
         P.fn.renderMetaBadges = renderMetaBadges;
@@ -389,5 +420,7 @@
         P.fn.initPannellum = initPannellum;
         P.fn.toggle360 = toggle360;
         P.fn.toggleFullscreen = toggleFullscreen;
+    P.fn.setDetailFullscreenIcon = setDetailFullscreenIcon;
         P.fn.checkStatus = checkStatus;
+    P.fn.contrastIconColor = contrastIconColor;
 })(window.PhotoApp = window.PhotoApp || {});

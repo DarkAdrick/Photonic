@@ -40,7 +40,7 @@
                     const indent = c.depth > 0 ? ` style="padding-left:${8 + c.depth * 16}px"` : "";
                     const color = c.color || P.TAG_COLORS[Math.abs(P.fn.hashStr(c.name)) % P.TAG_COLORS.length];
                     const iconName = c.icon || "library";
-                    html += `<div class="collection-item${active}" data-collection-id="${c.id}"${indent}><span class="tag-dot collection-dot" style="background:${color}"><i data-lucide="${iconName}"></i></span>${c.name} <span class="tag-count">${c.photo_count}</span></div>`;
+                    html += `<div class="collection-item${active}" data-collection-id="${c.id}"${indent}><span class="tag-dot collection-dot" style="background:${color}; color:${P.fn.contrastIconColor(color)}"><i data-lucide="${iconName}"></i></span>${c.name} <span class="tag-count">${c.photo_count}</span></div>`;
                 }
                 html += '</div>';
             }

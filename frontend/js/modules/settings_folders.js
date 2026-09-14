@@ -183,4 +183,5 @@
     
     // --- exports ---
         P.fn.loadSettingsFolders = loadSettingsFolders;
+        P.fn.closeRenameDialog = closeRenameDialog;
 })(window.PhotoApp = window.PhotoApp || {});

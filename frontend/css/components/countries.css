@@ -2,7 +2,7 @@
 
 .country-card {
     background: var(--bg-tertiary);
-    border-radius: 4px;
+    border-radius: var(--thumb-radius, 4px);
     overflow: hidden;
     cursor: pointer;
     position: relative;
