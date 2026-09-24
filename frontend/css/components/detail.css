@@ -1382,3 +1382,57 @@
 .star { cursor: pointer; font-size: 18px; color: var(--text-secondary); }
 .star.filled { color: var(--photonic-3); }
 .star:hover { color: var(--photonic-3); }
+
+/* ── Missing/unreadable media in the detail stage ─────────────────────────── */
+#detail-missing {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--bg-primary) 55%, transparent);
+}
+
+#detail-missing.hidden { display: none; }
+
+.detail-missing-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    max-width: 420px;
+    color: var(--text-secondary);
+}
+
+#detail-missing-icon {width: 84px;height: 84px;color: var(--text-secondary);}
+
+.detail-missing-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.detail-missing-desc { font-size: 12.5px; }
+
+.detail-missing-checks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 12px;
+    text-align: left;
+}
+
+.detail-missing-checks li { display: flex; gap: 6px; }
+.detail-missing-checks li::before { content: "↳"; color: var(--accent); opacity: 0.85; flex-shrink: 0; }
+
+.detail-missing-path {
+    font-size: 11px;
+    font-family: Consolas, "Courier New", monospace;
+    color: color-mix(in srgb, var(--text-secondary) 75%, transparent);
+    word-break: break-all;
+}

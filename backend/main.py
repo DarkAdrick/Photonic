@@ -6,6 +6,7 @@ import sqlite3
 import threading
 import time
 import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -238,7 +239,6 @@ def _backfill_geo():
 
 def _start_scan(folder_path: str):
     from backend.scanner import scan_folder as _scan
-    from backend.thumbnails import generate_all_thumbnails
 
     # Set synchronously (caller holds _scan_lock) to avoid a start race
     _reset_scan_state(running=True)
@@ -255,16 +255,6 @@ def _start_scan(folder_path: str):
                 _push_scan_log(fpath, "indexed" if result == "ok" else "skipped")
 
         result = _scan(folder_path, progress_callback=progress, should_cancel=lambda: _scan_state["cancel"])
-
-        if not (result and result.get("cancelled")):
-            conn = get_connection()
-            rows = conn.execute(
-                "SELECT path FROM photos WHERE hash IS NOT NULL AND path LIKE ? ESCAPE '\\'",
-                (_under_pattern(folder_path),)
-            ).fetchall()
-            for r in rows:
-                generate_all_thumbnails(r["path"])
-            conn.close()
 
         _scan_state["cancelled"] = bool(result and result.get("cancelled"))
         _scan_state["running"] = False
@@ -550,11 +540,26 @@ def add_folder(folder: dict):
 
 @app.delete("/api/folders/{folder_id}")
 def delete_folder(folder_id: int):
+    """Remove a folder from the library: purges every photo indexed under it
+    (DB rows + cached thumbnails/video) but never touches the files on disk."""
+    from backend.thumbnails import delete_thumbnails
     conn = get_connection()
-    conn.execute("DELETE FROM folders WHERE id = ?", (folder_id,))
-    conn.commit()
-    conn.close()
-    return {"ok": True}
+    removed = 0
+    try:
+        folder_row = conn.execute("SELECT path FROM folders WHERE id = ?", (folder_id,)).fetchone()
+        if folder_row:
+            pat = _under_pattern(folder_row["path"])
+            rows = conn.execute("SELECT path, size FROM photos WHERE path LIKE ? ESCAPE '\\'", (pat,)).fetchall()
+            for r in rows:
+                delete_thumbnails(r["path"])
+                _delete_video_cache(r["path"], r["size"] or 0)
+            cur = conn.execute("DELETE FROM photos WHERE path LIKE ? ESCAPE '\\'", (pat,))
+            removed = cur.rowcount
+            conn.execute("DELETE FROM folders WHERE id = ?", (folder_id,))
+        conn.commit()
+    finally:
+        conn.close()
+    return {"ok": True, "removed": removed}
 
 
 @app.patch("/api/folders/{folder_id}")
@@ -1319,6 +1324,18 @@ import os, subprocess, hashlib
 
 VIDEO_CACHE_DIR = APP_DIR / "cache" / "video"
 VIDEO_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _delete_video_cache(path: str, size: int):
+    """Delete the transcoded video cache (and any in-progress .part) for a photo path."""
+    tag = hashlib.md5(f"{path}:{size}".encode()).hexdigest()[:12]
+    for p in (VIDEO_CACHE_DIR / f"{tag}.mp4", VIDEO_CACHE_DIR / f"{tag}.mp4.part"):
+        try:
+            if p.exists():
+                p.unlink()
+        except OSError:
+            pass
+
 
 _video_jobs = set()
 _video_jobs_lock = threading.Lock()
@@ -2108,7 +2125,13 @@ def _md_to_changelog_html(md: str) -> str:
         # Split name from date: "v0.1.1 — β — 19 August 2026" → name + date
         parts = title_text.rsplit(" — ", 1)
         if len(parts) == 2:
-            name_html = f'{parts[0]} <span class="cl-version-date">{parts[1]}</span>'
+            date_html = f'<span class="cl-version-date">{parts[1]}</span>'
+            try:
+                iso = datetime.strptime(parts[1], "%d %B %Y").date().isoformat()
+                date_html = f'<span class="cl-version-date" data-iso="{iso}">{parts[1]}</span>'
+            except ValueError:
+                pass
+            name_html = f'{parts[0]} {date_html}'
         else:
             name_html = title_text
         chevron = '<svg class="cl-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>'

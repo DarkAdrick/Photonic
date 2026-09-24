@@ -35,6 +35,12 @@
     
         function refreshAfterLangChange() {
             I18n.applyI18n();
+            if (P.fn.checkStatus) P.fn.checkStatus();
+            if (P.fn.updateViewTitle) P.fn.updateViewTitle();
+            const changelogDialogEl = document.getElementById("changelog-dialog");
+            if (changelogDialogEl && !changelogDialogEl.classList.contains("hidden") && P.fn.formatVersionDates) {
+                P.fn.formatVersionDates();
+            }
             const settingsPageEl = document.getElementById("settings-page");
             const settingsOpen = settingsPageEl && !settingsPageEl.classList.contains("hidden");
             if (settingsOpen) {

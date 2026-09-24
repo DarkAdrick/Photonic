@@ -246,6 +246,49 @@
     border-radius: 20px;
 }
 
+/* ── Photo markers (themed divIcon, replaces Leaflet default blue icon) ── */
+
+.pho-photo-marker {
+    background: none;
+    border: 0;
+}
+
+.pho-photo-marker .pho-pin {
+    width: 22px;
+    height: 22px;
+    margin: 7px auto 0;
+    background: var(--accent);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    transform-origin: bottom right;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    transition: transform 0.15s ease;
+    box-sizing: border-box;
+}
+
+.pho-photo-marker:hover .pho-pin {
+    transform: rotate(-45deg) scale(1.18);
+}
+
+.pho-photo-marker.geotag-pin .pho-pin {
+    width: 26px;
+    height: 26px;
+    margin: 5px auto 0;
+}
+
+.pho-photo-marker.detail-pin .pho-pin {
+    width: 26px;
+    height: 26px;
+    margin: 5px auto 0;
+    animation: phoPinDrop 0.35s ease;
+}
+
+@keyframes phoPinDrop {
+    from { transform: rotate(-45deg) translateY(-14px); opacity: 0; }
+    to   { transform: rotate(-45deg) translateY(0); opacity: 1; }
+}
+
 /* ── Map tile provider switch ─────────────────────────────────────────── */
 
 .leaflet-tile-switch {

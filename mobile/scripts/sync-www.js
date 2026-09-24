@@ -127,6 +127,13 @@ async function main() {
     console.log("Bundling CHANGELOG.md ...");
   }
 
+  // Bundle the credits so the mobile backend can serve /api/sponsors
+  const creditsSrc = path.join(ROOT, "..", "credits.json");
+  if (fs.existsSync(creditsSrc)) {
+    fs.copyFileSync(creditsSrc, path.join(WWW, "credits.json"));
+    console.log("Bundling credits.json ...");
+  }
+
   console.log("Vendoring CDN libraries ...");
   ensureDir(VENDOR_DST);
   for (const lib of VENDORED) {

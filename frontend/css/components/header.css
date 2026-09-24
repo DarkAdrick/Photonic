@@ -101,6 +101,7 @@
 }
 
 .logo {
+    position: relative;
     font-weight: 700;
     font-size: 20px;
     letter-spacing: 1px;
@@ -157,8 +158,8 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    color: #e84393;
-    background: color-mix(in srgb, #e84393 10%, transparent);
+    color: white;
+    background: linear-gradient(135deg, #e84393, #fd79a8);
     border: 1px solid color-mix(in srgb, #e84393 35%, transparent);
     cursor: pointer;
     transition: all 0.15s ease;
@@ -373,24 +374,16 @@
 }
 
 .version-badge-snapshot {
-    display: inline-block;
-    font-size: 9.5px;
-    padding: 1.5px 6px;
-    margin-left: 2px;
-    border-radius: 5px;
-    background: color-mix(in srgb, #fbbf24 14%, transparent);
-    border: 1px solid color-mix(in srgb, #fbbf24 45%, transparent);
-    color: #fbbf24;
+    position: absolute;
+    right: 0px;
+    top: 0;
+    margin-top: -6px;
+    font-size: 8.3px;
+    color: var(--accent);
+    -webkit-text-fill-color: var(--accent);
+    -webkit-background-clip: border-box;
     letter-spacing: 0.6px;
-    vertical-align: middle;
-    white-space: nowrap;
-    position: relative;
-    z-index: 1;
-    cursor: default;
     user-select: none;
-    background: var(--bg-primary);
-    margin-right: 5px;
-    margin-bottom: 0.2em;
 }
 
 /* ── Update Available Pill ──────────────────────────────────────────────── */

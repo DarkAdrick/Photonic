@@ -48,9 +48,11 @@ const thumbMin = 20;
             const prevTiny = prev <= 90;
             document.documentElement.style.setProperty("--thumb-size", px + "px");
             document.documentElement.classList.toggle("thumbs-tiny", px <= 90);
+            document.documentElement.classList.toggle("thumbs-micro", px <= 50);
             if (prevTiny !== (px <= 90)) rebindThumbSrcs();
             P.thumbSlider.value = px;
-            localStorage.setItem("photonic.thumbnailSize", px);
+localStorage.setItem("photonic.thumbnailSize", px);
+            if (P.fn.renderYearMarks) requestAnimationFrame(P.fn.renderYearMarks);
             if (currentLayout === "masonry") requestAnimationFrame(() => layoutMasonry());
             if (P.hasMore && !P.loadingMore) {
                 requestAnimationFrame(() => {
@@ -202,6 +204,7 @@ const thumbMin = 20;
                     card.style.height = "";
                 }
             }
+            if (P.fn.renderYearMarks) P.fn.renderYearMarks();
         }
     
         const _origLoadPhotos = P.fn.loadPhotos;
@@ -229,6 +232,7 @@ const thumbMin = 20;
         setThumbGap(Number.isFinite(savedGridGap) ? savedGridGap : 3);
 
         document.documentElement.classList.toggle("hide-photo-labels", localStorage.getItem("photonic.showPhotoLabels") === "false");
+        document.documentElement.classList.toggle("no-date-separators", localStorage.getItem("photonic.dateSeparators") === "false");
     
     
     // --- exports ---

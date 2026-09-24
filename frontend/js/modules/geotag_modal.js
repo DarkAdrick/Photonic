@@ -51,7 +51,7 @@
         if (geotagMarker) {
             geotagMarker.setLatLng(latlng);
         } else {
-            geotagMarker = L.marker(latlng, { draggable: true });
+            geotagMarker = L.marker(latlng, { draggable: true, icon: P.fn.photoMarkerIcon("geotag-pin") });
             geotagMarker.addTo(geotagMap);
             geotagMarker.on("dragend", renderCoords);
         }

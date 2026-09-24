@@ -72,11 +72,26 @@
     
         async function loadChangelog() {
             const data = await P.fn.api("GET", "/api/changelog");
-            if (data.html) changelogBody.innerHTML = data.html;
+            if (data.html) {
+                changelogBody.innerHTML = data.html;
+                formatVersionDates();
+            }
+        }
+
+        function formatVersionDates() {
+            const lang = (window.I18n && I18n.getCurrent ? I18n.getCurrent() : "en-US") || "en-US";
+            changelogBody.querySelectorAll(".cl-version-date").forEach((el) => {
+                const iso = el.dataset.iso;
+                if (!iso) return;
+                try {
+                    const d = new Date(iso + "T00:00:00");
+                    el.textContent = d.toLocaleDateString(lang, { day: "numeric", month: "long", year: "numeric" });
+                } catch (e) { /* keep the backend text */ }
+            });
         }
     
-        // ── Credits drawer (scrolling supporters & contributors) ──────────
-    
+// ── Credits drawer (scrolling supporters & contributors) ───────────────
+
         const clCreditsDrawer = document.getElementById("cl-credits");
         const clSponsorsSection = document.getElementById("cl-credits-section-sponsors");
         const clSponsorsTrack   = document.getElementById("cl-credits-sponsors");
@@ -84,7 +99,7 @@
         const clThanksTrack     = document.getElementById("cl-credits-thanks-track");
         const creditsAnims      = [];
         const CREDIT_SPEED  = 0.45; // px per frame at ~60fps
-    
+
         // build a single credit row: name (optionally linked) + optional reason
         function buildCreditRow(entry) {
             const row = document.createElement("div");
@@ -107,96 +122,169 @@
             }
             return row;
         }
-    
-        function scrollCredits(track, rows) {
-            track.innerHTML = "";
-            if (!rows || rows.length === 0) { track.style.transform = "translateY(0px)"; return; }
-    
+
+        function buildMarquee(track, rows) {
             const viewport = track.parentElement;
             const viewportH = viewport.clientHeight || 200;
-            const count = rows.length;
-    
-            // measure the packed block of names (natural gap from .cl-credits-track)
-            track.append(...rows);
-            const rowH = Math.max(16, rows[0].offsetHeight);
-            const blockHeight = track.offsetHeight || (count * (rowH + 8));
+
             track.innerHTML = "";
-    
-            // one loop unit = packed block of names + a FULL blank screen afterwards.
-            // When the last credit exits the top, a whole empty screen scrolls by,
-            // and only then the first name re-enters from the bottom.
             rows.forEach(r => track.appendChild(r));
+            const rowH = Math.max(16, rows[0].offsetHeight);
+
+            // one loop unit = packed block of names + a FULL blank screen.
+            // When the last credit exits the top, a whole empty screen scrolls
+            // by, and only then the first name re-enters from the bottom.
             const spacer = document.createElement("div");
             spacer.style.height = Math.floor(viewportH) + "px";
             spacer.style.flexShrink = "0";
             track.appendChild(spacer);
-            const unitH = track.offsetHeight || Math.max(blockHeight + viewportH, viewportH);
-            const oneUnit = track.innerHTML;
-    
+            const unitH = Math.max(track.offsetHeight, rowH + viewportH);
             const copies = Math.max(2, Math.ceil((viewportH + unitH) / unitH));
-            for (let i = 1; i < copies; i++) track.innerHTML += oneUnit;
-    
+            const unitHTML = track.innerHTML;
+            for (let i = 1; i < copies; i++) track.innerHTML += unitHTML;
+
+            return { viewport, viewportH, rowH, unitH };
+        }
+
+        function resetMarquee(state) {
+            const calc = buildMarquee(state.track, state.rows);
+            state.viewportH = calc.viewportH;
+            state.rowH = calc.rowH;
+            state.unitH = calc.unitH;
+            state.startY = calc.viewportH - calc.rowH;
+            state.endY = state.startY - state.unitH;
+            state.y = state.startY;
+            state.track.style.transform = `translateY(${state.y}px)`;
+        }
+
+        function scrollCredits(track, rows) {
             stopCredits(track);
-            // start with the first row at the bottom edge, rise one full unit,
-            // then the (identical) next copy takes over seamlessly
-            const startY = viewportH - rowH;
-            const endY   = startY - unitH;
-            const state = { track, y: startY, startY, endY, paused: false, handle: null };
+            if (!rows || rows.length === 0) { track.style.transform = "translateY(0px)"; return; }
+
+            const calc = buildMarquee(track, rows);
+            const state = {
+                track, rows,
+                viewportH: calc.viewportH, rowH: calc.rowH, unitH: calc.unitH,
+                startY: calc.viewportH - calc.rowH,
+                endY: calc.viewportH - calc.rowH - calc.unitH,
+                y: calc.viewportH - calc.rowH,
+                paused: false, handle: null, ro: null,
+            };
             state.handle = setInterval(() => stepCredit(state), 16);
             creditsAnims.push(state);
-    
+
+            // keep the seam perfect whatever the screen height: re-measure
+            // and rebuild the copies whenever the viewport resizes
+            state.ro = new ResizeObserver(() => {
+                if (state.paused) return;
+                clearInterval(state.handle);
+                resetMarquee(state);
+                state.handle = setInterval(() => stepCredit(state), 16);
+            });
+            state.ro.observe(calc.viewport);
+
             // pause while hovering so links can be clicked comfortably
-            viewport.addEventListener("mouseenter", () => { if (!state.paused) { state.paused = true; clearInterval(state.handle); } });
-            viewport.addEventListener("mouseleave", () => {
+            calc.viewport.addEventListener("mouseenter", () => { if (!state.paused) { state.paused = true; clearInterval(state.handle); } });
+            calc.viewport.addEventListener("mouseleave", () => {
                 if (state.paused) { state.paused = false; state.handle = setInterval(() => stepCredit(state), 16); }
             });
         }
-    
+
         function stepCredit(a) {
             a.y -= CREDIT_SPEED;
             if (a.y <= a.endY) a.y = a.startY;
             a.track.style.transform = `translateY(${a.y}px)`;
         }
-    
+
         function stopCredits(track) {
             for (let i = creditsAnims.length - 1; i >= 0; i--) {
                 const a = creditsAnims[i];
                 if (!track || a.track === track) {
                     clearInterval(a.handle);
+                    if (a.ro) { a.ro.disconnect(); a.ro = null; }
                     creditsAnims.splice(i, 1);
                 }
             }
             if (track) track.style.transform = "translateY(0px)";
         }
-    
+
         function stopAllCredits() {
             while (creditsAnims.length) {
                 const a = creditsAnims.pop();
                 clearInterval(a.handle);
+                if (a.ro) { a.ro.disconnect(); a.ro = null; }
                 a.track.style.transform = "translateY(0px)";
             }
         }
-    
-        function fillCredits({ names, thanks }) {
+
+        async function fillCredits({ names, thanks }) {
             stopAllCredits();
-    
+            if (document.fonts) await document.fonts.ready;
+
             // sponsors (GitHub + manual credits.json)
             const sponsorRows = (names || []).map(n => buildCreditRow(n));
             if (sponsorRows.length) clSponsorsSection.classList.remove("hidden");
             else clSponsorsSection.classList.add("hidden");
             scrollCredits(clSponsorsTrack, sponsorRows);
-    
+
             // contributors (thanks from credits.json / manual)
             const thanksRows = (thanks || []).map(t => buildCreditRow(t));
             if (thanksRows.length) clThanksSection.classList.remove("hidden");
             else clThanksSection.classList.add("hidden");
             scrollCredits(clThanksTrack, thanksRows);
-    
+
             // hide the whole drawer if nothing to show
             if (sponsorRows.length === 0 && thanksRows.length === 0) clCreditsDrawer.classList.add("hidden");
             else clCreditsDrawer.classList.remove("hidden");
-    
+
             lucide.createIcons();
+        }
+
+        // ── Credits view (mobile tabs) ─────────────────────────────────────────
+
+        const changelogCredits = document.getElementById("changelog-credits");
+        const clSponsorsList   = document.getElementById("changelog-credits-sponsors");
+        const clThanksList     = document.getElementById("changelog-credits-thanks");
+        const changelogTitle   = document.getElementById("changelog-title");
+        const clTabs           = document.getElementById("cl-tabs");
+        let creditsLoaded      = false;
+
+        function renderCreditsList(listEl, entries) {
+            listEl.innerHTML = "";
+            (entries || []).forEach(e => listEl.appendChild(buildCreditRow(e)));
+        }
+
+        async function loadCreditsView() {
+            if (creditsLoaded) return;
+            const data = await loadCredits();
+            renderCreditsList(clSponsorsList, data.names);
+            renderCreditsList(clThanksList, data.thanks);
+            creditsLoaded = true;
+        }
+
+        function setChangelogView(showCredits) {
+            const credits = !!showCredits;
+            changelogBody.classList.toggle("hidden", credits);
+            changelogCredits.classList.toggle("hidden", !credits);
+            if (clTabs) {
+                clTabs.querySelectorAll(".cl-tab").forEach((btn) => {
+                    const isCredits = btn.dataset.clView === "credits";
+                    btn.classList.toggle("active", credits === isCredits);
+                });
+            }
+            if (changelogTitle) {
+                changelogTitle.dataset.i18n = "changelog.tabs_title";
+                changelogTitle.textContent = t("changelog.tabs_title");
+            }
+            if (credits && !creditsLoaded) loadCreditsView().catch(() => {});
+        }
+
+        if (clTabs) {
+            clTabs.querySelectorAll(".cl-tab").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    setChangelogView(btn.dataset.clView === "credits");
+                });
+            });
         }
     
         async function loadCredits(retries = 5) {
@@ -214,6 +302,7 @@
     
         async function openChangelog() {
             await loadChangelog();
+            setChangelogView(false);
             changelogDialog.classList.remove("hidden");
             lucide.createIcons();
             try {
@@ -248,4 +337,5 @@
         P.fn.initUpdateChecker = initUpdateChecker;
         P.fn.openChangelog = openChangelog;
         P.fn.closeChangelog = closeChangelog;
+        P.fn.formatVersionDates = formatVersionDates;
 })(window.PhotoApp = window.PhotoApp || {});

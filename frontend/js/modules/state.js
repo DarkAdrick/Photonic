@@ -34,7 +34,7 @@
          P.currentPhotoIds = [];
     
         function clearGrid() {
-            P.photoGrid.querySelectorAll(".photo-card, .country-card, .cleaning-separator").forEach(el => el.remove());
+            P.photoGrid.querySelectorAll(".photo-card, .country-card, .cleaning-separator, .date-separator").forEach(el => el.remove());
         }
          P.detailIndex = 0;
          P.detailMap = null;

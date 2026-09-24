@@ -531,107 +531,10 @@
 .changelog-content {
     overflow-y: auto;
     flex: 1;
-    padding-right: 4px;
+    padding-right: 0px;
 }
 
-/* ── Changelog project header ──────────────────────────────────────────── */
-
-.cl-hero {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 16px;
-    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent) 0%, color-mix(in srgb, var(--photonic-1) 8%, transparent) 100%);
-    border-bottom: 1px solid var(--border);
-}
-
-.cl-hero-logo {
-    height: 48px;
-    width: 48px;
-    object-fit: contain;
-    flex-shrink: 0;
-}
-
-.cl-hero-text {
-    flex: 1;
-    min-width: 0;
-}
-
-.cl-hero-text h4 {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.cl-hero-text h4 span {
-    background: var(--photonic-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.cl-hero-author {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin: 2px 0 8px;
-    font-size: 12px;
-    color: var(--text-secondary);
-}
-
-.cl-hero-author svg {
-    width: 13px;
-    height: 13px;
-    flex-shrink: 0;
-    color: var(--accent);
-}
-
-.cl-hero-author b {
-    color: var(--text-primary);
-    font-weight: 600;
-}
-
-.cl-hero-author a {
-    color: var(--accent);
-    text-decoration: none;
-}
-
-.cl-hero-author a:hover { text-decoration: underline; }
-
-.cl-hero-text p {
-    font-size: 12px;
-    color: var(--text-secondary);
-    line-height: 1.4;
-    margin-bottom: 10px;
-}
-
-.cl-hero-donate {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 14px;
-    background: linear-gradient(135deg, #e84393, #fd79a8);
-    color: #fff;
-    border: none;
-    border-radius: 14px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.15s;
-}
-
-.cl-hero-donate:hover {
-    filter: brightness(1.15);
-    transform: scale(1.03);
-}
-
-.cl-hero-donate svg {
-    width: 14px;
-    height: 14px;
-}
-
-/* ── Changelog credits drawer ─────────────────────────────────────────── */
+/* ── Changelog credits drawer ──────────────────────────────────────────── */
 
 .cl-credits-drawer {
     width: 300px;
@@ -699,11 +602,169 @@
     width: 100%;
 }
 
+.cl-credits-thanks-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-align: center;
+    padding: 0 8px;
+}
+
+.cl-credits-thanks-item .cl-credits-name { font-size: 14px; }
+
+.cl-credits-thanks-reason {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* ── Changelog project header ──────────────────────────────────────────── */
+
+.cl-hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px 9px;
+    padding: 10px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent) 0%, color-mix(in srgb, var(--photonic-1) 8%, transparent) 100%);
+    border-bottom: 1px solid var(--border);
+}
+
+.cl-hero-logo {
+    height: 58px;
+    width: 58px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.cl-hero-head {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.cl-hero-head h4 {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.cl-hero-head h4 span {
+    background: var(--photonic-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.cl-hero-author {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.cl-hero-author svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    color: var(--accent);
+}
+
+.cl-hero-author b {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.cl-hero-author a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.cl-hero-author a:hover { text-decoration: underline; }
+
+.cl-hero-desc {
+    flex: 1 1 100%;
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin: 0 0 2px;
+    text-align: justify;
+}
+
+.cl-hero-donate {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    padding: 5px 14px;
+    background: linear-gradient(135deg, #e84393, #fd79a8);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+.cl-hero-donate:hover {
+    filter: brightness(1.15);
+    transform: scale(1.03);
+}
+
+.cl-hero-donate svg {
+    width: 14px;
+    height: 14px;
+}
+
+.cl-tabs {
+    display: none;
+    gap: 5px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.cl-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    margin-bottom: -1px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.cl-tab:hover {
+    color: var(--text-primary);
+}
+
+.cl-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+.cl-tab svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ── Changelog credits names ───────────────────────────────────────────── */
+
 .cl-credits-name {
     font-size: 14px;
     font-weight: 600;
     color: var(--text-primary);
-    background: linear-gradient(90deg, #e84393, #fd79a8);
+    background: linear-gradient(90deg, var(--accent), var(--accent));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -724,6 +785,72 @@
     font-size: 11px;
     color: var(--text-secondary);
     font-style: italic;
+}
+
+/* ── Changelog credits view (switch in cl-hero) ─────────────────────────── */
+
+.credits-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 24px;
+    align-content: start;
+    padding: 20px;
+}
+
+.credits-col {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.credits-col + .credits-col {
+    border-left: 1px solid var(--border);
+    padding-left: 24px;
+}
+
+.credits-col-title {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* margin: 0 0 12px; */
+    padding: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg-primary) 85%, transparent);
+}
+
+.credits-col-title svg {
+    width: 15px;
+    height: 15px;
+    color: #e84393;
+}
+
+.credits-col:last-child .credits-col-title svg {
+    color: var(--accent);
+}
+
+.credits-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0 6px 8px 0;
+}
+
+.credits-list .cl-credits-thanks-item {
+    align-items: flex-start;
+    text-align: left;
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
 }
 
 /* ── Changelog chips ──────────────────────────────────────────────────── */
@@ -751,14 +878,14 @@
 .cl-group-header {
     font-size: 18px;
     font-weight: 800;
-    padding: 14px 12px 6px;
-    margin-top: 8px;
-    background: var(--photonic-gradient);
+    padding: 5px;
+    background: var(--accent);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: 0.3px;
     user-select: none;
+    text-align: center;
 }
 
 .cl-group-header:first-child {
@@ -779,7 +906,7 @@
 .cl-version summary {
     list-style: none;
     cursor: pointer;
-    padding: 10px 12px;
+    padding: 5px 7px;
     font-size: 16px;
     font-weight: 700;
     color: var(--accent);
@@ -789,7 +916,21 @@
     border-radius: 6px;
     transition: background 0.15s;
     user-select: none;
+    /* Sticky version header: stays pinned to the top of the changelog
+       scroll area while this version is being read, then scrolls away
+       when the next one arrives. Opaque background so the content
+       scrolling underneath never shows through. */
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: color-mix(in srgb, var(--accent) 9%, var(--bg-secondary));
+    border-bottom: 1px solid transparent;
 }
+
+.cl-version[open] summary {
+    border-bottom-color: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
 
 .cl-version summary::-webkit-details-marker {
     display: none;
@@ -805,18 +946,18 @@
 }
 
 .cl-version summary:hover {
-    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    background: color-mix(in srgb, var(--accent) 16%, var(--bg-secondary));
 }
+
 
 .cl-version-title {
     flex: 1;
     display: flex;
     align-items: center;
     gap: 6px;
-    background: var(--photonic-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
 .cl-version-date {
@@ -828,7 +969,7 @@
 }
 
 .cl-version-body {
-    padding: 4px 12px 12px 28px;
+    padding: 4px;
     border-radius: 0 0 6px 6px;
     margin-top: -2px;
 }
@@ -839,7 +980,7 @@
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: var(--accent);
-    margin: 16px 0 8px;
+    margin: 0;
     padding: 6px 10px;
     background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 100%);
     border-left: 3px solid var(--accent);
@@ -852,10 +993,10 @@
 }
 
 .cl-version li {
-    padding: 6px 10px;
-    font-size: 13px;
+    padding: 6px;
+    font-size: 12.5px;
     color: var(--text-secondary);
-    line-height: 1.5;
+    line-height: 1.25;
     border-radius: 4px;
     transition: background 0.1s;
 }

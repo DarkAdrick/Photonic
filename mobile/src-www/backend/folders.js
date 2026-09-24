@@ -245,6 +245,11 @@ self.ApiHandlers = self.ApiHandlers || {};
 
   function deleteFolder(db, url, body, match) {
     var id = parseInt(match[1]);
+    var row = one(db, "SELECT path FROM folders WHERE id = ?", [id]);
+    if (row && row.path) {
+      var base = row.path.replace(/\/+$/, "").replace(/\\+$/, "");
+      run(db, "DELETE FROM photos WHERE folder LIKE ? ESCAPE '\\'", [N.underPattern(base)]);
+    }
     run(db, "DELETE FROM folders WHERE id = ?", [id]);
     return { ok: true };
   }

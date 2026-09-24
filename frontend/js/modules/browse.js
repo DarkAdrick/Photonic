@@ -104,6 +104,7 @@
                     if (P.fn.is360Photo(p)) {
                         badge = `<div class="photo-360-badge" title="Photo 360°"><i data-lucide="compass"></i></div>`;
                     } else if (P.fn.isVideo(p)) {
+                        card.dataset.isVideo = "true";
                         badge = `<div class="photo-video-badge" title="Video"><i data-lucide="play"></i></div>`;
                     }
                     card.innerHTML = `
@@ -217,6 +218,7 @@
                     if (P.fn.is360Photo(p)) {
                         badge = `<div class="photo-360-badge" title="Photo 360°"><i data-lucide="compass"></i></div>`;
                     } else if (P.fn.isVideo(p)) {
+                        card.dataset.isVideo = "true";
                         badge = `<div class="photo-video-badge" title="Video"><i data-lucide="play"></i></div>`;
                     }
                     card.innerHTML = `

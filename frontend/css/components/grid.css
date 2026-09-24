@@ -5,6 +5,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    position: relative;
 }
 
 /* ── Empty State Hero ───────────────────────────────────────────────────── */
@@ -159,7 +160,7 @@
 #photo-grid {
     width: 100%;
     height: 100%;
-    padding: 12px;
+    padding: 4px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(var(--thumb-size, 150px), 1fr));
     grid-auto-rows: min-content;
@@ -234,6 +235,41 @@
     overflow: hidden;
     text-overflow: ellipsis;
     opacity: 0.9;
+}
+
+/* Unfindable/unreadable media: hide the broken <img> + alt text, show a
+   centered "image-off" icon and always keep the filename label visible. */
+#photo-grid .photo-card img.photo-thumb-error,
+#photo-grid.masonry .photo-card img.photo-thumb-error,
+#map-photos .photo-card img.photo-thumb-error {
+    display: none;
+}
+
+.photo-card.photo-missing {
+    background: color-mix(in srgb, var(--text-secondary) 8%, var(--bg-tertiary));
+}
+
+.photo-card.photo-missing > svg.photo-broken-icon,
+.photo-card.photo-missing > i.photo-broken-icon {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: clamp(12px, calc(var(--thumb-size, 150px) * 0.3), 44px);
+    height: clamp(12px, calc(var(--thumb-size, 150px) * 0.3), 44px);
+    color: var(--text-secondary);
+    pointer-events: none;
+    z-index: 2;
+}
+
+html.hide-photo-labels .photo-card.photo-missing .photo-label,
+html.thumbs-tiny .photo-card.photo-missing .photo-label {
+    display: block;
+    z-index: 3;
+}
+
+/* Tiny thumbnails (≤50px): the missing-file label is too small to be useful. */
+html.thumbs-micro .photo-card.photo-missing .photo-label {
+    display: none;
 }
 
 .photo-card-hidden img {
@@ -335,6 +371,161 @@
     height: auto;
     display: block;
     object-fit: contain;
+}
+
+/* ── Date Separators (sticky month/year headers) ────────────────────────── */
+
+.date-separator {
+    grid-column: 1 / -1;
+    position: sticky;
+    top: 3.1em;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 8px 7px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+    border-bottom: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    margin-top: 5px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.date-separator:hover { background: color-mix(in srgb, var(--bg-tertiary) 88%, transparent); }
+
+/* Year separator (collapsible): one sticky header per year, collapses the
+   whole year (month headers + cards) when clicked. */
+.year-separator {
+    grid-column: 1 / -1;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--bg-primary) 94%, transparent);
+    border-bottom: 3px solid color-mix(in srgb, var(--accent) 80%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.year-separator:hover { background: color-mix(in srgb, var(--bg-tertiary) 90%, transparent); }
+
+.year-separator:first-child { margin-top: 0; }
+
+.year-separator .ds-chevron {
+    width: 15px;
+    height: 15px;
+    color: var(--accent);
+}
+
+.year-separator.collapsed .ds-chevron { transform: rotate(-90deg); }
+
+.year-separator .ys-year {
+    font-size: 15px;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+}
+
+.year-separator .ys-count {
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+.date-separator.year-collapsed,
+.photo-card.year-collapsed { display: none; }
+
+.date-separator:first-child { margin-top: 0; }
+
+.ds-year {
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.date-separator .ds-month {
+    color: color-mix(in srgb, var(--accent) 55%, var(--text-secondary));
+    font-weight: 500;
+}
+
+.ds-month { text-transform: capitalize; }
+
+.ds-chevron {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--text-secondary);
+    transition: transform 0.18s ease;
+}
+
+.date-separator.collapsed .ds-chevron { transform: rotate(-90deg); }
+
+.ds-spacer { flex: 1; }
+
+.ds-count {
+    font-size: 11px;
+    font-weight: 500;
+    color: color-mix(in srgb, var(--accent) 55%, var(--text-secondary));
+    font-variant-numeric: tabular-nums;
+}
+
+.photo-card.month-collapsed { display: none; }
+
+#photo-grid.masonry .date-separator { display: none; }
+
+/* Option "date separators" disabled (Settings > Display) */
+html.no-date-separators .date-separator { display: none; }
+
+/* Year marks: visual-only overlay in the scrollbar gutter (native scrollbar
+   stays usable — the ticks accent the year positions). */
+#grid-yearmarks {
+    position: absolute;
+    top: calc(12px + 3.1em);
+    right: 1px;
+    bottom: 14px;
+    width: 10px;
+    z-index: 6;
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#grid-yearmarks.hidden { display: none; }
+
+#grid-yearmarks .gdb-ticks {
+    position: absolute;
+    inset: 0;
+}
+
+#grid-yearmarks .gdb-tick {
+    position: absolute;
+    left: 0;
+    width: 10px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--border);
+}
+
+#grid-yearmarks .gdb-tick.year {
+    height: 4px;
+    background: var(--accent);
+    box-shadow: 0 0 3px color-mix(in srgb, var(--accent) 70%, transparent);
 }
 
 /* ── Selection ────────────────────────────────────────────────────────────── */

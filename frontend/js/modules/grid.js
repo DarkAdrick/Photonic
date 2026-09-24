@@ -52,6 +52,146 @@
             return document.documentElement.classList.contains("thumbs-tiny") ? "small" : "medium";
         }
 
+        // ── Date Separators & Date Scrollbar ────────────────────────────────
+        let lastDateKey = null;
+        let lastDateYear = null;
+        const monthCollapsed = new Set();
+        const monthCounts = new Map();
+        const monthSepEl = {};
+        const yearCollapsed = new Set();
+        const yearCounts = new Map();
+        const yearSepEl = {};
+        let dateFmtLocale = null;
+        let dateFmtMonth = null;
+
+        function getDateFormats() {
+            const loc = P.locale();
+            if (loc !== dateFmtLocale) {
+                dateFmtLocale = loc;
+                dateFmtMonth = new Intl.DateTimeFormat(loc, { month: "long" });
+            }
+        }
+
+        function dateMonthLabel(key) {
+            getDateFormats();
+            return dateFmtMonth.format(new Date(+key.slice(0, 4), +key.slice(5, 7) - 1, 1));
+        }
+
+        if (P.photoGrid) {
+            P.photoGrid.addEventListener("click", (e) => {
+                const sep = e.target.closest(".date-separator");
+                if (!sep) return;
+                if (sep.classList.contains("year-separator")) {
+                    const year = sep.dataset.year;
+                    if (!year) return;
+                    const collapsed = sep.classList.toggle("collapsed");
+                    if (collapsed) yearCollapsed.add(year); else yearCollapsed.delete(year);
+                    for (let node = sep.nextElementSibling; node && !node.classList.contains("year-separator"); node = node.nextElementSibling) {
+                        if (node.classList.contains("photo-card")) node.classList.toggle("year-collapsed", collapsed);
+                        else if (node.classList.contains("date-separator")) node.classList.toggle("year-collapsed", collapsed);
+                    }
+                    sep.title = t("common.items", { count: yearCounts.get(year) || 0 });
+                    maybeLoadMore();
+                    renderYearMarks();
+                    return;
+                }
+                const key = sep.dataset.month;
+                if (!key) return;
+                const collapsed = sep.classList.toggle("collapsed");
+                if (collapsed) monthCollapsed.add(key); else monthCollapsed.delete(key);
+                for (let node = sep.nextElementSibling; node && !node.classList.contains("date-separator"); node = node.nextElementSibling) {
+                    if (node.classList.contains("photo-card")) node.classList.toggle("month-collapsed", collapsed);
+                }
+                maybeLoadMore();
+                renderYearMarks();
+            });
+        }
+
+        // ── Date separators quick toggle (header-photo-grid) ───────────────
+
+        const toggleDateSepBtn = document.getElementById("btn-toggle-date-separators");
+
+        function applyDateSeparatorsState() {
+            const show = localStorage.getItem("photonic.dateSeparators") !== "false";
+            document.documentElement.classList.toggle("no-date-separators", !show);
+            if (toggleDateSepBtn) toggleDateSepBtn.classList.toggle("active", show);
+            if (!show && P.photoGrid) {
+                // Without separators nothing can be shown collapsed anymore:
+                // the headers are hidden but the images would stay hidden too,
+                // leaving an empty grid. Clear every collapse state instead.
+                monthCollapsed.clear();
+                yearCollapsed.clear();
+                P.photoGrid.querySelectorAll(".photo-card, .date-separator").forEach(el => {
+                    el.classList.remove("month-collapsed", "year-collapsed", "collapsed");
+                });
+            }
+            renderYearMarks();
+        }
+
+        // ── Year marks overlay (native scrollbar + accent year ticks) ───────
+        // Purely visual: non-interactive, sits in the scrollbar gutter so the
+        // native thin scrollbar stays usable and the accent-colored year marks
+        // remain visible.
+
+        const yearMarksBox = document.getElementById("grid-yearmarks");
+        let yearMarksRaf = 0;
+
+        function renderYearMarks() {
+            if (!yearMarksBox) return;
+            if (yearMarksRaf) return;
+            yearMarksRaf = requestAnimationFrame(() => {
+                yearMarksRaf = 0;
+                const grid = P.photoGrid;
+                const separatorsOn = !document.documentElement.classList.contains("no-date-separators");
+                const masonry = grid && grid.classList.contains("masonry");
+                const cleaning = P.activeView === "cleaning";
+                if (!grid || grid.classList.contains("hidden") || !separatorsOn || masonry || cleaning) {
+                    yearMarksBox.classList.add("hidden");
+                    return;
+                }
+                const scrollable = grid.scrollHeight - grid.clientHeight;
+                if (scrollable <= 0) {
+                    yearMarksBox.classList.add("hidden");
+                    return;
+                }
+                const marks = yearMarksBox.querySelector(".gdb-ticks");
+                if (!marks) return;
+                const barH = yearMarksBox.clientHeight;
+                const gridRect = grid.getBoundingClientRect();
+                const frag = document.createDocumentFragment();
+                let prevYear = null;
+                const seps = grid.querySelectorAll(".date-separator");
+                for (const el of seps) {
+                    const key = el.dataset.month || "";
+                    if (!key || el.classList.contains("year-collapsed")) continue;
+                    const year = key.slice(0, 4);
+                    const newYear = year !== prevYear;
+                    prevYear = year;
+                    let ref = el.nextElementSibling;
+                    while (ref && ref.classList && (ref.classList.contains("month-collapsed") || ref.classList.contains("year-collapsed"))) ref = ref.nextElementSibling;
+                    const top = (ref ? ref : el).getBoundingClientRect().top - gridRect.top + grid.scrollTop;
+                    const y = Math.min(barH - 4, (top / scrollable) * barH);
+                    const tick = document.createElement("div");
+                    tick.className = "gdb-tick" + (newYear ? " year" : "");
+                    tick.style.top = y + "px";
+                    frag.appendChild(tick);
+                }
+                marks.replaceChildren(frag);
+                yearMarksBox.classList.remove("hidden");
+            });
+        }
+
+        if (toggleDateSepBtn) {
+            toggleDateSepBtn.addEventListener("click", () => {
+                const show = localStorage.getItem("photonic.dateSeparators") !== "false";
+                localStorage.setItem("photonic.dateSeparators", show ? "false" : "true");
+                applyDateSeparatorsState();
+                const settingsToggle = document.getElementById("setting-date-separators");
+                if (settingsToggle) settingsToggle.checked = !show;
+            });
+            applyDateSeparatorsState();
+        }
+
         async function loadPhotos(reset = true) {
             const usesGrid = P.activeView === "library" || P.activeView === "cleaning" || (P.activeView === "countries" && P.activeCountryCode) || (P.activeView === "tags" && P.activeTagBrowseId) || (P.activeView === "cameras" && P.activeCameraBrowseId);
             if (!usesGrid) return;
@@ -60,6 +200,12 @@
                 P.currentPage = 1;
                 P.hasMore = true;
                 P.fn.clearGrid();
+                lastDateKey = null;
+                lastDateYear = null;
+                monthCollapsed.clear();
+                monthCounts.clear();
+                yearCollapsed.clear();
+                yearCounts.clear();
             }
             if (!P.hasMore) return;
     
@@ -82,6 +228,29 @@
                 P.photoCountH.textContent = t("common.items", { count: data.total.toLocaleString(P.locale()) });
     
                 for (const p of data.photos) {
+                    const key = p.date ? p.date.slice(0, 7) : null;
+                    if (key && key !== lastDateKey && P.activeView !== "cleaning") {
+                        lastDateKey = key;
+                        const year = key.slice(0, 4);
+                        if (year !== lastDateYear) {
+                            lastDateYear = year;
+                            const yearHeader = document.createElement("div");
+                            yearHeader.className = "date-separator year-separator" + (yearCollapsed.has(year) ? " collapsed" : "");
+                            yearHeader.dataset.year = year;
+                            yearHeader.title = t("common.items", { count: yearCounts.get(year) || 0 });
+                            yearHeader.innerHTML = `<i data-lucide="chevron-down" class="ds-chevron"></i><span class="ys-year">${year}</span><span class="ds-spacer"></span><span class="ys-count">${(yearCounts.get(year) || 0).toLocaleString(P.locale())}</span>`;
+                            yearSepEl[year] = yearHeader;
+                            P.photoGrid.appendChild(yearHeader);
+                        }
+                        const header = document.createElement("div");
+                        header.className = "date-separator" + (monthCollapsed.has(key) ? " collapsed" : "") + (yearCollapsed.has(year) ? " year-collapsed" : "");
+                        header.dataset.month = key;
+                        header.dataset.year = year;
+                        header.title = t("common.items", { count: monthCounts.get(key) || 0 });
+                        header.innerHTML = `<i data-lucide="chevron-down" class="ds-chevron"></i><span class="ds-month">${dateMonthLabel(key)}</span><span class="ds-spacer"></span><span class="ds-count">${(monthCounts.get(key) || 0).toLocaleString(P.locale())}</span>`;
+                        monthSepEl[key] = header;
+                        P.photoGrid.appendChild(header);
+                    }
                     const card = document.createElement("div");
                     card.className = "photo-card" + (P.fn.isPhotoHidden(p) ? " photo-card-hidden" : "");
                     card.dataset.photoId = p.id;
@@ -90,6 +259,7 @@
                     if (P.fn.is360Photo(p)) {
                         badge = `<div class="photo-360-badge" title="Photo 360°"><i data-lucide="compass"></i></div>`;
                     } else if (P.fn.isVideo(p)) {
+                        card.dataset.isVideo = "true";
                         badge = `<div class="photo-video-badge" title="Video"><i data-lucide="play"></i></div>`;
                     }
                     card.innerHTML = `
@@ -101,27 +271,62 @@
                     `;
                     card.addEventListener("click", () => P.fn.openDetail(p.id));
                     P.photoGrid.appendChild(card);
+                    if (key) {
+                        const year = key.slice(0, 4);
+                        card.dataset.month = key;
+                        card.dataset.year = year;
+                        if (monthCollapsed.has(key)) card.classList.add("month-collapsed");
+                        if (yearCollapsed.has(year)) card.classList.add("year-collapsed");
+                        monthCounts.set(key, (monthCounts.get(key) || 0) + 1);
+                        const sepEl = monthSepEl[key];
+                        if (sepEl) {
+                            const cnt = sepEl.querySelector(".ds-count");
+                            if (cnt) {
+                                cnt.textContent = monthCounts.get(key).toLocaleString(P.locale());
+                                sepEl.title = t("common.items", { count: monthCounts.get(key) });
+                            }
+                        }
+                        yearCounts.set(year, (yearCounts.get(year) || 0) + 1);
+                        const ySep = yearSepEl[year];
+                        if (ySep) {
+                            const cnt = ySep.querySelector(".ys-count");
+                            if (cnt) {
+                                cnt.textContent = yearCounts.get(year).toLocaleString(P.locale());
+                                ySep.title = t("common.items", { count: yearCounts.get(year) });
+                            }
+                        }
+                    }
                 }
                 lucide.createIcons();
                 P.hasMore = data.photos.length === 200;
                 P.currentPage++;
             } while (P.hasMore && P.photoGrid.scrollHeight <= P.photoGrid.clientHeight);
+            renderYearMarks();
             renderSelection();
         }
     
-        P.photoGrid.addEventListener("scroll", () => {
-            if (P.activeView !== "library" && !(P.activeView === "countries" && P.activeCountryCode) && !(P.activeView === "tags" && P.activeTagBrowseId) && !(P.activeView === "cameras" && P.activeCameraBrowseId)) return;
+        function maybeLoadMore() {
+            if (!P.hasMore || P.loadingMore) return;
             const thumbPx = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--thumb-size")) || 150;
             const threshold = thumbPx * 4;
             if (P.photoGrid.scrollTop + P.photoGrid.clientHeight >= P.photoGrid.scrollHeight - threshold) {
                 loadPhotos(false);
             }
+        }
+
+        P.photoGrid.addEventListener("scroll", () => {
+            renderYearMarks();
+            if (P.activeView !== "library" && !(P.activeView === "countries" && P.activeCountryCode) && !(P.activeView === "tags" && P.activeTagBrowseId) && !(P.activeView === "cameras" && P.activeCameraBrowseId)) return;
+            maybeLoadMore();
         });
+
+        window.addEventListener("resize", () => renderYearMarks());
+        renderYearMarks();
     
         // ── Selection & Context Menu ──────────────────────────────────────────
     
         function getVisiblePhotoCards() {
-            const cards = Array.from(P.photoGrid.querySelectorAll(".photo-card[data-photo-id]"));
+            const cards = Array.from(P.photoGrid.querySelectorAll(".photo-card[data-photo-id]:not(.month-collapsed):not(.year-collapsed)"));
             if (!P.mapPhotos.classList.contains("hidden")) {
                 cards.push(...P.mapPhotos.querySelectorAll(".photo-card[data-photo-id]"));
             }
@@ -762,6 +967,8 @@ function updateContextItems() {
     
     // --- exports ---
         P.fn.loadPhotos = loadPhotos;
+        P.fn.renderYearMarks = renderYearMarks;
+        P.fn.applyDateSeparatorsState = applyDateSeparatorsState;
         P.fn.getVisiblePhotoCards = getVisiblePhotoCards;
         P.fn.renderSelection = renderSelection;
         P.fn.deselectAll = deselectAll;

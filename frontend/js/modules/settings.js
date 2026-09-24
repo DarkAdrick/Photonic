@@ -118,13 +118,17 @@
         const THEME_PALETTES = [
             { id: "midnight",      name: "Midnight",      mode: "dark",  colors: { "bg-primary": "#0A0D3A", "bg-secondary": "#0F1248", "bg-tertiary": "#181C58", "accent": "#28A8D8", "border": "#2A2E68", "text-primary": "#E6E6F0", "text-secondary": "#8488A8" } },
             { id: "phoenix-dark",  name: "Phoenix Dark",  mode: "dark",  colors: { "bg-primary": "#0c0604", "bg-secondary": "#241209", "bg-tertiary": "#301A0D", "accent": "#FF7A29", "border": "#3D2413", "text-primary": "#F5E9DF", "text-secondary": "#A88B76" } },
-            { id: "forest",        name: "Forest",        mode: "dark",  colors: { "bg-primary": "#0c0604", "bg-secondary": "#10291F", "bg-tertiary": "#173527", "accent": "#4ADE80", "border": "#1F4030", "text-primary": "#E3F0E8", "text-secondary": "#82A893" } },
+            { id: "forest",        name: "Forest",        mode: "dark",  colors: { "bg-primary": "#050c04", "bg-secondary": "#10291F", "bg-tertiary": "#173527", "accent": "#4ADE80", "border": "#1F4030", "text-primary": "#E3F0E8", "text-secondary": "#82A893" } },
             { id: "daylight",      name: "Daylight",      mode: "light", colors: { "bg-primary": "#F4F5FA", "bg-secondary": "#FFFFFF", "bg-tertiary": "#EAECF4", "accent": "#2563EB", "border": "#D8DBE8", "text-primary": "#191D30", "text-secondary": "#686E8C" } },
             { id: "phoenix-light", name: "Phoenix Light", mode: "light", colors: { "bg-primary": "#FBF3EA", "bg-secondary": "#FFFFFF", "bg-tertiary": "#F6E8D8", "accent": "#E85D04", "border": "#EBDCC9", "text-primary": "#2B1A10", "text-secondary": "#8C7361" } },
             { id: "forest-light",  name: "Forest Light",  mode: "light", colors: { "bg-primary": "#f4faf4", "bg-secondary": "#FFFFFF", "bg-tertiary": "#dff6d8", "accent": "#39df76", "border": "#cdebc9", "text-primary": "#162b10", "text-secondary": "#658c61" } }
         ];
     
         const DEFAULT_PALETTE = "daylight";
+
+        function paletteLabel(p) {
+            return t("settings.display.palette_" + p.id.replace(/-/g, "_"));
+        }
     
         function renderApplicationSettings() {
             const staleMenu = document.getElementById("setting-lang-menu");
@@ -137,6 +141,7 @@
             const thumbSize = parseInt(localStorage.getItem("photonic.thumbnailSize") || "150");
             const gridGap = Math.min(10, Math.max(0, parseInt(localStorage.getItem("photonic.gridGap") || "3") || 0));
             const showPhotoLabels = localStorage.getItem("photonic.showPhotoLabels") !== "false";
+            const dateSeparators = localStorage.getItem("photonic.dateSeparators") !== "false";
             const defaultView = localStorage.getItem("photonic.defaultView") || "grid";
             const clusterThreshold = parseInt(localStorage.getItem("photonic.clusterThreshold") || "1");
             const clusterGlobalThreshold = Math.min(1000, Math.max(50, parseInt(localStorage.getItem("photonic.clusterGlobalThreshold") || "500") || 500));
@@ -368,6 +373,21 @@
                     </div>
                     <div class="setting-row">
                         <div class="setting-info">
+                            <div class="setting-row-icon"><i data-lucide="calendar-days"></i></div>
+                            <div class="setting-row-text">
+                                <div class="setting-label">${t("settings.display.date_separators_label")}</div>
+                                <div class="setting-desc">${t("settings.display.date_separators_desc")}</div>
+                            </div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="setting-date-separators" ${dateSeparators ? "checked" : ""}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
                             <div class="setting-row-icon"><i data-lucide="layout-grid"></i></div>
                             <div class="setting-row-text">
                                 <div class="setting-label">${t("settings.display.default_view")}</div>
@@ -488,13 +508,13 @@
                                     <span class="palette-group-label">${mode === "dark" ? t("settings.display.dark") : t("settings.display.light")}</span>
                                     <div class="palette-row">
                                         ${THEME_PALETTES.filter(p => p.mode === mode).map(p => `
-                                            <button class="palette-swatch${savedPalette === p.id || (!savedPalette && p.id === DEFAULT_PALETTE) ? " active" : ""}" data-palette="${p.id}" title="${p.name}">
+                                            <button class="palette-swatch${savedPalette === p.id || (!savedPalette && p.id === DEFAULT_PALETTE) ? " active" : ""}" data-palette="${p.id}" title="${paletteLabel(p)}">
                                                 <span class="palette-dots">
                                                     <i style="background:${p.colors["bg-secondary"]}"></i>
                                                     <i style="background:${p.colors["bg-tertiary"]}"></i>
                                                     <i style="background:${p.colors["accent"]}"></i>
                                                 </span>
-                                                <span class="palette-name">${p.name}</span>
+                                                <span class="palette-name">${paletteLabel(p)}</span>
                                             </button>
                                         `).join("")}
                                     </div>
@@ -662,13 +682,6 @@
             if (langSelect && settingsMenu) {
                 P.fn.refreshLangHeader();
                 function openSettingsLangMenu() {
-                    if (settingsMenu.parentNode !== document.body) {
-                        document.body.appendChild(settingsMenu);
-                    }
-                    const r = langSelect.getBoundingClientRect();
-                    settingsMenu.style.position = "fixed";
-                    settingsMenu.style.left = Math.min(r.left, window.innerWidth - settingsMenu.offsetWidth - 8) + "px";
-                    settingsMenu.style.top = (r.bottom + 6) + "px";
                     settingsMenu.classList.remove("hidden");
                 }
                 langSelect.addEventListener("click", (e) => {
@@ -705,6 +718,7 @@
                 localStorage.setItem("photonic.thumbnailSize", v);
                 document.documentElement.style.setProperty("--thumb-size", v + "px");
                 document.documentElement.classList.toggle("thumbs-tiny", +v <= 90);
+                document.documentElement.classList.toggle("thumbs-micro", +v <= 50);
                 if (mainThumb) mainThumb.value = v;
             }
             thumbSlider.addEventListener("input", (e) => applyThumbSize(e.target.value));
@@ -735,6 +749,14 @@
                     const show = e.target.checked;
                     localStorage.setItem("photonic.showPhotoLabels", show ? "true" : "false");
                     document.documentElement.classList.toggle("hide-photo-labels", !show);
+                });
+            }
+
+            const dateSeparatorsToggle = document.getElementById("setting-date-separators");
+            if (dateSeparatorsToggle) {
+                dateSeparatorsToggle.addEventListener("change", (e) => {
+                    localStorage.setItem("photonic.dateSeparators", e.target.checked ? "true" : "false");
+                    if (P.fn.applyDateSeparatorsState) P.fn.applyDateSeparatorsState();
                 });
             }
     
@@ -904,11 +926,14 @@
                     document.documentElement.style.setProperty(`--${name}`, value);
                 }
                 document.documentElement.style.setProperty("--thumb-size", "150px");
+                document.documentElement.classList.remove("thumbs-tiny", "thumbs-micro");
                 if (typeof P.fn.setThumbGap === "function") P.fn.setThumbGap(3);
                 const gridBtn = document.getElementById("btn-layout-grid");
                 if (gridBtn) gridBtn.click();
                 P.fn.setLocationsLayout("vertical");
                 renderApplicationSettings();
+                document.documentElement.classList.remove("hide-photo-labels");
+                if (P.fn.applyDateSeparatorsState) P.fn.applyDateSeparatorsState();
                 P.fn.updateSettingsCounts();
                 P.fn.showToast(t("settings.application.reset_done"), { icon: "check", duration: 3000 });
             });

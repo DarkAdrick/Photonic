@@ -77,7 +77,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 6px 16px;
+    padding: 6px 5px 6px 13px;
     background: color-mix(in srgb, var(--bg-primary) 75%, transparent);
     border-bottom: 1px solid var(--border);
     font-size: 13px;
@@ -112,6 +112,23 @@
 #photo-count-header {
     margin-left: auto;
     flex-shrink: 0;
+}
+
+#btn-toggle-date-separators {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    margin-left: 4px;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+#btn-toggle-date-separators svg {
+    width: 15px;
+    height: 15px;
 }
 
 #selection-count { font-weight: 500; }

@@ -92,6 +92,20 @@
         return String(count);
     }
 
+    // Themed divIcon marker: pure CSS pin in --accent (no image, no shadow
+    // layer from Leaflet's default icon → cheaper at hundreds of markers and
+    // follows the active theme).
+    function photoMarkerIcon(tag) {
+        return L.divIcon({
+            className: "pho-photo-marker" + (tag ? " " + tag : ""),
+            html: '<div class="pho-pin"></div>',
+            iconSize: L.point(26, 32),
+            iconAnchor: L.point(13, 32),
+            popupAnchor: L.point(0, -30),
+        });
+    }
+    P.fn.photoMarkerIcon = photoMarkerIcon;
+
     function clusterIconCreateFunction(cluster) {
         const count = cluster.getChildCount();
         const color = heatRgb(count);
@@ -304,7 +318,7 @@
     
             for (let i = 0; i < densePhotos.length; i += CHUNK) {
                 const lot = densePhotos.slice(i, i + CHUNK).map(ph => {
-                    const m = L.marker([ph.lat, ph.lng]);
+                    const m = L.marker([ph.lat, ph.lng], { icon: photoMarkerIcon() });
                     m.on("click", () => P.fn.openDetail(ph.id));
                     return m;
                 });
@@ -317,7 +331,7 @@
                 const end = Math.min(i + CHUNK, sparsePhotos.length);
                 for (let j = i; j < end; j++) {
                     const ph = sparsePhotos[j];
-                    const m = L.marker([ph.lat, ph.lng]);
+                    const m = L.marker([ph.lat, ph.lng], { icon: photoMarkerIcon() });
                     m.on("click", () => P.fn.openDetail(ph.id));
                     P.plainGroup.addLayer(m);
                     done++;
@@ -357,11 +371,12 @@
                 card.className = "photo-card" + (P.fn.isPhotoHidden(p) ? " photo-card-hidden" : "");
                 card.dataset.photoId = p.id;
                 let badge = "";
-                if (P.fn.is360Photo(p)) {
-                    badge = `<div class="photo-360-badge" title="Photo 360°"><i data-lucide="compass"></i></div>`;
-                } else if (P.fn.isVideo(p)) {
-                    badge = `<div class="photo-video-badge" title="Video"><i data-lucide="play"></i></div>`;
-                }
+if (P.fn.is360Photo(p)) {
+                        badge = `<div class="photo-360-badge" title="Photo 360°"><i data-lucide="compass"></i></div>`;
+                    } else if (P.fn.isVideo(p)) {
+                        card.dataset.isVideo = "true";
+                        badge = `<div class="photo-video-badge" title="Video"><i data-lucide="play"></i></div>`;
+                    }
                 card.innerHTML = `
                     <img src="${p.thumb}" alt="${p.filename}" loading="lazy" decoding="async">
                     ${badge}

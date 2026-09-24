@@ -101,6 +101,9 @@
          P.detailSidebar  = document.getElementById("detail-sidebar");
          P.detailResize   = document.getElementById("detail-resize");
          P.detailImg     = document.getElementById("detail-img");
+         P.detailMissing = document.getElementById("detail-missing");
+         P.detailMissingIcon = document.getElementById("detail-missing-icon");
+         P.detailMissingPath = document.getElementById("detail-missing-path");
          P.detailFname   = document.getElementById("detail-filename");
          P.detailMeta    = document.getElementById("detail-meta");
          P.detailMapSec  = document.getElementById("detail-map-section");
@@ -215,6 +218,33 @@
             if (!P.fn.isPhotoHidden(p)) return "";
             return '<div class="photo-hidden-overlay"><i data-lucide="eye-off"></i><span data-i18n="common.hidden">Hidden</span></div>';
         };
+        P.fn.markPhotoMissing = function (img) {
+            if (!img || !img.closest) return;
+            const card = img.closest(".photo-card");
+            if (!card) return;
+            img.classList.add("photo-thumb-error");
+            if (card.classList.contains("photo-missing")) return;
+            card.classList.add("photo-missing");
+            const videoBadge = card.querySelector(".photo-video-badge");
+            if (videoBadge) videoBadge.remove();
+            const icon = document.createElement("i");
+            icon.className = "photo-broken-icon";
+            icon.setAttribute("data-lucide", card.dataset.isVideo === "true" ? "video-off" : "image-off");
+            icon.setAttribute("aria-hidden", "true");
+            card.appendChild(icon);
+            if (window.lucide && lucide.createIcons) {
+                lucide.createIcons({ root: card });
+            }
+        };
+        // `error` does not bubble, so listen in the capture phase: any media whose
+        // thumbnail fails to load is turned into a centered "image-off" icon and the
+        // filename label is forced visible (see .photo-missing in grid.css).
+        document.addEventListener("error", (e) => {
+            const t = e.target;
+            if (t && t.tagName === "IMG" && t.closest && t.closest(".photo-card")) {
+                P.fn.markPhotoMissing(t);
+            }
+        }, true);
         P.fn.getSelectionHiddenInfo = function (ids) {
             const cards = P.fn.getVisiblePhotoCards();
             let hidden = 0, shown = 0;

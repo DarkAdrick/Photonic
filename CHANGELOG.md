@@ -1,5 +1,38 @@
 # Changelog
 
+## v1.2.x
+
+## v1.2.2 — Date Timeline — 24 September 2026
+
+### Desktop
+- [ADD] The photo grid is grouped by **month** with sticky separator headers (month shown in muted accent, accent-colored underline) and by **year** (year separator highlighted when it changes, with its own photo count)
+- [ADD] Separators are **collapsible**: click a year or a month header to fold/unfold that period (chevron indicator, state kept during the session)
+- [ADD] Each separator shows the **photo count** for that period (formatted, with a "N items" tooltip)
+- [FIX] Collapsing a period no longer stops the infinite scroll — preceding months keep loading automatically until the grid is full again
+- [CHANGE] The custom date scrollbar is replaced by the **native thin scrollbar**, consistent with the rest of the app; a non-interactive overlay keeps **accent-colored year marks** in the scrollbar gutter so year positions remain visible while scrolling (native scrollbar kept everywhere, including masonry mode and phones)
+- [ADD] **Missing/broken media** are clearly identified in the grid: a card whose file can't be rendered shows a centered image-off/video-off icon on a subtly tinted background, keeps its filename label (even when labels are hidden) and drops its play badge
+- [ADD] **Missing/broken media** in the detail view show a **diagnostic overlay** (icon, list of possible causes, file path)
+- [FIX] The detail diagnostic no longer triggers for healthy photos (only real load failures show the overlay)
+- [ADD] Map markers are now **theme-colored CSS pins** (accent color) instead of the default Leaflet blue icon — no external icon images, much lighter with hundreds of markers
+
+### Settings
+- [ADD] "Date separators" toggle in Display: enable or disable the month/year separators and the year marks in the grid
+
+### General
+- [CHANGE] The Journal & Crédit dialog is redesigned: hero card (logo, tagline, sponsor link), Changelog ↔ Crédit tab switcher, and a full credits section (seamless scrolling marquee on desktop, two-column list on small screens)
+- [ADD] Changelog dates now follow the app language; versions are grouped by major line (v1.2.x, v1.1.x, …) and each version header stays pinned at the top of the list while reading it, until the next one scrolls in
+- [EDIT] Palette names are now translated (Midnight → Minuit, Forest → Forêt, …) across all 5 languages
+- [EDIT] Translations added across all 5 languages for the new setting and the missing-media diagnostic
+- [CHORE] Thumbnail cache version bumped (v2): stale or broken thumbnails regenerate on demand, and files that can't be rendered return a 404 instead of a placeholder logo
+
+## v1.2.1 — Folder Purge — 14 September 2026
+
+### Desktop
+- [FIX] Removing a folder in Settings now properly purges all its indexed photos, cached thumbnails and video cache from the library (`.photonic/`); the actual image/video files on disk are never touched
+
+### Settings
+- [CHANGE] Folder removal confirmation message now clarifies that files stay on disk while the folder and its indexed data are removed from the library
+
 ## v1.2.0 — Mobile Update — 14 September 2026
 
 ### Mobile (Capacitor / Android)
@@ -43,6 +76,8 @@
 - [ADD] Detail image preloading strategy: thumbnail placeholder shown first, then full-size decoded and swapped in without ghosting
 - [EDIT] New app icon and logo design (SVG-based, used for the window, favicon and installables)
 - [EDIT] Translations added across all 5 languages for all new features
+
+## v1.1.x
 
 ## v1.1.4 — Pocket — 07 September 2026
 
@@ -161,6 +196,8 @@
 - [ADD] "Confirm location overwrite" toggle in Settings > Application > General (stored in `localStorage`)
 - [CHORE] `piexif` added to dependencies for in-file GPS writing
 
+## v1.0.x
+
 ## v1.0.3 — Locale — 31 August 2026
 
 ### Photo detail view
@@ -230,6 +267,8 @@
 - [EDIT] Frontend refactored into modular files under `js/modules/` (one file per concern: grid, browse, map, detail, settings, events, i18n, …) sharing a single `window.PhotoApp` namespace (`P`) for state and `P.fn` for cross-module functions
 - [FIX] Fixed several "is not defined" runtime errors introduced by the modular split, where module code referenced bare global names instead of the `P.` namespaced state: `renderMetaBadges`, `folderBrowsePath`, `collectionBrowsePath`, `activeCameraBrowseId`, `detailPanX/Y`, `detailRotation`, `detailThumbVersion`, `detailIndex`, `currentPhotoIds`, `describeUpdateState`, `lastUpdateState` and `RELEASES_PAGE` — these now correctly read/write `P.*` / `P.fn.*`
 - [FIX] Settings > Application > General "Language" selector was broken (a button filled with `<option>` elements and a `change` handler that could not fire): it now opens a proper flag dropdown mirroring the header one, shows the current language as flag + name, and picks among the available translations
+
+## v0.2.x
 
 ## v0.2.9 — Kudos — 29 August 2026
 

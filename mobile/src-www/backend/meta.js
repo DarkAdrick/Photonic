@@ -736,8 +736,36 @@ self.ApiHandlers = self.ApiHandlers || {};
 
   // ── GET /api/sponsors ───────────────────────────────────────────────────
 
-  function getSponsors(db, url, body, match) {
-    return { sponsors: [], thanks: [], checked_at: null, error: null };
+  var sponsorsCache = null;
+
+  var DEFAULT_CREDITS = {
+    sponsors: [
+      { name: "The Phoenix Factory", reason: "Of course \u{1F917}", url: "https://thephoenixfactory.com/" }
+    ],
+    thanks: [
+      { name: "My Parents", reason: "For making my existence possible." }
+    ]
+  };
+
+  async function getSponsors(db, url, body, match) {
+    if (!sponsorsCache) {
+      sponsorsCache = { sponsors: [], thanks: [], checked_at: Date.now(), error: null };
+      try {
+        var res = await fetch("./credits.json");
+        if (res.ok) {
+          var data = JSON.parse(await res.text());
+          sponsorsCache.sponsors = (data && data.sponsors) || [];
+          sponsorsCache.thanks = (data && data.thanks) || [];
+        } else {
+          throw new Error("HTTP " + res.status);
+        }
+      } catch (e) {
+        sponsorsCache.sponsors = DEFAULT_CREDITS.sponsors.slice();
+        sponsorsCache.thanks = DEFAULT_CREDITS.thanks.slice();
+        sponsorsCache.error = String((e && e.message) || e);
+      }
+    }
+    return sponsorsCache;
   }
 
   // ── GET /api/update/status ──────────────────────────────────────────────

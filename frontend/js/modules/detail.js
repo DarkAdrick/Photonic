@@ -39,6 +39,7 @@
             P.fn.resetDetailZoom();
             P.detailImg.removeAttribute("src");
             P.detailImg.classList.remove("loading");
+            P.fn.hideDetailMissing();
             if (P.detailMap) { P.detailMap.remove(); P.detailMap = null; }
         }
     
@@ -75,7 +76,39 @@
                     P.fn.applyDetailZoom();
                 });
             };
+            preloader.onerror = () => {
+                if (P.detailCurrentPhotoId !== photoId) return;
+                showDetailMissing(false);
+            };
             preloader.src = rawUrl;
+        }
+
+        // ── Missing media overlay (image/video not readable) ────────────────
+        function showDetailMissing(isVideo) {
+            if (!P.detailMissing) return;
+            P.detailImg.classList.add("hidden");
+            if (P.detailVideo) P.detailVideo.classList.add("hidden");
+            if (P.detail360Viewer) P.detail360Viewer.classList.add("hidden");
+            const icon = document.createElement("i");
+            icon.id = "detail-missing-icon";
+            icon.setAttribute("data-lucide", isVideo ? "video-off" : "image-off");
+            icon.setAttribute("aria-hidden", "true");
+            if (P.detailMissingIcon && P.detailMissingIcon.parentNode) {
+                P.detailMissingIcon.replaceWith(icon);
+            }
+            P.detailMissingIcon = icon;
+            const d = P.detailCurrentPhotoData;
+            const path = d && d.path ? d.path : "";
+            if (P.detailMissingPath) {
+                P.detailMissingPath.textContent = path;
+                P.detailMissingPath.title = path;
+            }
+            P.detailMissing.classList.remove("hidden");
+            if (window.lucide && lucide.createIcons) lucide.createIcons({ root: P.detailMissing });
+        }
+
+        function hideDetailMissing() {
+            if (P.detailMissing) P.detailMissing.classList.add("hidden");
         }
 
         function preloadDetailImage(photoId) {
@@ -87,6 +120,7 @@
         async function loadDetail(photoId) {
             P.fn.destroy360Viewer();
             P.detailCurrentPhotoId = photoId;
+            hideDetailMissing();
             const data = await P.fn.api("GET", `/api/photos/${photoId}`);
             if (data.error) return;
             P.detailCurrentPhotoData = data;
@@ -146,6 +180,8 @@
                 if (P.detailFooterRight) P.detailFooterRight.classList.add("hidden");
             } else {
                 P.detail360Btn.classList.add("hidden");
+                P.detailImg.classList.remove("hidden");
+                if (P.detailVideo) P.detailVideo.classList.add("hidden");
             }
     
             lucide.createIcons();
@@ -183,7 +219,8 @@
                     P.detailMap = L.map("detail-map", { zoomControl: false, attributionControl: false }).setView([data.latitude, data.longitude], 13);
                     P.fn.buildTileLayer({ attributionControl: false }).addTo(P.detailMap);
                     P.fn.applyMapTileBackground(P.detailMap);
-                    L.marker([data.latitude, data.longitude]).addTo(P.detailMap);
+                    L.marker([data.latitude, data.longitude], { icon: P.fn.photoMarkerIcon("detail-pin") }).addTo(P.detailMap);
+                    if (window.lucide) lucide.createIcons();
                     setTimeout(() => P.detailMap.invalidateSize(), 100);
                 }, 50);
             } else {
@@ -315,6 +352,26 @@
         P.fn.navigateDetail = navigateDetail;
         P.fn.loadDetail = loadDetail;
         P.fn.formatDateTime = formatDateTime;
+        P.fn.showDetailMissing = showDetailMissing;
+        P.fn.hideDetailMissing = hideDetailMissing;
+
+        // Media failed to load in the detail view → show the diagnostic overlay.
+        // NOTE: do NOT listen to #detail-img "error" here — swapping its src from
+        // the placeholder to the raw image aborts the previous request and some
+        // browsers fire a spurious "error" for healthy photos. The per-photo
+        // preloader in setDetailImage (with its photoId guard) is the reliable
+        // signal; the video element is guarded below by matching its src.
+        if (P.detailVideo) {
+            P.detailVideo.addEventListener("error", () => {
+                if (P.detailCurrentPhotoId == null) return;
+                const d = P.detailCurrentPhotoData;
+                if (d && (P.fn.is360Photo(d) || P.fn.is360Video(d))) return;
+                if (!P.detailVideo.hasAttribute("src")) return;
+                const want = P.fn.detailVideoSrc(P.detailCurrentPhotoId, d);
+                if (P.detailVideo.getAttribute("src") !== want) return;
+                showDetailMissing(true);
+            });
+        }
 
         function initDetailLocationBtn() {
             const btn = document.getElementById("detail-set-location");

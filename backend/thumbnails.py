@@ -5,15 +5,13 @@ import contextlib
 from pathlib import Path
 from PIL import Image
 
-from backend.paths import CACHE_DIR, resource_path
+from backend.paths import CACHE_DIR
 
 SIZES = {
     "small":  (160, 160),
     "medium": (400, 400),
     "large":  (1024, 1024),
 }
-
-ICON_PATH = resource_path("icon.png")
 
 # Videos that failed frame extraction — never re-probed (avoids FFmpeg spam + CPU waste)
 _failed_videos = set()
@@ -56,7 +54,10 @@ def silence_ffmpeg():
 
 
 def _thumb_key(photo_path: str) -> str:
-    return hashlib.md5(photo_path.encode("utf-8")).hexdigest()
+    # "v2" invalidates every cached thumbnail from older builds (e.g. the old
+    # app-logo fallback written for unreadable videos). Broken media now 404s
+    # and the frontend renders its own "image-off"/"video-off" state.
+    return "v2-" + hashlib.md5(photo_path.encode("utf-8")).hexdigest()
 
 
 def get_thumb_path(photo_path: str, size: str) -> Path:
@@ -99,15 +100,13 @@ def generate_thumbnail(photo_path: str, size: str = "medium") -> Path:
             print(f"[thumb] video frame extract fail, using fallback: {e}")
 
         if img is None:
-            # Broken/unreadable video (e.g. missing moov atom): remember it
+            # Broken/unreadable video (e.g. missing moov atom): remember it and
+            # tell the frontend (404) so it renders a "video-off" placeholder.
             _failed_videos.add(photo_path)
-            # Fallback to project icon
-            fallback_path = ICON_PATH
-            if fallback_path.is_file():
-                try:
-                    img = Image.open(str(fallback_path))
-                except Exception:
-                    pass
+            try:
+                thumb_path.unlink()
+            except OSError:
+                pass
     else:
         try:
             img = Image.open(photo_path)

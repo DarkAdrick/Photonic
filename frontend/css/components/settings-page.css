@@ -178,7 +178,7 @@
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 5px;
+    padding: 10px;
     margin-bottom: 10px;
     transition: border-color 0.2s;
 }

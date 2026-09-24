@@ -28,8 +28,8 @@ def scan_folder(folder_path: str, progress_callback=None, should_cancel=None):
 
     # Remove photos (images and videos) that no longer exist on disk.
     # Videos are treated exactly like images: an existing row is kept and
-    # skipped, so re-scans stay fast. Missing thumbnails are regenerated
-    # afterwards by _start_scan / on demand by the thumbnail endpoint.
+    # skipped, so re-scans stay fast. Missing thumbnails are generated on
+    # demand by the thumbnail endpoint.
     from backend.thumbnails import delete_thumbnails
     esc = folder_path.replace("/", "\\").rstrip("\\").replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     existing = conn.execute(
